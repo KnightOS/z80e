@@ -8,8 +8,9 @@ typedef struct {
 } z80registers_t;
 
 typedef struct {
-    z80registers_t* registers;
+    z80registers_t* primary_registers;
     z80registers_t* shadow_registers;
+    uint8_t I, R;
 } z80cpu_t;
 
 z80cpu_t* z80cpu_init();

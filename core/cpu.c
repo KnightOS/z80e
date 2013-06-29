@@ -8,8 +8,9 @@ z80cpu_t* z80cpu_init() {
     
     // Allocate memory for the registers.
     // calloc automatically zero-initialises. 
-    cpu->registers = calloc(1, sizeof(z80registers_t));
+    cpu->primary_registers = calloc(1, sizeof(z80registers_t));
     cpu->shadow_registers = calloc(1, sizeof(z80registers_t));
+    cpu->I = cpu->R = 0;
 
     return cpu;
 }
