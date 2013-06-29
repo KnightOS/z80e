@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include <string.h> /* memset */
+#include <stdlib.h> /* malloc, calloc */
 
 z80cpu_t* z80cpu_init() {
     // Allocate memory for the CPU struct
