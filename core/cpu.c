@@ -1,8 +1,8 @@
 #include "cpu.h"
-#include <stdlib.h>
+#include <string.h> /* memset */
 
 z80cpu_t z80cpu_init() {
     z80cpu_t cpu;
-    memset(&t, 0, sizeof t);
+    memset(&cpu, 0, sizeof(z80cpu_t));
     return cpu;
 }
