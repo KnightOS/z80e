@@ -8,10 +8,10 @@ typedef struct {
 } z80registers_t;
 
 typedef struct {
-    z80registers_t registers;
-    z80registers_t shadow_registers;
+    z80registers_t* registers;
+    z80registers_t* shadow_registers;
 } z80cpu_t;
 
-z80cpu_t z80cpu_init();
+z80cpu_t* z80cpu_init();
 
 #endif
