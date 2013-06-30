@@ -4,9 +4,13 @@
 #include <stdint.h>
 
 typedef struct {
+    uint16_t ram_pages;
+    uint16_t flash_pages;
+} ti_mmu_settings_t;
+
+typedef struct {
+    ti_mmu_settings_t settings;
     uint8_t* memory_banks;
-    uint16_t ram_length;
-    uint16_t flash_length;
     uint8_t* ram;
     uint8_t* flash;
 } ti_mmu_t;
