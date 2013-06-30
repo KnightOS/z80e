@@ -19,5 +19,4 @@ uint8_t ti_read_memory(z80cpu_t* cpu, uint16_t address) {
 
 void ti_write_memory(z80cpu_t* cpu, uint16_t address, uint8_t value) {
     // TODO
-    return 0;
 }

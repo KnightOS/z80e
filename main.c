@@ -1,5 +1,5 @@
 #include "main.h"
-#include "asic.c"
+#include "asic.h"
 #include <stdlib.h>
 #include <stdio.h>
 
