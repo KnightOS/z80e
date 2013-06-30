@@ -8,13 +8,13 @@ typedef struct {
 } z80registers_t;
 
 typedef struct {
-    z80registers_t* primary_registers;
-    z80registers_t* shadow_registers;
+    z80registers_t primary_registers;
+    z80registers_t shadow_registers;
     uint8_t I, R;
 } z80state_t;
 
 typedef struct {
-    z80state_t* state;
+    z80state_t state;
     void* memory;
     uint8_t (*read_byte)(void*, uint16_t);
     void (*write_byte)(void*, uint16_t, uint8_t);
