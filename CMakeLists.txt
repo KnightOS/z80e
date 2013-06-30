@@ -5,6 +5,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
 
 add_executable(z80e
     core/cpu.c
+    core/mmu.c
     ti/asic.c
     ti/memory.c
     main.c

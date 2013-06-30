@@ -1,23 +1,17 @@
 #ifndef MEMORY_H
 #define MEMORY_H
-#include "cpu.h"
+#include "mmu.h"
 #include <stdint.h>
 
-typedef struct {
-    uint16_t ram_pages;
-    uint16_t flash_pages;
-} ti_mmu_settings_t;
+/* A concrete implementation of an MMU. */
 
-typedef struct {
-    ti_mmu_settings_t settings;
-    uint8_t* memory_banks;
-    uint8_t* ram;
-    uint8_t* flash;
-} ti_mmu_t;
+/* Opaque type reference for this MMU type.  The actual declaration of
+ * this structure is inside the source file.  Clients should never see (or touch)
+ * the implementation directly.  This is not a void* so that type safety can be
+ * enforced. */
+typedef struct __ti_mmu_s* ti_mmu_ref;
 
-ti_mmu_t* ti_mmu_init();
-void ti_mmu_free(ti_mmu_t* mmu);
-uint8_t ti_read_byte(void* memory, uint16_t address);
-void ti_write_byte(void* memory, uint16_t address, uint8_t value);
+ti_mmu_ref
+ti_mmu_create(/* TI MMU specific parameters */);
 
 #endif

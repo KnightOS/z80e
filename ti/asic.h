@@ -6,7 +6,7 @@
 
 typedef struct {
     z80cpu_t* cpu;
-    ti_mmu_t* mmu;
+    ti_mmu_ref mmu;
 } asic_t;
 
 asic_t* asic_init();
