@@ -1,50 +1,55 @@
 # z80e
 
-A z80 emulator designed to run unit tests on the [KnightOS kernel](https://github.com/KnightSoft/kernel).
-This is very much a work in progress and doesn't work well at the moment. I will likey also extend this to
-be a general-purpose developer-oriented z80 emulator for
-[various](https://github.com/KnightSoft/KnightOS#supported-devices) Texas Instruments calculators.
+A z80 emulator designed for debugging the [KnightOS kernel](https://github.com/KnightSoft/kernel). It emulates Texas Instruments calculators and is not recommended for general-purpose z80 debugging.
 
 ## Usage
 
     z80e [flags...] path/to/kernel.rom
 
-With no flags, this will just spin up the emulator and begin running. The following flags are available:
+Without any flags, the emulator will immediately begin running the kernel.
 
-* **--wait**: Don't start emulating immediately, and instead go directly into the debugger.
-* **--tests [numbers...]**: Run the listed tests (in hex, comma delimited). Example: `01,4B,7C`. You may
-  also specify `--tests all` to discover and run all unit tests. `--tests list` will find all tests in the
-  provided ROM dump and print the test numbers.
-* **--breakpoints [addresses...]**: Sets breakpoints at the specified addresses (in hex, comma delimited).
-* **--symbols [file]**: Imports a [sass](https://github.com/KnightSoft/sass) symbol file, whose symbols
-  may be used in place of addresses when working with the debugger (or --breakpoints).
+The following flags are available:
+
+* **--wait**: Goes directly to the debugger instead of immediately running the kernel.
+* **--breakpoints [list...]**: Accepts a comma-delimited list of breakpoints in hexadecimal.
+* **--discover**: Finds and lists all unit tests found in the kernel.
+* **--tests [list...]**: Accepts a comma-delimited list of test numbers in hexadecimal, or `all`.
 
 ## Unit Tests
 
-When run with --test, z80e will run one or more unit tests, print the results, and exits with a status code
-indicating the number of failing tests. The emulation is slightly altered to allow for testing, by changing
-a number of hardware ports for use interacting with the emulator:
+When running unit tests, z80e modifies emulation slightly.
 
-* Port 0x15 (usually ASIC version on TI calculators) reads the following value:
-  * 0xFF when executing a single test
-  * 0xFE when requesting all tests (see below)
-* Port 0xFF reads the low word of the test number to execure
-* Port 0xFE reads the high word of the test number to execure
-* Write to port 0xFD to indicate test status:
-  * 0: Test not found
-  * 1: Test passed
-  * 2: Test failed
-  * 3: Test inconclusive
-* Write to port 0xFC to write to a log. The value written changes the behavior:
-  * 0: Print the ASCII text at (HL) to stdout
-  * 1: Print the value of A to stdout
-  * 1: Print the value of A to stdout
-  * 1: Print the value of A to stdout
-  * 1: Print the value of A to stdout
+* Port 0x15 reads 0xFF
+* Port 0xFF reads:
+  * 0xFF in test discovery mode
+  * The high byte of the test number to run
+* Port 0xFE reads:
+  * 0xFF in test discovery mode
+  * The low byte of the test number to run
+* Write test results to port 0xFD:
+  * 0: Test number not found
+  * 1: Passed
+  * 2: Failed
+  * 3: Inconclusive
+* Write debugging information to port 0xFC:
+  * 0: Writes ASCII string at (HL) to stdout
+  * 1: Writes registers to stdout
 
-### Requesting all tests
+z80e will reset the machine for each test. In test discovery mode, write each available test number to port 0xFF/0xFE (high/low), then 0xFFFF when you are done. Each test (and discovery) has a maximum of 100000 cycles to run. Additionally, cycles are unbounded in test mode, and CPU timing may be inaccurate.
 
-The emulator will ask the emulated system for a list of available unit test numbers before running all
-tests.
+## Debugging
 
-## Debugger
+When a breakpoint is hit (or the device starts in --wait), z80e enters the debugger. The following commands are available:
+
+* **dasm address**: Print a disassembly, starting from address. If address is omitted, PC - 8 will be used.
+* **dump address**: Dumps a small amount of memory starting from address. If address is omitted, HL will be used.
+* **listr**: Lists all registers and their current values.
+* **breakpoint [add|remove] address**: Adds or removes a breakpoint. If address is omitted, PC will be used.
+* **step**: Execute one instruction, then return to the debugger.
+* **stepover**: Set a temporary breakpoint on the next instruction, then run to this breakpoint.
+* **continue**: Exit the debugger and resume execution.
+* **reset**: Reset the CPU.
+
+You may prefix any of these with `*` to run them whenever the debugger is triggered. This may be used, for example, to automatically show a disassembly after each step. Use `clearauto` to get rid of these. You may also add any of these in `~/.z80rc`, one per line.
+
+You may use a register in place of `address`. For example: `dasm HL` to disassemble starting from HL.
