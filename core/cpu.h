@@ -1,6 +1,7 @@
 #ifndef CPU_H
 #define CPU_H
 #include <stdint.h>
+#include "mmu.h"
 
 typedef struct {
     uint8_t A, F, H, L, B, C, D, E;
@@ -15,9 +16,7 @@ typedef struct {
 
 typedef struct {
     z80state_t state;
-    void* memory;
-    uint8_t (*read_byte)(void*, uint16_t);
-    void (*write_byte)(void*, uint16_t, uint8_t);
+    mmu_ref memory;
 } z80cpu_t;
 
 z80cpu_t* z80cpu_init();
