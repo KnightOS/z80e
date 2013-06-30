@@ -15,17 +15,14 @@ typedef struct {
 
 typedef struct {
     z80state_t* state;
+    void* memory;
+    uint8_t (*read_byte)(void*, uint16_t);
+    void (*write_byte)(void*, uint16_t, uint8_t);
 } z80cpu_t;
-
-typedef uint8_t (*mem_read_function)(z80cpu_t*, uint16_t); // cpu, address
-typedef void (*mem_write_function)(z80cpu_t*, uint16_t, uint8_t); // cpu, address, value
-
-typedef struct {
-    mem_read_function read_memory;
-    mem_write_function write_memory;
-} z80mmu_t;
 
 z80cpu_t* z80cpu_init();
 void z80cpu_free(z80cpu_t* cpu);
+uint8_t z80cpu_read_byte(z80cpu_t* cpu, uint16_t address);
+void z80cpu_write_byte(z80cpu_t* cpu, uint16_t address, uint8_t value);
 
 #endif

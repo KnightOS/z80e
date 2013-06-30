@@ -12,11 +12,11 @@ void ti_mmu_free(ti_mmu_t* mmu) {
     free(mmu);
 }
 
-uint8_t ti_read_memory(z80cpu_t* cpu, uint16_t address) {
+uint8_t ti_read_byte(void* memory, uint16_t address) {
     // TODO
-    return 0;
+    return 8;
 }
 
-void ti_write_memory(z80cpu_t* cpu, uint16_t address, uint8_t value) {
+void ti_write_byte(void* memory, uint16_t address, uint8_t value) {
     // TODO
 }
