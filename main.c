@@ -1,4 +1,3 @@
-#include "main.h"
 #include "asic.h"
 #include <stdlib.h>
 #include <stdio.h>
