@@ -21,7 +21,3 @@ void asic_free(asic_t* device) {
     ti_mmu_free(device->mmu);
     free(device);
 }
-
-uint8_t asic_test_device_in(void* device) {
-    return 0x42;
-}
