@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 ti_mmu_t* ti_mmu_init(ti_device_type device_type) {
     ti_mmu_t* mmu = malloc(sizeof(ti_mmu_t));
@@ -25,7 +26,9 @@ ti_mmu_t* ti_mmu_init(ti_device_type device_type) {
             break;
     }
     mmu->ram = malloc(mmu->settings->ram_pages * 0x4000);
+    memset(mmu->ram, 0, mmu->settings->ram_pages * 0x4000);
     mmu->flash = malloc(mmu->settings->flash_pages * 0x4000);
+    memset(mmu->flash, 0xFF, mmu->settings->flash_pages * 0x4000);
     mmu->flash_unlocked = 0;
     // Default bank mappings
     mmu->banks[0].page = 0; mmu->banks[0].flash = 1;
@@ -45,21 +48,23 @@ void ti_mmu_free(ti_mmu_t* mmu) {
 uint8_t ti_read_byte(void* memory, uint16_t address) {
     ti_mmu_t* mmu = (ti_mmu_t*)memory;
     ti_mmu_bank_state_t bank = mmu->banks[address / 0x4000];
-    address %= 0x4000;
-    address *= bank.page;
+    uint32_t mapped_address = address;
+    mapped_address %= 0x4000;
+    mapped_address += bank.page * 0x4000;
     if (bank.flash)
-        return mmu->flash[address];
+        return mmu->flash[mapped_address];
     else
-        return mmu->ram[address];
+        return mmu->ram[mapped_address];
 }
 
 void ti_write_byte(void* memory, uint16_t address, uint8_t value) {
     ti_mmu_t* mmu = (ti_mmu_t*)memory;
     ti_mmu_bank_state_t bank = mmu->banks[address / 0x4000];
-    address %= 0x4000;
-    address *= bank.page;
+    uint32_t mapped_address = address;
+    mapped_address %= 0x4000;
+    mapped_address += bank.page * 0x4000;
     if (!bank.flash)
-        mmu->ram[address] = value;
+        mmu->ram[mapped_address] = value;
     else {
         // TODO: Flash write operations
     }

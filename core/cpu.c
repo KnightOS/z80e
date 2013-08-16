@@ -6,6 +6,7 @@
 z80cpu_t* z80cpu_init() {
     z80cpu_t* cpu = malloc(sizeof(z80cpu_t));
     cpu->state = malloc(sizeof(z80state_t));
+    memset(cpu->state, 0, sizeof(z80state_t));
     int i;
     for (i = 0; i < sizeof(cpu->devices) / sizeof(z80hwdevice_t); i++) {
         cpu->devices[i].device = NULL;
@@ -38,4 +39,19 @@ void z80cpu_hw_out(z80cpu_t* cpu, uint8_t port, uint8_t value) {
     if (device.device == NULL)
         return;
     return device.write_out(device.device, value);
+}
+
+int16_t z80cpu_execute(z80cpu_t* cpu, int16_t cycles) {
+    while (cycles > 0) {
+        uint8_t instruction = z80cpu_read_byte(cpu, cpu->state->PC++);
+        switch (instruction) {
+            case 0x00: // nop
+                cycles -= 4;
+                break;
+            default:
+                // TODO: What is the correct way to emulate an unrecognized instruction?
+                cycles--;
+                break;
+        }
+    }
 }
