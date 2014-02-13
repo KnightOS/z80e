@@ -17,6 +17,6 @@ uint8_t cpu_read_byte(z80cpu_t* cpu, uint16_t address);
 void cpu_write_byte(z80cpu_t* cpu, uint16_t address, uint8_t value);
 uint8_t cpu_hw_in(z80cpu_t* cpu, uint8_t port);
 void cpu_hw_out(z80cpu_t* cpu, uint8_t port, uint8_t value);
-int16_t cpu_execute(z80cpu_t* cpu, int16_t cycles);
+int cpu_execute(z80cpu_t* cpu, int cycles);
 
 #endif

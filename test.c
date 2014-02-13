@@ -10,7 +10,8 @@ int test_ADD_A_r(asic_t *device) {
     device->cpu->registers.A = 0x10;
     device->cpu->registers.B = 0x20;
     flash(device, test);
-    cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 1);
+    printf("%d", cycles);
     if (device->cpu->registers.A != 0x30 ||
         device->cpu->registers.B != 0x20 ||
         device->cpu->registers.flags.Z != 0 ||

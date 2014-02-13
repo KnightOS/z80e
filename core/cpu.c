@@ -39,80 +39,81 @@ void cpu_write_byte(z80cpu_t* cpu, uint16_t address, uint8_t value) {
     cpu->write_byte(cpu->memory, address, value);
 }
 
-uint8_t read_r(int i, struct ExecutionContext context) {
+uint8_t read_r(int i, struct ExecutionContext *context) {
     switch (i) {
-    case 0: return context.cpu->registers.B;
-    case 1: return context.cpu->registers.C;
-    case 2: return context.cpu->registers.D;
-    case 3: return context.cpu->registers.E;
-    case 4: return context.cpu->registers.H;
-    case 5: return context.cpu->registers.L;
+    case 0: return context->cpu->registers.B;
+    case 1: return context->cpu->registers.C;
+    case 2: return context->cpu->registers.D;
+    case 3: return context->cpu->registers.E;
+    case 4: return context->cpu->registers.H;
+    case 5: return context->cpu->registers.L;
     case 6:
-        context.cycles += 3;
-        return cpu_read_byte(context.cpu, context.cpu->registers.HL);
-    case 7: return context.cpu->registers.A;
+        context->cycles += 3;
+        return cpu_read_byte(context->cpu, context->cpu->registers.HL);
+    case 7: return context->cpu->registers.A;
     }
 }
 
-void write_r(int i, uint8_t value, struct ExecutionContext context) {
+void write_r(int i, uint8_t value, struct ExecutionContext *context) {
     switch (i) {
-    case 0: context.cpu->registers.B = value; break;
-    case 1: context.cpu->registers.C = value; break;
-    case 2: context.cpu->registers.D = value; break;
-    case 3: context.cpu->registers.E = value; break;
-    case 4: context.cpu->registers.H = value; break;
-    case 5: context.cpu->registers.L = value; break;
+    case 0: context->cpu->registers.B = value; break;
+    case 1: context->cpu->registers.C = value; break;
+    case 2: context->cpu->registers.D = value; break;
+    case 3: context->cpu->registers.E = value; break;
+    case 4: context->cpu->registers.H = value; break;
+    case 5: context->cpu->registers.L = value; break;
     case 6:
-        context.cycles += 3;
-        cpu_write_byte(context.cpu, context.cpu->registers.HL, value);
+        context->cycles += 3;
+        cpu_write_byte(context->cpu, context->cpu->registers.HL, value);
         break;
-    case 7: context.cpu->registers.A = value; break;
+    case 7: context->cpu->registers.A = value; break;
     }
 }
 
-uint16_t read_rp(int i, struct ExecutionContext context) {
+uint16_t read_rp(int i, struct ExecutionContext *context) {
     switch (i) {
-    case 0: return context.cpu->registers.BC;
-    case 1: return context.cpu->registers.DE;
-    case 2: return context.cpu->registers.HL;
-    case 3: return context.cpu->registers.SP;
+    case 0: return context->cpu->registers.BC;
+    case 1: return context->cpu->registers.DE;
+    case 2: return context->cpu->registers.HL;
+    case 3: return context->cpu->registers.SP;
     }
 }
 
-void write_rp(int i, uint16_t value, struct ExecutionContext context) {
+void write_rp(int i, uint16_t value, struct ExecutionContext *context) {
     switch (i) {
-    case 0: context.cpu->registers.BC = value; break;
-    case 1: context.cpu->registers.DE = value; break;
-    case 2: context.cpu->registers.HL = value; break;
-    case 3: context.cpu->registers.SP = value; break;
+    case 0: context->cpu->registers.BC = value; break;
+    case 1: context->cpu->registers.DE = value; break;
+    case 2: context->cpu->registers.HL = value; break;
+    case 3: context->cpu->registers.SP = value; break;
     }
 }
 
-uint16_t read_rp2(int i, struct ExecutionContext context) {
+uint16_t read_rp2(int i, struct ExecutionContext *context) {
     switch (i) {
-    case 0: return context.cpu->registers.BC;
-    case 1: return context.cpu->registers.DE;
-    case 2: return context.cpu->registers.HL;
-    case 3: return context.cpu->registers.AF;
+    case 0: return context->cpu->registers.BC;
+    case 1: return context->cpu->registers.DE;
+    case 2: return context->cpu->registers.HL;
+    case 3: return context->cpu->registers.AF;
     }
 }
 
-void write_rp2(int i, uint16_t value, struct ExecutionContext context) {
+void write_rp2(int i, uint16_t value, struct ExecutionContext *context) {
     switch (i) {
-    case 0: context.cpu->registers.BC = value; break;
-    case 1: context.cpu->registers.DE = value; break;
-    case 2: context.cpu->registers.HL = value; break;
-    case 3: context.cpu->registers.AF = value; break;
+    case 0: context->cpu->registers.BC = value; break;
+    case 1: context->cpu->registers.DE = value; break;
+    case 2: context->cpu->registers.HL = value; break;
+    case 3: context->cpu->registers.AF = value; break;
     }
 }
 
-void execute_alu(int i, uint8_t v, struct ExecutionContext context) {
+void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
     uint8_t old;
+    context->cycles += 4;
     switch (i) {
     case 0: // ADD A, v
-        old = context.cpu->registers.A;
-        context.cpu->registers.A += v;
-        updateFlags(&context.cpu->registers, old, context.cpu->registers.A);
+        old = context->cpu->registers.A;
+        context->cpu->registers.A += v;
+        updateFlags(&context->cpu->registers, old, context->cpu->registers.A);
         break;
     case 1: // ADC A, v
         break;
@@ -131,7 +132,7 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext context) {
     }
 }
 
-int16_t cpu_execute(z80cpu_t* cpu, int16_t cycles) {
+int cpu_execute(z80cpu_t* cpu, int cycles) {
     struct ExecutionContext context;
     context.cpu = cpu;
     while (cycles > 0) {
@@ -239,7 +240,7 @@ int16_t cpu_execute(z80cpu_t* cpu, int16_t cycles) {
             }
             break;
         case 2: // ALU[y] r[z]
-            execute_alu(context.y, read_r(context.z, context), context);
+            execute_alu(context.y, read_r(context.z, &context), &context);
             break;
         case 3:
             switch (context.z) {
@@ -318,4 +319,5 @@ int16_t cpu_execute(z80cpu_t* cpu, int16_t cycles) {
             cycles--; // Temporary: prevents infinite loops with unimplemented opcodes
         }
     }
+    return cycles;
 }
