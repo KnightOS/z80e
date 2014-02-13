@@ -8,7 +8,7 @@ uint8_t asic_test_device_in(void* device);
 
 asic_t* asic_init(ti_device_type type) {
     asic_t* device = malloc(sizeof(asic_t));
-    device->cpu = z80cpu_init();
+    device->cpu = cpu_init();
     device->mmu = ti_mmu_init(type);
     device->cpu->memory = (void*)device->mmu;
     device->cpu->read_byte = ti_read_byte;
@@ -17,7 +17,7 @@ asic_t* asic_init(ti_device_type type) {
 }
 
 void asic_free(asic_t* device) {
-    z80cpu_free(device->cpu);
+    cpu_free(device->cpu);
     ti_mmu_free(device->mmu);
     free(device);
 }

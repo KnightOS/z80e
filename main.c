@@ -4,8 +4,8 @@
 
 int main(int argc, char** argv) {
     asic_t* device = asic_init(TI84pSE);
-    device->mmu->flash[0] = 0x00;
-    z80cpu_execute(device->cpu, 10);
+    device->mmu->flash[0] = 0x80;
+    cpu_execute(device->cpu, 1);
     asic_free(device);
     return 0;
 }
