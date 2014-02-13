@@ -106,9 +106,13 @@ void write_rp2(int i, uint16_t value, struct ExecutionContext context) {
     }
 }
 
-void execute_alu(int i, uint8_t value, struct ExecutionContext context) {
+void execute_alu(int i, uint8_t v, struct ExecutionContext context) {
+    uint8_t old;
     switch (i) {
     case 0: // ADD A, v
+        old = context.cpu->registers.A;
+        context.cpu->registers.A += v;
+        updateFlags(&context.cpu->registers, old, context.cpu->registers.A);
         break;
     case 1: // ADC A, v
         break;
@@ -140,8 +144,11 @@ int16_t cpu_execute(z80cpu_t* cpu, int16_t cycles) {
             case 0:
                 switch (context.y) {
                 case 0: // NOP
+                    context.cycles += 4;
                     break;
                 case 1: // EX AF, AF'
+                    context.cycles += 4;
+                    exAFAF(&cpu->registers);
                     break;
                 case 2: // DJNZ d
                     break;
@@ -231,8 +238,8 @@ int16_t cpu_execute(z80cpu_t* cpu, int16_t cycles) {
             } else { // LD r[y], r[z]
             }
             break;
-        case 2:
-            // ALU[y] r[z]
+        case 2: // ALU[y] r[z]
+            execute_alu(context.y, read_r(context.z, context), context);
             break;
         case 3:
             switch (context.z) {

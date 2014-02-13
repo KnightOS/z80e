@@ -3,6 +3,14 @@ project(z80e)
 set(CMAKE_CXX_FLAGS "-g")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
 
+add_executable(test
+    core/cpu.c
+    core/registers.c
+    ti/asic.c
+    ti/memory.c
+    test.c
+)
+
 add_executable(z80e
     core/cpu.c
     core/registers.c
