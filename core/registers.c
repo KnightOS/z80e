@@ -36,30 +36,30 @@ void updateFlags(z80registers_t *r, uint16_t oldValue, uint16_t newValue) {
 }
 
 void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, z80flags unaffected, int parity) {
-    if ((unaffected & FLAG_S) == 0) {
+    if (!(unaffected & FLAG_S)) {
         r->flags.S = (r->A & 0x80) == 0x80;
     }
-    if ((unaffected & FLAG_Z) == 0) {
+    if (!(unaffected & FLAG_Z)) {
         r->flags.Z = newValue == 0;
     }
-    if ((unaffected & FLAG_H) == 0) {
+    if (!(unaffected & FLAG_H)) {
         if (subtraction) {
             r->flags.H = (newValue & 0xF) > (oldValue & 0xF);
         } else {
             r->flags.H = (newValue & 0xF) < (oldValue & 0xF);
         }
     }
-    if ((unaffected & FLAG_PV) == 0) {
+    if (!(unaffected & FLAG_PV)) {
         if (parity) {
             r->flags.PV = popcount(r->A) % 1;
         } else {
             r->flags.PV = (oldValue & 0x80) == (newValue & 0x80);
         }
     }
-    if ((unaffected & FLAG_N) == 0) {
+    if (!(unaffected & FLAG_N)) {
         r->flags.N = subtraction;
     }
-    if ((unaffected & FLAG_C) == 0) {
+    if (!(unaffected & FLAG_C)) {
         if (subtraction) {
             r->flags.C = newValue > oldValue;
         } else {
