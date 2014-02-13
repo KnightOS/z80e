@@ -39,6 +39,18 @@ void cpu_write_byte(z80cpu_t* cpu, uint16_t address, uint8_t value) {
     cpu->write_byte(cpu->memory, address, value);
 }
 
+void push(z80cpu_t* cpu, uint16_t value) {
+    cpu_write_byte(cpu, --cpu->registers.SP, value & 0xFF);
+    cpu_write_byte(cpu, --cpu->registers.SP, value >> 8);
+}
+
+uint16_t pop(z80cpu_t* cpu) {
+    uint16_t a;
+    a |= cpu_read_byte(cpu, cpu->registers.SP++) << 8;
+    a |= cpu_read_byte(cpu, cpu->registers.SP++);
+    return a;
+}
+
 uint8_t read_r(int i, struct ExecutionContext *context) {
     switch (i) {
     case 0: return context->cpu->registers.B;
@@ -309,6 +321,9 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
             case 6: // alu[y] n
                 break;
             case 7: // RST y*8
+                context.cycles += 11;
+                push(context.cpu, context.cpu->registers.PC + 2);
+                context.cpu->registers.PC = context.y * 8;
                 break;
             }
             break;

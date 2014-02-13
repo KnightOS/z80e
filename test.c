@@ -5,7 +5,8 @@
 
 void flash(asic_t *device, uint8_t *data);
 
-int test_ADD_A_r(asic_t *device) {
+int test_ADD_A_r() {
+    asic_t *device = asic_init(TI83p);
     uint8_t test[] = { 0x80 };
     device->cpu->registers.A = 0x10;
     device->cpu->registers.B = 0x20;
@@ -16,19 +17,41 @@ int test_ADD_A_r(asic_t *device) {
         device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.flags.C != 0 ||
         cycles != -3) {
+        asic_free(device);
         return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_RST() {
+    uint8_t i;
+    const uint8_t opcodes[] = { 0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF };
+    const uint8_t results[] = { 0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38 };
+    for (i = 0; i < 8; i++) {
+        asic_t *device = asic_init(TI83p);
+        uint8_t test[] = { opcodes[i] };
+        flash(device, test);
+        int cycles = cpu_execute(device->cpu, 1);
+        if (device->cpu->registers.PC != results[i] ||
+            cycles != -10) {
+            asic_free(device);
+            return 1;
+        }
+        asic_free(device);
     }
     return 0;
 }
 
-typedef int (*test_function_t)(asic_t *device);
+typedef int (*test_function_t)();
 typedef struct {
     test_function_t execute;
     char* name;
 } test_t;
 
 const test_t tests[] = {
-    { test_ADD_A_r, "ADD A, r" }
+    { test_ADD_A_r, "ADD A, r" },
+    { test_RST, "RST" }
 };
 
 int main(int argc, char **argv) {
@@ -39,9 +62,7 @@ int main(int argc, char **argv) {
         printf("Testing %s ", tests[i].name);
         int length = min_width - strlen(tests[i].name);
         while (length--) printf(".");
-        asic_t *device = asic_init(TI83p);
-        int result = tests[i].execute(device);
-        asic_free(device);
+        int result = tests[i].execute();
         if (result > 0) {
             printf("FAIL\n");
             failed++;
