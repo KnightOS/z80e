@@ -1,6 +1,8 @@
 int test_ADD_A_r() {
-    asic_t *device = asic_init(TI83p);
     uint8_t test[] = { 0x80 }; // ADD A, B
+    uint8_t test_hl[] = { 0x86 }; // ADD A, (HL)
+
+    asic_t *device = asic_init(TI83p);
     device->cpu->registers.A = 0x10;
     device->cpu->registers.B = 0x20;
     flash(device, test);
@@ -36,6 +38,17 @@ int test_ADD_A_r() {
         device->cpu->registers.flags.Z != 1 ||
         device->cpu->registers.flags.C != 1 ||
         cycles != -3) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    device = asic_init(TI83p);
+    device->cpu->registers.A = 0x10;
+    device->cpu->registers.HL = 0x1000;
+    mmu_force_write(device->mmu, 0x1000, 0x20);
+    flash(device, test_hl);
+    cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.A != 0x30 || cycles != -6) {
         asic_free(device);
         return 1;
     }

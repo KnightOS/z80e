@@ -38,15 +38,15 @@ ti_mmu_t* ti_mmu_init(ti_device_type device_type) {
     return mmu;
 }
 
-void ti_mmu_free(ti_mmu_t* mmu) {
+void ti_mmu_free(ti_mmu_t *mmu) {
     free(mmu->ram);
     free(mmu->flash);
     free(mmu->settings);
     free(mmu);
 }
 
-uint8_t ti_read_byte(void* memory, uint16_t address) {
-    ti_mmu_t* mmu = (ti_mmu_t*)memory;
+uint8_t ti_read_byte(void *memory, uint16_t address) {
+    ti_mmu_t *mmu = (ti_mmu_t*)memory;
     ti_mmu_bank_state_t bank = mmu->banks[address / 0x4000];
     uint32_t mapped_address = address;
     mapped_address %= 0x4000;
@@ -57,8 +57,8 @@ uint8_t ti_read_byte(void* memory, uint16_t address) {
         return mmu->ram[mapped_address];
 }
 
-void ti_write_byte(void* memory, uint16_t address, uint8_t value) {
-    ti_mmu_t* mmu = (ti_mmu_t*)memory;
+void ti_write_byte(void *memory, uint16_t address, uint8_t value) {
+    ti_mmu_t *mmu = (ti_mmu_t*)memory;
     ti_mmu_bank_state_t bank = mmu->banks[address / 0x4000];
     uint32_t mapped_address = address;
     mapped_address %= 0x4000;
@@ -67,5 +67,18 @@ void ti_write_byte(void* memory, uint16_t address, uint8_t value) {
         mmu->ram[mapped_address] = value;
     else {
         // TODO: Flash write operations
+    }
+}
+
+void mmu_force_write(void *memory, uint16_t address, uint8_t value) {
+    ti_mmu_t *mmu = (ti_mmu_t*)memory;
+    ti_mmu_bank_state_t bank = mmu->banks[address / 0x4000];
+    uint32_t mapped_address = address;
+    mapped_address %= 0x4000;
+    mapped_address += bank.page * 0x4000;
+    if (!bank.flash)
+        mmu->ram[mapped_address] = value;
+    else {
+        mmu->flash[mapped_address] = value;
     }
 }
