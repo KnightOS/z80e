@@ -75,5 +75,6 @@ int test_JR_cc() {
         asic_free(device);
         return 2;
     }
+    asic_free(device);
     return 0;
 }
