@@ -121,25 +121,50 @@ void write_rp2(int i, uint16_t value, struct ExecutionContext *context) {
 void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
     uint8_t old;
     context->cycles += 4;
+    z80registers_t *r = &context->cpu->registers;
     switch (i) {
     case 0: // ADD A, v
-        old = context->cpu->registers.A;
-        context->cpu->registers.A += v;
-        updateFlags(&context->cpu->registers, old, context->cpu->registers.A);
+        old = r->A;
+        r->A += v;
+        updateFlags(r, old, r->A);
         break;
     case 1: // ADC A, v
+        old = r->A;
+        r->A += v + r->flags.C;
+        updateFlags(r, old, r->A);
         break;
     case 2: // SUB v
+        old = r->A;
+        r->A -= v;
+        updateFlags_subtraction(r, old, r->A);
         break;
     case 3: // SBC v
+        old = r->A;
+        r->A -= v + r->flags.C;
+        updateFlags_subtraction(r, old, r->A);
         break;
     case 4: // AND v
+        old = r->A;
+        r->A &= v;
+        updateFlags_parity(r, old, r->A);
+        r->flags.C = r->flags.N = 0;
+        r->flags.H = 1;
         break;
     case 5: // XOR v
+        old = r->A;
+        r->A ^= v;
+        updateFlags_parity(r, old, r->A);
+        r->flags.C = r->flags.N = r->flags.H = 0;
         break;
     case 6: // OR v
+        old = r->A;
+        r->A |= v;
+        updateFlags_parity(r, old, r->A);
+        r->flags.C = r->flags.N = r->flags.H = 0;
         break;
     case 7: // CP v
+        old = r->A - v;
+        updateFlags_subtraction(r, r->A, old);
         break;
     }
 }

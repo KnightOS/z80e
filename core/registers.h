@@ -63,6 +63,8 @@ void exAFAF(z80registers_t *r);
 void exHLDE(z80registers_t *r);
 void exx(z80registers_t *r);
 void updateFlags(z80registers_t *r, uint16_t oldValue, uint16_t newValue);
-void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, z80flags unaffected, int parity);
+void updateFlags_subtraction(z80registers_t *r, uint16_t oldValue, uint16_t newValue);
+void updateFlags_parity(z80registers_t *r, uint16_t oldValue, uint16_t newValue);
+void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, int parity, z80flags unaffected);
 
 #endif

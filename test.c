@@ -5,43 +5,8 @@
 
 void flash(asic_t *device, uint8_t *data);
 
-int test_ADD_A_r() {
-    asic_t *device = asic_init(TI83p);
-    uint8_t test[] = { 0x80 };
-    device->cpu->registers.A = 0x10;
-    device->cpu->registers.B = 0x20;
-    flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
-    if (device->cpu->registers.A != 0x30 ||
-        device->cpu->registers.B != 0x20 ||
-        device->cpu->registers.flags.Z != 0 ||
-        device->cpu->registers.flags.C != 0 ||
-        cycles != -3) {
-        asic_free(device);
-        return 1;
-    }
-    asic_free(device);
-    return 0;
-}
-
-int test_RST() {
-    uint8_t i;
-    const uint8_t opcodes[] = { 0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF };
-    const uint8_t results[] = { 0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38 };
-    for (i = 0; i < 8; i++) {
-        asic_t *device = asic_init(TI83p);
-        uint8_t test[] = { opcodes[i] };
-        flash(device, test);
-        int cycles = cpu_execute(device->cpu, 1);
-        if (device->cpu->registers.PC != results[i] ||
-            cycles != -10) {
-            asic_free(device);
-            return 1;
-        }
-        asic_free(device);
-    }
-    return 0;
-}
+#include "tests/alu.c"
+#include "tests/control.c"
 
 typedef int (*test_function_t)();
 typedef struct {
@@ -51,6 +16,13 @@ typedef struct {
 
 const test_t tests[] = {
     { test_ADD_A_r, "ADD A, r" },
+    { test_ADC_A_r, "ADC A, r" },
+    { test_SUB_A_r, "SUB A, r" },
+    { test_SBC_A_r, "SBC A, r" },
+    { test_AND_A_r, "AND A, r" },
+    { test_XOR_A_r, "XOR A, r" },
+    { test_OR_A_r, "OR A, r" },
+    { test_CP_r, "CP r" },
     { test_RST, "RST" }
 };
 
