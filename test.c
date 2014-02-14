@@ -25,7 +25,8 @@ const test_t tests[] = {
     { test_CP_r, "CP r" },
     { test_RST, "RST y" },
     { test_DJNZ, "DJNZ d" },
-    { test_JR, "JR d" }
+    { test_JR, "JR d" },
+    { test_JR_cc, "JR cc, d" }
 };
 
 int main(int argc, char **argv) {
@@ -38,7 +39,7 @@ int main(int argc, char **argv) {
         while (length--) printf(".");
         int result = tests[i].execute();
         if (result > 0) {
-            printf("FAIL\n");
+            printf("FAIL %d\n", result);
             failed++;
         } else {
             printf("PASS\n");

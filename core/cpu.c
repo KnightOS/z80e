@@ -121,6 +121,20 @@ void write_rp2(int i, uint16_t value, struct ExecutionContext *context) {
     }
 }
 
+uint8_t read_cc(int i, struct ExecutionContext *context) {
+    z80registers_t *r = &context->cpu->registers;
+    switch (i) {
+    case 0: return !r->flags.Z;
+    case 1: return  r->flags.Z;
+    case 2: return !r->flags.C;
+    case 3: return  r->flags.C;
+    case 4: return !r->flags.PV;
+    case 5: return  r->flags.PV;
+    case 6: return !r->flags.N;
+    case 7: return  r->flags.N;
+    }
+}
+
 void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
     uint8_t old;
     context->cycles += 4;
@@ -227,6 +241,12 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                 case 5:
                 case 6:
                 case 7: // JR cc[y-4], d
+                    context.cycles += 7;
+                    d = context.d(&context);
+                    if (read_cc(context.y - 4, &context)) {
+                        context.cycles += 5;
+                        cpu->registers.PC += d;
+                    }
                     break;
                 }
                 break;

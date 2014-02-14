@@ -53,3 +53,27 @@ int test_JR() {
     asic_free(device);
     return 0;
 }
+
+int test_JR_cc() {
+    uint8_t test[] = { 0x28, 0x0E }; // JR Z, 0x10
+    uint8_t test_nz[] = { 0x20, 0x0E }; // JR NZ, 0x10
+    asic_t *device = asic_init(TI83p);
+    device->cpu->registers.flags.Z = 0;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 2 ||
+        cycles != -6) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    device = asic_init(TI83p);
+    device->cpu->registers.flags.Z = 0;
+    flash(device, test_nz);
+    cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 0x10 || cycles != -11) {
+        asic_free(device);
+        return 2;
+    }
+    return 0;
+}
