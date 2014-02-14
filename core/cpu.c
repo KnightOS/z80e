@@ -219,6 +219,9 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     }
                     break;
                 case 3: // JR d
+                    context.cycles += 12;
+                    d = context.d(&context);
+                    cpu->registers.PC += d;
                     break;
                 case 4:
                 case 5:

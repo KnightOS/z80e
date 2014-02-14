@@ -39,3 +39,17 @@ int test_DJNZ() {
     asic_free(device);
     return 0;
 }
+
+int test_JR() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0x18, 0x0E }; // JR 0x10
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 0x10 ||
+        cycles != -11) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
