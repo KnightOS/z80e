@@ -23,7 +23,8 @@ const test_t tests[] = {
     { test_XOR_A_r, "XOR A, r" },
     { test_OR_A_r, "OR A, r" },
     { test_CP_r, "CP r" },
-    { test_RST, "RST" }
+    { test_RST, "RST" },
+    { test_DJNZ, "DJNZ" }
 };
 
 int main(int argc, char **argv) {

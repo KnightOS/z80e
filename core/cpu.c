@@ -20,6 +20,9 @@ struct ExecutionContext {
             uint8_t p : 2;
         };
     };
+    uint8_t (*n)(struct ExecutionContext*);
+    uint16_t (*nn)(struct ExecutionContext*);
+    int8_t (*d)(struct ExecutionContext*);
 };
 
 z80cpu_t* cpu_init() {
@@ -169,12 +172,30 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
     }
 }
 
+uint8_t read_n(struct ExecutionContext *context) {
+    return cpu_read_byte(context->cpu, context->cpu->registers.PC++);
+}
+
+uint16_t read_nn(struct ExecutionContext *context) {
+    uint16_t a;
+    a |= cpu_read_byte(context->cpu, context->cpu->registers.PC++) << 8;
+    a |= cpu_read_byte(context->cpu, context->cpu->registers.PC++);
+}
+
+int8_t read_d(struct ExecutionContext *context) {
+    return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC++);
+}
+
 int cpu_execute(z80cpu_t* cpu, int cycles) {
     struct ExecutionContext context;
     context.cpu = cpu;
     while (cycles > 0) {
         context.cycles = 0;
         context.opcode = cpu_read_byte(cpu, cpu->registers.PC++);
+        context.n = read_n;
+        context.nn = read_nn;
+        context.d = read_d;
+        int8_t d; uint8_t n; uint16_t nn;
 
         switch (context.x) {
         case 0:
@@ -189,6 +210,13 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     exAFAF(&cpu->registers);
                     break;
                 case 2: // DJNZ d
+                    context.cycles += 8;
+                    d = context.d(&context);
+                    cpu->registers.B--;
+                    if (cpu->registers.B != 0) {
+                        context.cycles += 5;
+                        cpu->registers.PC += d;
+                    }
                     break;
                 case 3: // JR d
                     break;

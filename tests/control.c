@@ -16,3 +16,26 @@ int test_RST() {
     }
     return 0;
 }
+
+int test_DJNZ() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0x10, 0xFE }; // DJNZ $
+    flash(device, test);
+    device->cpu->registers.B = 10;
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 0 ||
+        device->cpu->registers.B != 9 ||
+        cycles != -12) {
+        asic_free(device);
+        return 1;
+    }
+    while (device->cpu->registers.B != 0) {
+        cycles = cpu_execute(device->cpu, 1);
+    }
+    if (device->cpu->registers.PC != 2 || cycles != -7) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
