@@ -40,7 +40,11 @@ void updateFlags_subtraction(z80registers_t *r, uint16_t oldValue, uint16_t newV
 }
 
 void updateFlags_parity(z80registers_t *r, uint16_t oldValue, uint16_t newValue) {
-    updateFlags_withOptions(r, oldValue, newValue, 1, 1, FLAG_NONE);
+    updateFlags_withOptions(r, oldValue, newValue, 0, 1, FLAG_NONE);
+}
+
+void updateFlags_except(z80registers_t *r, uint16_t oldValue, uint16_t newValue, z80flags unaffected) {
+    updateFlags_withOptions(r, oldValue, newValue, 0, 0, unaffected);
 }
 
 void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, int parity, z80flags unaffected) {

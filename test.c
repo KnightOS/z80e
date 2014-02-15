@@ -7,6 +7,8 @@ void flash(asic_t *device, uint8_t *data);
 
 #include "tests/alu.c"
 #include "tests/control.c"
+#include "tests/load.c"
+#include "tests/arithmetic.c"
 
 typedef int (*test_function_t)();
 typedef struct {
@@ -26,7 +28,19 @@ const test_t tests[] = {
     { test_RST, "RST y" },
     { test_DJNZ, "DJNZ d" },
     { test_JR, "JR d" },
-    { test_JR_cc, "JR cc, d" }
+    { test_JR_cc, "JR cc, d" },
+    { test_LD_rp_nn, "LD rp, nn" },
+    { test_ADD_HL_rp, "ADD HL, rp" },
+    { test_LD_BCptr_A, "LD (BC), A" },
+    { test_LD_nnptr_HL, "LD (nn), HL" },
+    { test_LD_nnptr_A, "LD (nn), A" },
+    { test_LD_HL_nnptr, "LD HL, (nn)" },
+    { test_LD_A_nnptr, "LD A, (nn)" },
+    { test_INC_rp, "INC rp" },
+    { test_INC_r, "INC r" },
+    { test_DEC_rp, "DEC rp" },
+    { test_DEC_r, "DEC r" },
+    { test_LD_r_n, "LD r, n" }
 };
 
 int main(int argc, char **argv) {
