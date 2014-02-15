@@ -24,6 +24,10 @@ ti_mmu_t* ti_mmu_init(ti_device_type device_type) {
             mmu->settings->ram_pages = 8;
             mmu->settings->flash_pages = 0x80;
             break;
+        case TI84pCSE:
+            mmu->settings->ram_pages = 3;
+            mmu->settings->flash_pages = 0x100;
+            break;
     }
     mmu->ram = malloc(mmu->settings->ram_pages * 0x4000);
     memset(mmu->ram, 0, mmu->settings->ram_pages * 0x4000);
