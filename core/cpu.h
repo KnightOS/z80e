@@ -11,7 +11,7 @@ typedef struct {
     void (*write_byte)(void*, uint16_t, uint8_t);
 } z80cpu_t;
 
-z80cpu_t* cpu_init();
+z80cpu_t* cpu_init(void);
 void cpu_free(z80cpu_t* cpu);
 uint8_t cpu_read_byte(z80cpu_t* cpu, uint16_t address);
 void cpu_write_byte(z80cpu_t* cpu, uint16_t address, uint8_t value);

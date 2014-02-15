@@ -14,7 +14,7 @@ typedef struct {
 
 appContext_t context;
 
-appContext_t create_context() {
+appContext_t create_context(void) {
     appContext_t context;
     context.device = TI84pSE;
     context.rom_file = NULL;

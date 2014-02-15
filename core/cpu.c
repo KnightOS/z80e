@@ -25,7 +25,7 @@ struct ExecutionContext {
     int8_t (*d)(struct ExecutionContext*);
 };
 
-z80cpu_t* cpu_init() {
+z80cpu_t* cpu_init(void) {
     return calloc(1, sizeof(z80cpu_t));
 }
 

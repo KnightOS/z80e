@@ -11,7 +11,7 @@ void flash(asic_t *device, uint8_t *data);
 #include "tests/arithmetic.c"
 
 typedef struct {
-    int (*execute)();
+    int (*execute)(void);
     char* name;
 } test_t;
 
