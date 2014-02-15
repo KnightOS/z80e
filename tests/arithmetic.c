@@ -42,6 +42,7 @@ int test_INC_rp() {
         asic_free(device);
         return 1;
     }
+    asic_free(device);
     return 0;
 }
 
@@ -58,6 +59,7 @@ int test_INC_r() {
         asic_free(device);
         return 1;
     }
+    asic_free(device);
     return 0;
 }
 
@@ -74,6 +76,7 @@ int test_DEC_rp() {
         asic_free(device);
         return 1;
     }
+    asic_free(device);
     return 0;
 }
 
@@ -90,5 +93,6 @@ int test_DEC_r() {
         asic_free(device);
         return 1;
     }
+    asic_free(device);
     return 0;
 }

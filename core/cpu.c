@@ -26,8 +26,7 @@ struct ExecutionContext {
 };
 
 z80cpu_t* cpu_init() {
-    z80cpu_t* cpu = calloc(1, sizeof(z80cpu_t));
-    return cpu;
+    return calloc(1, sizeof(z80cpu_t));
 }
 
 void cpu_free(z80cpu_t* cpu) {
@@ -57,7 +56,7 @@ void push(z80cpu_t* cpu, uint16_t value) {
 }
 
 uint16_t pop(z80cpu_t* cpu) {
-    uint16_t a;
+    uint16_t a = 0;
     a |= cpu_read_byte(cpu, cpu->registers.SP++) << 8;
     a |= cpu_read_byte(cpu, cpu->registers.SP++);
     return a;
