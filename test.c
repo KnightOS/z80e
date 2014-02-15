@@ -10,9 +10,8 @@ void flash(asic_t *device, uint8_t *data);
 #include "tests/load.c"
 #include "tests/arithmetic.c"
 
-typedef int (*test_function_t)();
 typedef struct {
-    test_function_t execute;
+    int (*execute)();
     char* name;
 } test_t;
 
