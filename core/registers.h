@@ -61,7 +61,7 @@ typedef enum {
 } z80flags;
 
 void exAFAF(z80registers_t *r);
-void exHLDE(z80registers_t *r);
+void exDEHL(z80registers_t *r);
 void exx(z80registers_t *r);
 void updateParity(z80registers_t *r);
 void updateFlags(z80registers_t *r, uint16_t oldValue, uint16_t newValue);

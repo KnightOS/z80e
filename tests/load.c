@@ -175,3 +175,38 @@ int test_EXX() {
     asic_free(device);
     return 0;
 }
+
+int test_EX_SP_HL() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xE3 }; // EX (SP), HL
+    device->cpu->registers.HL = 0xDEAD;
+    device->cpu->registers.SP = 0xC000;
+    cpu_write_word(device->cpu, 0xC000, 0xBEEF);
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.HL != 0xBEEF ||
+        cpu_read_word(device->cpu, 0xC000) != 0xDEAD ||
+        cycles != -18) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_EX_DE_HL() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xEB }; // EX DE, HL
+    device->cpu->registers.HL = 0xDEAD;
+    device->cpu->registers.DE = 0xBEEF;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.HL != 0xBEEF ||
+        device->cpu->registers.DE != 0xDEAD ||
+        cycles != -3) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

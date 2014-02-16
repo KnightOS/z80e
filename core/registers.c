@@ -7,7 +7,7 @@ void exAFAF(z80registers_t *r) {
     r->AF = temp;
 }
 
-void exHLDE(z80registers_t *r) {
+void exDEHL(z80registers_t *r) {
     uint16_t temp = r->HL;
     r->HL = r->DE;
     r->DE = temp;

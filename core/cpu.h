@@ -16,7 +16,10 @@ typedef struct {
         // We're using IFF1 to indicate that an EI has just executed, not for its actual purpose (which is only related to NMIs, unsupported here)
         uint8_t IFF1 : 1;
         uint8_t IFF2 : 1;
-        uint8_t IFF_wait : 1; // We use this for internal state
+        uint8_t int_mode : 2;
+        // Internal use:
+        uint8_t IFF_wait : 1;
+        uint8_t IFF_pending : 1;
     };
     uint8_t prefix;
     void* memory;

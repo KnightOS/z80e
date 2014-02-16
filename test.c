@@ -59,6 +59,8 @@ const test_t tests[] = {
     { test_JP_nn, "JP nn" },
     { test_OUT_n_A, "OUT (n), A" },
     { test_IN_A_n, "IN A, (n)" },
+    { test_EX_SP_HL, "EX (SP), HL" },
+    { test_EX_DE_HL, "EX DE, HL" },
 };
 
 int main(int argc, char **argv) {

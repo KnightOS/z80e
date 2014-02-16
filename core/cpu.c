@@ -514,8 +514,14 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     }
                     break;
                 case 4: // EX (SP), HL
+                    context.cycles += 19;
+                    old16 = cpu_read_word(cpu, cpu->registers.SP);
+                    cpu_write_word(cpu, cpu->registers.SP, cpu->registers.HL);
+                    cpu->registers.HL = old16;
                     break;
                 case 5: // EX DE, HL
+                    context.cycles += 4;
+                    exDEHL(&cpu->registers);
                     break;
                 case 6: // DI
                     cpu->IFF1 = 0;
