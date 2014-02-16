@@ -150,3 +150,40 @@ int test_LD_SP_HL() {
     asic_free(device);
     return 0;
 }
+
+int test_JP_cc_nn() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xCA, 0x34, 0x12 }; // JP Z, 0x1234
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 3 ||
+        cycles != -9) {
+        asic_free(device);
+        return 1;
+    }
+    device = asic_init(TI83p);
+    flash(device, test);
+    device->cpu->registers.flags.Z = 1;
+    cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 0x1234 ||
+        cycles != -9) {
+        asic_free(device);
+        return 2;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_JP_nn() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xC3, 0x34, 0x12 }; // JP 0x1234
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 0x1234 ||
+        cycles != -9) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

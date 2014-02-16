@@ -54,6 +54,8 @@ const test_t tests[] = {
     { test_EXX, "EXX" },
     { test_JP_HL, "JP (HL)" },
     { test_LD_SP_HL, "LD SP, HL" },
+    { test_JP_cc_nn, "JP cc, nn" },
+    { test_JP_nn, "JP nn" },
 };
 
 int main(int argc, char **argv) {

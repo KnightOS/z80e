@@ -470,10 +470,17 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                 }
                 break;
             case 2: // JP cc[y], nn
+                context.cycles += 10;
+                nn = context.nn(&context);
+                if (read_cc(context.y, &context)) {
+                    cpu->registers.PC = nn;
+                }
                 break;
             case 3:
                 switch (context.y) {
                 case 0: // JP nn
+                    context.cycles += 10;
+                    cpu->registers.PC = context.nn(&context);
                     break;
                 case 1: // 0xCB prefixed opcodes
                     break;
