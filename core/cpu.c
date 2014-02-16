@@ -545,26 +545,32 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                 break;
             case 5:
                 switch (context.q) {
-                    case 0: // PUSH r2p[p]
-                        context.cycles += 11;
-                        push(cpu, read_rp2(context.p, &context));
+                case 0: // PUSH r2p[p]
+                    context.cycles += 11;
+                    push(cpu, read_rp2(context.p, &context));
+                    break;
+                case 1:
+                    switch (context.p) {
+                    case 0: // CALL nn
+                        context.cycles += 17;
+                        nn = context.nn(&context);
+                        push(cpu, cpu->registers.PC);
+                        cpu->registers.PC = nn;
                         break;
-                    case 1:
-                        switch (context.p) {
-                            case 0: // CALL nn
-                                context.cycles += 17;
-                                nn = context.nn(&context);
-                                push(cpu, cpu->registers.PC);
-                                cpu->registers.PC = nn;
-                                break;
-                            case 1: // 0xDD prefixed opcodes
-                                break;
-                            case 2: // 0xED prefixed opcodes
-                                break;
-                            case 3: // 0xFD prefixed opcodes
-                                break;
-                        }
-                        break; 
+                    case 1: // 0xDD prefixed opcodes
+                        // TODO: We should probably drop some cycles here
+                        cpu->prefix = 0xDD;
+                        break;
+                    case 2: // 0xED prefixed opcodes
+                        // TODO: We should probably drop some cycles here
+                        cpu->prefix = 0xED;
+                        break;
+                    case 3: // 0xFD prefixed opcodes
+                        // TODO: We should probably drop some cycles here
+                        cpu->prefix = 0xFD;
+                        break;
+                    }
+                    break; 
                 }
                 break;
             case 6: // alu[y] n
