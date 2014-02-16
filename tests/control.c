@@ -213,3 +213,18 @@ int test_CALL_cc_nn() {
     asic_free(device);
     return 0;
 }
+
+int test_CALL_nn() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xCD, 0x34, 0x12 }; // CALL 0x1234
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 0x1234 ||
+        device->cpu->registers.SP != 0xFFFE ||
+        cycles != -16) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

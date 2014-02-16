@@ -552,6 +552,10 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     case 1:
                         switch (context.p) {
                             case 0: // CALL nn
+                                context.cycles += 17;
+                                nn = context.nn(&context);
+                                push(cpu, cpu->registers.PC);
+                                cpu->registers.PC = nn;
                                 break;
                             case 1: // 0xDD prefixed opcodes
                                 break;
@@ -564,6 +568,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                 }
                 break;
             case 6: // alu[y] n
+                execute_alu(context.y, context.n(&context), &context);
                 break;
             case 7: // RST y*8
                 context.cycles += 11;

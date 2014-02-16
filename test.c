@@ -63,6 +63,8 @@ const test_t tests[] = {
     { test_EX_DE_HL, "EX DE, HL" },
     { test_CALL_cc_nn, "CALL cc, nn" },
     { test_PUSH_rp2, "PUSH rp2" },
+    { test_CALL_nn, "CALL nn" },
+    { test_alu_n, "alu[y] n" },
 };
 
 int main(int argc, char **argv) {

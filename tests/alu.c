@@ -228,3 +228,18 @@ int test_CP_r() {
     asic_free(device);
     return 0;
 }
+
+int test_alu_n() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xC6, 0x20 }; // ADD A, 0x20
+    device->cpu->registers.A = 0x10;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.A != 0x30 ||
+        cycles != -3) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
