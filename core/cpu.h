@@ -4,8 +4,21 @@
 #include <registers.h>
 
 typedef struct {
-    //z80hwdevice_t devices[0x100]; // TODO
+    void* device;
+    uint8_t (*read_in)(void*);
+    void (*write_out)(void*, uint8_t);
+} z80iodevice_t;
+
+typedef struct {
+    z80iodevice_t devices[0x100];
     z80registers_t registers;
+    struct {
+        // We're using IFF1 to indicate that an EI has just executed, not for its actual purpose (which is only related to NMIs, unsupported here)
+        uint8_t IFF1 : 1;
+        uint8_t IFF2 : 1;
+        uint8_t IFF_wait : 1; // We use this for internal state
+    };
+    uint8_t prefix;
     void* memory;
     uint8_t (*read_byte)(void*, uint16_t);
     void (*write_byte)(void*, uint16_t, uint8_t);

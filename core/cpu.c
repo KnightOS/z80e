@@ -26,7 +26,13 @@ struct ExecutionContext {
 };
 
 z80cpu_t* cpu_init(void) {
-    return calloc(1, sizeof(z80cpu_t));
+    z80cpu_t *cpu = calloc(1, sizeof(z80cpu_t));
+    z80iodevice_t nullDevice = { NULL, NULL, NULL };
+    int i;
+    for (i = 0; i < 0x100; i++) {
+        cpu->devices[i] = nullDevice;
+    }
+    return cpu;
 }
 
 void cpu_free(z80cpu_t* cpu) {
@@ -227,6 +233,14 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
     struct ExecutionContext context;
     context.cpu = cpu;
     while (cycles > 0) {
+        if (cpu->IFF2) {
+            if (cpu->IFF_wait) {
+                cpu->IFF_wait = 0;
+            } else {
+                // TODO: Check interrupt queue
+            }
+        }
+
         context.cycles = 0;
         context.opcode = cpu_read_byte(cpu, cpu->registers.PC++);
         context.n = read_n;
@@ -235,6 +249,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
         int8_t d; uint8_t n; uint16_t nn;
         uint8_t old; uint16_t old16;
         uint8_t new; uint16_t new16;
+        z80iodevice_t ioDevice;
 
         switch (context.x) {
         case 0:
@@ -485,16 +500,31 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                 case 1: // 0xCB prefixed opcodes
                     break;
                 case 2: // OUT (n), A
+                    context.cycles += 11;
+                    ioDevice = cpu->devices[context.nn(&context)];
+                    if (ioDevice.write_out != NULL) {
+                        ioDevice.write_out(ioDevice.device, cpu->registers.A);
+                    }
                     break;
                 case 3: // IN A, (n)
+                    context.cycles += 11;
+                    ioDevice = cpu->devices[context.nn(&context)];
+                    if (ioDevice.read_in != NULL) {
+                        cpu->registers.A = ioDevice.read_in(ioDevice.device);
+                    }
                     break;
                 case 4: // EX (SP), HL
                     break;
                 case 5: // EX DE, HL
                     break;
                 case 6: // DI
+                    cpu->IFF1 = 0;
+                    cpu->IFF2 = 0;
                     break;
                 case 7: // EI
+                    cpu->IFF1 = 1;
+                    cpu->IFF2 = 1;
+                    cpu->IFF_wait = 1;
                     break;
                 }
                 break;
