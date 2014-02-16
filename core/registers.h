@@ -45,6 +45,7 @@ typedef struct {
     };
     uint16_t _AF, _BC, _DE, _HL;
     uint16_t PC, SP, IX, IY;
+    uint8_t I, R;
 } z80registers_t;
 
 typedef enum {
