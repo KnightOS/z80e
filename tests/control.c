@@ -78,3 +78,75 @@ int test_JR_cc() {
     asic_free(device);
     return 0;
 }
+
+int test_RET_cc() {
+    uint8_t test[] = { 0xC8 }; // RET Z
+    uint8_t test_nz[] = { 0xC0 }; // RET NZ
+    asic_t *device = asic_init(TI83p);
+    device->cpu->registers.flags.Z = 0;
+    device->cpu->registers.SP = 0x3FFE;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 1 ||
+        cycles != -4) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    device = asic_init(TI83p);
+    device->cpu->registers.flags.Z = 0;
+    device->cpu->registers.SP = 0x3FFE;
+    flash(device, test_nz);
+    cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 0xFFFF || cycles != -10) {
+        asic_free(device);
+        return 2;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_RET() {
+    uint8_t test[] = { 0xC9 }; // RET
+    asic_t *device = asic_init(TI83p);
+    device->cpu->registers.SP = 0x3FFE;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 0xFFFF ||
+        cycles != -9) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_JP_HL() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xE9 }; // JP (HL)
+    device->cpu->registers.HL = 0x1234;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.PC != 0x1234 ||
+        cycles != -3) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_LD_SP_HL() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xF9 }; // LD SP, HL
+    device->cpu->registers.HL = 0x1234;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.SP != 0x1234 ||
+        cycles != -5) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

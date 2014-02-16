@@ -43,7 +43,7 @@ typedef struct {
             uint8_t L;
         };
     };
-    uint8_t _AF, _BC, _DE, _HL;
+    uint16_t _AF, _BC, _DE, _HL;
     uint16_t PC, SP, IX, IY;
 } z80registers_t;
 

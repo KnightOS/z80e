@@ -47,6 +47,13 @@ const test_t tests[] = {
     { test_RRA, "RRA" },
     { test_CPL, "CPL" },
     { test_DAA, "DAA" },
+    { test_LD_r_r, "LD r, r" },
+    { test_POP_rp2, "POP rp2" },
+    { test_RET_cc, "RET cc" },
+    { test_RET, "RET" },
+    { test_EXX, "EXX" },
+    { test_JP_HL, "JP (HL)" },
+    { test_LD_SP_HL, "LD SP, HL" },
 };
 
 int main(int argc, char **argv) {

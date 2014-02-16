@@ -117,3 +117,61 @@ int test_LD_r_n() {
     asic_free(device);
     return 0;
 }
+
+int test_LD_r_r() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0x78 }; // LD A, B
+    device->cpu->registers.B = 0x4F;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.A != 0x4F ||
+        cycles != -3) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_POP_rp2() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xC1 }; // POP BC
+    device->cpu->registers.SP = 0xC000;
+    cpu_write_byte(device->cpu, 0xC000, 0x34);
+    cpu_write_byte(device->cpu, 0xC001, 0x12);
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.BC != 0x1234 ||
+        device->cpu->registers.SP != 0xC002 ||
+        cycles != -9) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_EXX() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xD9 }; 
+    device->cpu->registers.BC = 0x1111;
+    device->cpu->registers._BC = 0x2222;
+    device->cpu->registers.DE = 0x3333;
+    device->cpu->registers._DE = 0x4444;
+    device->cpu->registers.HL = 0x5555;
+    device->cpu->registers._HL = 0x6666;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.BC != 0x2222 ||
+        device->cpu->registers._BC != 0x1111 ||
+        device->cpu->registers.DE != 0x4444 ||
+        device->cpu->registers._DE != 0x3333 ||
+        device->cpu->registers.HL != 0x6666 ||
+        device->cpu->registers._HL != 0x5555 ||
+        cycles != -3) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

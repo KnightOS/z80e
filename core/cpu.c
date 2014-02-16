@@ -57,8 +57,8 @@ void push(z80cpu_t* cpu, uint16_t value) {
 
 uint16_t pop(z80cpu_t* cpu) {
     uint16_t a = 0;
-    a |= cpu_read_byte(cpu, cpu->registers.SP++) << 8;
     a |= cpu_read_byte(cpu, cpu->registers.SP++);
+    a |= cpu_read_byte(cpu, cpu->registers.SP++) << 8;
     return a;
 }
 
@@ -425,6 +425,8 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
         case 1:
             if (context.z == 6 && context.y == 6) { // HALT
             } else { // LD r[y], r[z]
+                context.cycles += 4;
+                write_r(context.y, read_r(context.z, &context), &context);
             }
             break;
         case 2: // ALU[y] r[z]
@@ -433,20 +435,35 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
         case 3:
             switch (context.z) {
             case 0: // RET cc[y]
+                context.cycles += 5;
+                if (read_cc(context.y, &context)) {
+                    cpu->registers.PC = pop(cpu);
+                    context.cycles += 6;
+                }
                 break;
             case 1:
                 switch (context.q) {
                 case 0: // POP rp2[p]
+                    context.cycles += 10;
+                    write_rp2(context.p, pop(cpu), &context);
                     break;
                 case 1:
                     switch (context.p) {
                     case 0: // RET
+                        context.cycles += 10;
+                        cpu->registers.PC = pop(cpu);
                         break;
                     case 1: // EXX
+                        context.cycles += 4;
+                        exx(&cpu->registers);
                         break;
                     case 2: // JP HL
+                        context.cycles += 4;
+                        cpu->registers.PC = cpu->registers.HL;
                         break;
                     case 3: // LD SP, HL
+                        context.cycles += 6;
+                        cpu->registers.SP = cpu->registers.HL;
                         break;
                     }
                     break;
