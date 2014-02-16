@@ -47,6 +47,10 @@ void updateFlags_except(z80registers_t *r, uint16_t oldValue, uint16_t newValue,
     updateFlags_withOptions(r, oldValue, newValue, 0, 0, unaffected);
 }
 
+void updateParity(z80registers_t *r) {
+    r->flags.PV = popcount(r->A) % 1;
+}
+
 void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, int parity, z80flags unaffected) {
     if (!(unaffected & FLAG_S)) {
         r->flags.S = (r->A & 0x80) == 0x80;
@@ -63,7 +67,7 @@ void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newV
     }
     if (!(unaffected & FLAG_PV)) {
         if (parity) {
-            r->flags.PV = popcount(r->A) % 1;
+            updateParity(r);
         } else {
             r->flags.PV = (oldValue & 0x80) != (newValue & 0x80);
         }

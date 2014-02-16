@@ -143,6 +143,21 @@ uint8_t read_cc(int i, struct ExecutionContext *context) {
     }
 }
 
+void daa(struct ExecutionContext *context) {
+    z80registers_t *r = &context->cpu->registers;
+    uint8_t msn = r->A >> 4;
+    uint8_t lsn = r->A & 0xF;
+    uint8_t c = r->flags.C;
+    if (lsn > 9 || r->flags.H) {
+        r->A += 0x06;
+        r->flags.C = 1;
+    }
+    if (msn > 9 || c) {
+        r->A += 0x60;
+        r->flags.C = 1;
+    }
+}
+
 void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
     uint8_t old;
     context->cycles += 4;
@@ -350,20 +365,58 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
             case 7:
                 switch (context.y) {
                 case 0: // RLCA
+                    context.cycles += 4;
+                    old = (cpu->registers.A & 0x80) > 0;
+                    cpu->registers.flags.C = old;
+                    cpu->registers.A <<= 1;
+                    cpu->registers.A |= old;
+                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
                     break;
                 case 1: // RRCA
+                    context.cycles += 4;
+                    old = (cpu->registers.A & 1) > 0;
+                    cpu->registers.flags.C = old;
+                    cpu->registers.A >>= 1;
+                    cpu->registers.A |= old << 7;
+                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
                     break;
                 case 2: // RLA
+                    context.cycles += 4;
+                    old = cpu->registers.flags.C;
+                    cpu->registers.flags.C = (cpu->registers.A & 0x80) > 0;
+                    cpu->registers.A <<= 1;
+                    cpu->registers.A |= old;
+                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
                     break;
                 case 3: // RRA
+                    context.cycles += 4;
+                    old = cpu->registers.flags.C;
+                    cpu->registers.flags.C = (cpu->registers.A & 1) > 0;
+                    cpu->registers.A >>= 1;
+                    cpu->registers.A |= old << 7;
+                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
                     break;
                 case 4: // DAA
+                    context.cycles += 4;
+                    old = cpu->registers.A;
+                    daa(&context);
+                    updateFlags_withOptions(&cpu->registers, old, new, 0, 1, FLAG_N);
                     break;
                 case 5: // CPL
+                    context.cycles += 4;
+                    cpu->registers.A = ~cpu->registers.A;
+                    cpu->registers.flags.N = cpu->registers.flags.H = 1;
                     break;
                 case 6: // SCF
+                    context.cycles += 4;
+                    cpu->registers.flags.C = 1;
+                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
                     break;
                 case 7: // CCF
+                    context.cycles += 4;
+                    cpu->registers.flags.H = cpu->registers.flags.C;
+                    cpu->registers.flags.C = ~cpu->registers.flags.C;
+                    cpu->registers.flags.N = 0;
                     break;
                 }
                 break;

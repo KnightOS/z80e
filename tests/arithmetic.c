@@ -96,3 +96,35 @@ int test_DEC_r() {
     asic_free(device);
     return 0;
 }
+
+int test_CPL() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0x2F }; // CPL
+    device->cpu->registers.A = 0x80;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.A != 0x7F ||
+        cycles != -3) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_DAA() { // TODO: This could be more comprehensive
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0x80, 0x27 }; // ADD A, B \ DAA
+    device->cpu->registers.A = 0x15;
+    device->cpu->registers.B = 0x27;
+    flash(device, test);
+    cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.A != 0x42 ||
+        cycles != -3) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
