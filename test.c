@@ -61,6 +61,8 @@ const test_t tests[] = {
     { test_IN_A_n, "IN A, (n)" },
     { test_EX_SP_HL, "EX (SP), HL" },
     { test_EX_DE_HL, "EX DE, HL" },
+    { test_CALL_cc_nn, "CALL cc, nn" },
+    { test_PUSH_rp2, "PUSH rp2" },
 };
 
 int main(int argc, char **argv) {

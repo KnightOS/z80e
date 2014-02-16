@@ -57,8 +57,8 @@ void cpu_write_word(z80cpu_t* cpu, uint16_t address, uint16_t value) {
 }
 
 void push(z80cpu_t* cpu, uint16_t value) {
-    cpu_write_byte(cpu, --cpu->registers.SP, value & 0xFF);
-    cpu_write_byte(cpu, --cpu->registers.SP, value >> 8);
+    cpu_write_word(cpu, cpu->registers.SP - 2, value);
+    cpu->registers.SP -= 2;
 }
 
 uint16_t pop(z80cpu_t* cpu) {
@@ -535,10 +535,19 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                 }
                 break;
             case 4: // CALL cc[y], nn
+                context.cycles += 10;
+                nn = context.nn(&context);
+                if (read_cc(context.y, &context)) {
+                    context.cycles += 7;
+                    push(cpu, cpu->registers.PC);
+                    cpu->registers.PC = nn;
+                }
                 break;
             case 5:
                 switch (context.q) {
                     case 0: // PUSH r2p[p]
+                        context.cycles += 11;
+                        push(cpu, read_rp2(context.p, &context));
                         break;
                     case 1:
                         switch (context.p) {

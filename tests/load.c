@@ -210,3 +210,19 @@ int test_EX_DE_HL() {
     asic_free(device);
     return 0;
 }
+
+int test_PUSH_rp2() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xD5 }; // PUSH DE
+    device->cpu->registers.DE = 0x1234;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 1);
+    if (device->cpu->registers.SP != 0xFFFE ||
+        cpu_read_word(device->cpu, 0xFFFE) != 0x1234 ||
+        cycles != -10) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
