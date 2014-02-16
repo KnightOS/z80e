@@ -161,6 +161,7 @@ int test_JP_cc_nn() {
         asic_free(device);
         return 1;
     }
+    asic_free(device);
     device = asic_init(TI83p);
     flash(device, test);
     device->cpu->registers.flags.Z = 1;

@@ -10,6 +10,7 @@ int test_RLCA() {
         asic_free(device);
         return 1;
     }
+    asic_free(device);
     return 0;
 }
 
@@ -25,6 +26,7 @@ int test_RRCA() {
         asic_free(device);
         return 1;
     }
+    asic_free(device);
     return 0;
 }
 
@@ -40,6 +42,7 @@ int test_RLA() {
         asic_free(device);
         return 1;
     }
+    asic_free(device);
     return 0;
 }
 
@@ -55,5 +58,6 @@ int test_RRA() {
         asic_free(device);
         return 1;
     }
+    asic_free(device);
     return 0;
 }

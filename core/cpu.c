@@ -501,14 +501,14 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     break;
                 case 2: // OUT (n), A
                     context.cycles += 11;
-                    ioDevice = cpu->devices[context.nn(&context)];
+                    ioDevice = cpu->devices[context.n(&context)];
                     if (ioDevice.write_out != NULL) {
                         ioDevice.write_out(ioDevice.device, cpu->registers.A);
                     }
                     break;
                 case 3: // IN A, (n)
                     context.cycles += 11;
-                    ioDevice = cpu->devices[context.nn(&context)];
+                    ioDevice = cpu->devices[context.n(&context)];
                     if (ioDevice.read_in != NULL) {
                         cpu->registers.A = ioDevice.read_in(ioDevice.device);
                     }

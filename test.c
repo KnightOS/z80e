@@ -10,6 +10,7 @@ void flash(asic_t *device, uint8_t *data);
 #include "tests/load.c"
 #include "tests/arithmetic.c"
 #include "tests/shifts.c"
+#include "tests/io.c"
 
 typedef struct {
     int (*execute)(void);
@@ -56,6 +57,8 @@ const test_t tests[] = {
     { test_LD_SP_HL, "LD SP, HL" },
     { test_JP_cc_nn, "JP cc, nn" },
     { test_JP_nn, "JP nn" },
+    { test_OUT_n_A, "OUT (n), A" },
+    { test_IN_A_n, "IN A, (n)" },
 };
 
 int main(int argc, char **argv) {
