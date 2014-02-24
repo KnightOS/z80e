@@ -45,6 +45,17 @@ void setDevice(appContext_t *context, char* target) {
     }
 }
 
+void print_help(void) {
+    printf("z80e - Emulate z80 calculators\n"
+           "Usage: z80e [flags] [rom]\n\n"
+           "Flags:\n"
+           "\t-d <device>: Selects a device to emulate. Available devices:\n"
+           "\t\tTI73, TI83p, TI83pSE, TI84p, TI84pSE, TI84pCSE\n"
+           "\t-c <cycles>: Emulate this number of cycles, then exit. If omitted, the machine will be emulated indefinitely.\n"
+           "\t--print-state: Prints the state of the machine on exit.\n"
+           "\t--no-rom-check: Skips the check that ensure the provided ROM file is the correct size.\n");
+}
+
 void handleFlag(appContext_t *context, char flag, int *i, char **argv) {
     char *next;
     switch (flag) {
@@ -72,6 +83,9 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
         context->print_state = 1;
     } else if (strcasecmp(flag, "no-rom-check") == 0) {
         context->no_rom_check = 1;
+    } else if (strcasecmp(flag, "help") == 0) {
+        print_help();
+        exit(0);
     } else {
         printf("Incorrect usage. See z80e --help.\n");
         exit(1);
