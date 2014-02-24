@@ -10,17 +10,19 @@ typedef struct {
     int cycles;
     int print_state;
     int stop;
+    int no_rom_check;
 } appContext_t;
 
 appContext_t context;
 
 appContext_t create_context(void) {
     appContext_t context;
-    context.device = TI84pSE;
+    context.device = TI83p;
     context.rom_file = NULL;
     context.cycles = -1;
     context.print_state = 0;
     context.stop = 0;
+    context.no_rom_check = 0;
     return context;
 }
 
@@ -68,6 +70,8 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
         setDevice(context, next);
     } else if (strcasecmp(flag, "print-state") == 0) {
         context->print_state = 1;
+    } else if (strcasecmp(flag, "no-rom-check") == 0) {
+        context->no_rom_check = 1;
     } else {
         printf("Incorrect usage. See z80e --help.\n");
         exit(1);
@@ -117,6 +121,17 @@ int main(int argc, char **argv) {
             asic_free(device);
             return 1;
         }
+        int length;
+        fseek(file, 0L, SEEK_END);
+        length = ftell(file);
+        fseek(file, 0L, SEEK_SET);
+        if (!context.no_rom_check && length != device->mmu->settings->flash_pages * 0x4000) {
+            printf("Error: This file does not match the required ROM size of %d bytes (use --no-rom-check to override).\n", length);
+            fclose(file);
+            asic_free(device);
+            return 1;
+        }
+        fread(device->mmu->flash, 0x4000, device->mmu->settings->flash_pages, file);
         fclose(file);
     }
     if (context.cycles == -1) { // Run indefinitely
