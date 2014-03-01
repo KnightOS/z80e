@@ -499,7 +499,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         break;
                     case 2: // LD (nn), HL
                         context.cycles += 16;
-                        cpu_write_word(cpu, context.nn(&context), cpu->registers.HL);
+                        cpu_write_word(cpu, context.nn(&context), HLorIr(&context));
                         break;
                     case 3: // LD (nn), A
                         context.cycles += 13;
@@ -519,7 +519,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         break;
                     case 2: // LD HL, (nn)
                         context.cycles += 16;
-                        cpu->registers.HL = cpu_read_word(cpu, context.nn(&context));
+                        HLorIw(&context, cpu_read_word(cpu, context.nn(&context)));
                         break;
                     case 3: // LD A, (nn)
                         context.cycles += 13;
@@ -659,7 +659,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         break;
                     case 3: // LD SP, HL
                         context.cycles += 6;
-                        cpu->registers.SP = cpu->registers.HL;
+                        cpu->registers.SP = HLorIr(&context);
                         break;
                     }
                     break;
@@ -699,8 +699,8 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                 case 4: // EX (SP), HL
                     context.cycles += 19;
                     old16 = cpu_read_word(cpu, cpu->registers.SP);
-                    cpu_write_word(cpu, cpu->registers.SP, cpu->registers.HL);
-                    cpu->registers.HL = old16;
+                    cpu_write_word(cpu, cpu->registers.SP, HLorIr(&context));
+                    HLorIw(&context, old16);
                     break;
                 case 5: // EX DE, HL
                     context.cycles += 4;
