@@ -81,6 +81,7 @@ uint8_t read_r(int i, struct ExecutionContext *context) {
         return cpu_read_byte(context->cpu, context->cpu->registers.HL);
     case 7: return context->cpu->registers.A;
     }
+    return 0; // This should never happen
 }
 
 uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
@@ -97,6 +98,7 @@ uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
         return value;
     case 7: return context->cpu->registers.A = value;
     }
+    return 0; // This should never happen
 }
 
 uint16_t read_rp(int i, struct ExecutionContext *context) {
@@ -106,6 +108,7 @@ uint16_t read_rp(int i, struct ExecutionContext *context) {
     case 2: return context->cpu->registers.HL;
     case 3: return context->cpu->registers.SP;
     }
+    return 0; // This should never happen
 }
 
 uint16_t write_rp(int i, uint16_t value, struct ExecutionContext *context) {
@@ -115,6 +118,7 @@ uint16_t write_rp(int i, uint16_t value, struct ExecutionContext *context) {
     case 2: return context->cpu->registers.HL = value;
     case 3: return context->cpu->registers.SP = value;
     }
+    return 0; // This should never happen
 }
 
 uint16_t read_rp2(int i, struct ExecutionContext *context) {
@@ -124,6 +128,7 @@ uint16_t read_rp2(int i, struct ExecutionContext *context) {
     case 2: return context->cpu->registers.HL;
     case 3: return context->cpu->registers.AF;
     }
+    return 0; // This should never happen
 }
 
 uint16_t write_rp2(int i, uint16_t value, struct ExecutionContext *context) {
@@ -133,6 +138,7 @@ uint16_t write_rp2(int i, uint16_t value, struct ExecutionContext *context) {
     case 2: return context->cpu->registers.HL = value;
     case 3: return context->cpu->registers.AF = value;
     }
+    return 0; // This should never happen
 }
 
 uint8_t read_cc(int i, struct ExecutionContext *context) {
@@ -147,6 +153,7 @@ uint8_t read_cc(int i, struct ExecutionContext *context) {
     case 6: return !r->flags.N;
     case 7: return  r->flags.N;
     }
+    return 0; // This should never happen
 }
 
 void daa(struct ExecutionContext *context) {
@@ -341,7 +348,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
         context.n = read_n;
         context.nn = read_nn;
         context.d = read_d;
-        int8_t d; uint8_t n; uint16_t nn;
+        int8_t d; uint16_t nn;
         uint8_t old; uint16_t old16;
         uint8_t new; uint16_t new16;
         uint8_t prefix = 0;
@@ -598,7 +605,6 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     context.cycles += 4;
                     old = cpu->registers.A;
                     daa(&context);
-                    updateFlags_withOptions(&cpu->registers, old, new, 0, 1, FLAG_N);
                     break;
                 case 5: // CPL
                     context.cycles += 4;
