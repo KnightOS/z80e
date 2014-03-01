@@ -239,6 +239,16 @@ uint8_t HorIHr(z80cpu_t* cpu) {
     }
 }
 
+void HorIHw(z80cpu_t* cpu, uint8_t value) {
+    if (cpu->prefix == 0xDD) {
+        cpu->registers.IXH = value;
+    } else if (cpu->prefix = 0xFD) {
+        cpu->registers.IYH = value;
+    } else {
+        cpu->registers.H = value;
+    }
+}
+
 uint8_t LorILr(struct ExecutionContext* context) {
     if (context->cpu->prefix == 0xDD) {
         return context->cpu->registers.IXL;
@@ -249,6 +259,16 @@ uint8_t LorILr(struct ExecutionContext* context) {
     }
 }
 
+void LorILw(struct ExecutionContext* context, uint8_t value) {
+    if (context->cpu->prefix == 0xDD) {
+        context->cpu->registers.IXL = value;
+    } else if (context->cpu->prefix = 0xFD) {
+        context->cpu->registers.IYL = value;
+    } else {
+        context->cpu->registers.L = value;
+    }
+}
+
 uint16_t HLorIr(struct ExecutionContext* context) {
     if (context->cpu->prefix == 0xDD) {
         return context->cpu->registers.IX;
@@ -256,6 +276,16 @@ uint16_t HLorIr(struct ExecutionContext* context) {
         return context->cpu->registers.IY;
     } else {
         return context->cpu->registers.HL;
+    }
+}
+
+void HLorIw(struct ExecutionContext* context, uint16_t value) {
+    if (context->cpu->prefix == 0xDD) {
+        context->cpu->registers.IX = value;
+    } else if (context->cpu->prefix = 0xFD) {
+        context->cpu->registers.IY = value;
+    } else {
+        context->cpu->registers.HL = value;
     }
 }
 
@@ -272,6 +302,20 @@ uint8_t indHLorIr(struct ExecutionContext* context) {
         return cpu_read_byte(context->cpu, context->cpu->registers.IY + read_d(context));
     } else {
         return cpu_read_byte(context->cpu, context->cpu->registers.HL);
+    }
+}
+
+void indHLorIw(struct ExecutionContext* context, uint8_t value) {
+    if (context->cpu->prefix == 0xDD) {
+        context->cycles += 9;
+        context->cpu->prefix = 0;
+        cpu_write_byte(context->cpu, context->cpu->registers.IX + read_d(context), value);
+    } else if (context->cpu->prefix = 0xFD) {
+        context->cycles += 9;
+        context->cpu->prefix = 0;
+        cpu_write_byte(context->cpu, context->cpu->registers.IY + read_d(context), value);
+    } else {
+        cpu_write_byte(context->cpu, context->cpu->registers.HL, value);
     }
 }
 
@@ -379,6 +423,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                 continue;
             case 0xDD: // IX prefix
             case 0xFD: // IY prefix
+                // This space intentionally left blank
                 break;
             }
         }
