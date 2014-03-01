@@ -44,7 +44,21 @@ typedef struct {
         };
     };
     uint16_t _AF, _BC, _DE, _HL;
-    uint16_t PC, SP, IX, IY;
+    uint16_t PC, SP;
+    union {
+        uint16_t IX;
+        struct {
+            uint8_t IXH;
+            uint8_t IXL;
+        };
+    };
+    union {
+        uint16_t IY;
+        struct {
+            uint8_t IYH;
+            uint8_t IYL;
+        };
+    };
     uint8_t I, R;
 } z80registers_t;
 
