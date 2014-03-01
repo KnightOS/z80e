@@ -220,9 +220,10 @@ uint8_t read_n(struct ExecutionContext *context) {
 }
 
 uint16_t read_nn(struct ExecutionContext *context) {
-    uint16_t a;
-    a = cpu_read_byte(context->cpu, context->cpu->registers.PC++);
+    uint16_t a = 0;
+    a |= cpu_read_byte(context->cpu, context->cpu->registers.PC++);
     a |= cpu_read_byte(context->cpu, context->cpu->registers.PC++) << 8;
+    return a;
 }
 
 int8_t read_d(struct ExecutionContext *context) {
