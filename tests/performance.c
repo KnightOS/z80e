@@ -1,4 +1,9 @@
 int test_performance() {
+    if (getenv("TRAVIS") != NULL) {
+        // Performance tests do not work on Travis
+        printf("disabled on Travis builds\n");
+        return -1;
+    }
     asic_t *device = asic_init(TI83p);
 
     clock_t start, stop;
