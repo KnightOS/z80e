@@ -72,6 +72,8 @@ const test_t tests[] = {
     { test_JP_IX__JP_IY, "JP IX / JP IY" },
     { test_ADD_IX_rp, "ADD IX, rp" },
     { test_prefix_reset, "prefix reset" },
+    { test_index_offsets, "index offsets" },
+    { test_ixh_ixl, "IXH/IXL" },
 };
 
 int main(int argc, char **argv) {

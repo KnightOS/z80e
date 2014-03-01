@@ -73,3 +73,47 @@ int test_prefix_reset() {
     asic_free(device);
     return 0;
 }
+
+int test_index_offsets() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xDD, 0x86, 0x0A }; // ADD A, (IX + 10)
+    device->cpu->registers.IX = 0x1000;
+    device->cpu->registers.A = 0x10;
+    mmu_force_write(device->mmu, 0x1000 + 10, 0x20);
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 19);
+    if (device->cpu->registers.A != 0x30 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_ixh_ixl() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xDD, 0x84 }; // ADD A, IXH
+    device->cpu->registers.IXH = 0x20;
+    device->cpu->registers.A = 0x10;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 8);
+    if (device->cpu->registers.A != 0x30 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    device = asic_init(TI83p);
+    uint8_t test2[] = { 0xDD, 0x85 }; // ADD A, IXL
+    device->cpu->registers.IXL = 0x20;
+    device->cpu->registers.A = 0x10;
+    flash(device, test2);
+    cycles = cpu_execute(device->cpu, 8);
+    if (device->cpu->registers.A != 0x30 ||
+        cycles != 0) {
+        asic_free(device);
+        return 2;
+    }
+    asic_free(device);
+    return 0;
+}
