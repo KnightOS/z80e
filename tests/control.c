@@ -228,3 +228,17 @@ int test_CALL_nn() {
     asic_free(device);
     return 0;
 }
+
+int test_IM_set() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0x5E }; // IM 2
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 8);
+    if (device->cpu->int_mode != 2 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

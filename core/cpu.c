@@ -353,6 +353,40 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
     }
 }
 
+void execute_rot(int y, int z, struct ExecutionContext* context) {
+    switch (y) { 
+    case 0: // RLC r[z]
+        break;
+    case 1: // RRC r[z]
+        break;
+    case 2: // RL r[z]
+        break;
+    case 3: // RR r[z]
+        break;
+    case 4: // SLA r[z]
+        break;
+    case 5: // SRA r[z]
+        break;
+    case 6: // SLL r[z]
+        break;
+    case 7: // SRL r[z]
+        break;
+    }
+}
+
+void execute_im(int y, struct ExecutionContext* context) {
+    switch (y) {
+        case 0: context->cpu->int_mode = 0; break;
+        case 1: context->cpu->int_mode = 0; break; // 0/1
+        case 2: context->cpu->int_mode = 1; break;
+        case 3: context->cpu->int_mode = 2; break;
+        case 4: context->cpu->int_mode = 0; break;
+        case 5: context->cpu->int_mode = 0; break; // 0/1
+        case 6: context->cpu->int_mode = 1; break;
+        case 7: context->cpu->int_mode = 2; break;
+    }
+}
+
 int cpu_execute(z80cpu_t* cpu, int cycles) {
     struct ExecutionContext context;
     context.cpu = cpu;
@@ -423,6 +457,8 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         }
                         break;
                     case 6: // IM im[y]
+                        context.cycles += 4;
+                        execute_im(context.y, &context);
                         break;
                     case 7:
                         switch (context.y) {

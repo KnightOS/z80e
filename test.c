@@ -74,6 +74,7 @@ const test_t tests[] = {
     { test_prefix_reset, "prefix reset" },
     { test_index_offsets, "index offsets" },
     { test_ixh_ixl, "IXH/IXL" },
+    { test_IM_set, "interrupt mode set" },
 };
 
 int main(int argc, char **argv) {
