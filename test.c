@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 void flash(asic_t *device, uint8_t *data);
 
@@ -12,6 +13,7 @@ void flash(asic_t *device, uint8_t *data);
 #include "tests/shifts.c"
 #include "tests/io.c"
 #include "tests/index.c"
+#include "tests/performance.c"
 
 typedef struct {
     int (*execute)(void);
@@ -19,6 +21,7 @@ typedef struct {
 } test_t;
 
 const test_t tests[] = {
+    { test_performance, "performance" },
     { test_ADD_A_r, "ADD A, r" },
     { test_ADC_A_r, "ADC A, r" },
     { test_SUB_A_r, "SUB A, r" },
@@ -83,6 +86,8 @@ int main(int argc, char **argv) {
         if (result > 0) {
             printf("FAIL %d\n", result);
             failed++;
+        } else if (result == -1) {
+            passed++; // Silent test
         } else {
             printf("PASS\n");
             passed++;
