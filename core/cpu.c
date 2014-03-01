@@ -299,7 +299,7 @@ uint8_t indHLorIr(struct ExecutionContext* context) {
         context->cycles += 9;
         context->cpu->prefix = 0;
         return cpu_read_byte(context->cpu, context->cpu->registers.IX + read_d(context));
-    } else if (context->cpu->prefix = 0xFD) {
+    } else if (context->cpu->prefix == 0xFD) {
         context->cycles += 9;
         context->cpu->prefix = 0;
         return cpu_read_byte(context->cpu, context->cpu->registers.IY + read_d(context));
@@ -313,7 +313,7 @@ uint8_t indHLorIw(struct ExecutionContext* context, uint8_t value) {
         context->cycles += 9;
         context->cpu->prefix = 0;
         cpu_write_byte(context->cpu, context->cpu->registers.IX + read_d(context), value);
-    } else if (context->cpu->prefix = 0xFD) {
+    } else if (context->cpu->prefix == 0xFD) {
         context->cycles += 9;
         context->cpu->prefix = 0;
         cpu_write_byte(context->cpu, context->cpu->registers.IY + read_d(context), value);
