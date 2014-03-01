@@ -232,61 +232,64 @@ int8_t read_d(struct ExecutionContext *context) {
 uint8_t HorIHr(z80cpu_t* cpu) {
     if (cpu->prefix == 0xDD) {
         return cpu->registers.IXH;
-    } else if (cpu->prefix = 0xFD) {
+    } else if (cpu->prefix == 0xFD) {
         return cpu->registers.IYH;
     } else {
         return cpu->registers.H;
     }
 }
 
-void HorIHw(z80cpu_t* cpu, uint8_t value) {
+uint8_t HorIHw(z80cpu_t* cpu, uint8_t value) {
     if (cpu->prefix == 0xDD) {
         cpu->registers.IXH = value;
-    } else if (cpu->prefix = 0xFD) {
+    } else if (cpu->prefix == 0xFD) {
         cpu->registers.IYH = value;
     } else {
         cpu->registers.H = value;
     }
+    return value;
 }
 
 uint8_t LorILr(struct ExecutionContext* context) {
     if (context->cpu->prefix == 0xDD) {
         return context->cpu->registers.IXL;
-    } else if (context->cpu->prefix = 0xFD) {
+    } else if (context->cpu->prefix == 0xFD) {
         return context->cpu->registers.IYL;
     } else {
         return context->cpu->registers.L;
     }
 }
 
-void LorILw(struct ExecutionContext* context, uint8_t value) {
+uint8_t LorILw(struct ExecutionContext* context, uint8_t value) {
     if (context->cpu->prefix == 0xDD) {
         context->cpu->registers.IXL = value;
-    } else if (context->cpu->prefix = 0xFD) {
+    } else if (context->cpu->prefix == 0xFD) {
         context->cpu->registers.IYL = value;
     } else {
         context->cpu->registers.L = value;
     }
+    return value;
 }
 
 uint16_t HLorIr(struct ExecutionContext* context) {
     if (context->cpu->prefix == 0xDD) {
         return context->cpu->registers.IX;
-    } else if (context->cpu->prefix = 0xFD) {
+    } else if (context->cpu->prefix == 0xFD) {
         return context->cpu->registers.IY;
     } else {
         return context->cpu->registers.HL;
     }
 }
 
-void HLorIw(struct ExecutionContext* context, uint16_t value) {
+uint16_t HLorIw(struct ExecutionContext* context, uint16_t value) {
     if (context->cpu->prefix == 0xDD) {
         context->cpu->registers.IX = value;
-    } else if (context->cpu->prefix = 0xFD) {
+    } else if (context->cpu->prefix == 0xFD) {
         context->cpu->registers.IY = value;
     } else {
         context->cpu->registers.HL = value;
     }
+    return value;
 }
 
 uint8_t indHLorIr(struct ExecutionContext* context) {
@@ -305,7 +308,7 @@ uint8_t indHLorIr(struct ExecutionContext* context) {
     }
 }
 
-void indHLorIw(struct ExecutionContext* context, uint8_t value) {
+uint8_t indHLorIw(struct ExecutionContext* context, uint8_t value) {
     if (context->cpu->prefix == 0xDD) {
         context->cycles += 9;
         context->cpu->prefix = 0;
@@ -317,6 +320,7 @@ void indHLorIw(struct ExecutionContext* context, uint8_t value) {
     } else {
         cpu_write_byte(context->cpu, context->cpu->registers.HL, value);
     }
+    return value;
 }
 
 int cpu_execute(z80cpu_t* cpu, int cycles) {
@@ -475,9 +479,9 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     break;
                 case 1: // ADD HL, rp[p]
                     context.cycles += 11;
-                    old16 = cpu->registers.HL;
-                    cpu->registers.HL += read_rp(context.p, &context);
-                    updateFlags_except(&cpu->registers, old16, cpu->registers.HL, FLAG_Z | FLAG_S | FLAG_PV);
+                    old16 = HLorIr(&context);
+                    new16 = HLorIw(&context, old16 + read_rp(context.p, &context));
+                    updateFlags_except(&cpu->registers, old16, new16, FLAG_Z | FLAG_S | FLAG_PV);
                     break;
                 }
                 break;
@@ -651,7 +655,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         break;
                     case 2: // JP HL
                         context.cycles += 4;
-                        cpu->registers.PC = cpu->registers.HL;
+                        cpu->registers.PC = HLorIr(&context);
                         break;
                     case 3: // LD SP, HL
                         context.cycles += 6;

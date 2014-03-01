@@ -6,12 +6,12 @@ int test_ADD_A_r() {
     device->cpu->registers.A = 0x10;
     device->cpu->registers.B = 0x20;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x30 ||
         device->cpu->registers.B != 0x20 ||
         device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.flags.C != 0 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -20,11 +20,11 @@ int test_ADD_A_r() {
     device->cpu->registers.A = 0xF0;
     device->cpu->registers.B = 0x20;
     flash(device, test);
-    cycles = cpu_execute(device->cpu, 1);
+    cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x10 ||
         device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.flags.C != 1 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -33,11 +33,11 @@ int test_ADD_A_r() {
     device->cpu->registers.A = 0xF0;
     device->cpu->registers.B = 0x10;
     flash(device, test);
-    cycles = cpu_execute(device->cpu, 1);
+    cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0 ||
         device->cpu->registers.flags.Z != 1 ||
         device->cpu->registers.flags.C != 1 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -47,8 +47,8 @@ int test_ADD_A_r() {
     device->cpu->registers.HL = 0x1000;
     mmu_force_write(device->mmu, 0x1000, 0x20);
     flash(device, test_hl);
-    cycles = cpu_execute(device->cpu, 1);
-    if (device->cpu->registers.A != 0x30 || cycles != -6) {
+    cycles = cpu_execute(device->cpu, 7);
+    if (device->cpu->registers.A != 0x30 || cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -62,12 +62,12 @@ int test_ADC_A_r() {
     device->cpu->registers.A = 0x10;
     device->cpu->registers.B = 0x20;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x30 ||
         device->cpu->registers.B != 0x20 ||
         device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.flags.C != 0 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -77,12 +77,12 @@ int test_ADC_A_r() {
     device->cpu->registers.B = 0x20;
     device->cpu->registers.flags.C = 1;
     flash(device, test);
-    cycles = cpu_execute(device->cpu, 1);
+    cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x31 ||
         device->cpu->registers.B != 0x20 ||
         device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.flags.C != 0 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -96,12 +96,12 @@ int test_SUB_A_r() {
     device->cpu->registers.A = 0x20;
     device->cpu->registers.B = 0x10;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x10 ||
         device->cpu->registers.B != 0x10 ||
         device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.flags.C != 0 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -110,12 +110,12 @@ int test_SUB_A_r() {
     device->cpu->registers.A = 0x10;
     device->cpu->registers.B = 0x20;
     flash(device, test);
-    cycles = cpu_execute(device->cpu, 1);
+    cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0xF0 ||
         device->cpu->registers.B != 0x20 ||
         device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.flags.C != 1 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -129,12 +129,12 @@ int test_SBC_A_r() {
     device->cpu->registers.A = 0x20;
     device->cpu->registers.B = 0x10;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x10 ||
         device->cpu->registers.B != 0x10 ||
         device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.flags.C != 0 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -144,12 +144,12 @@ int test_SBC_A_r() {
     device->cpu->registers.B = 0x20;
     device->cpu->registers.flags.C = 1;
     flash(device, test);
-    cycles = cpu_execute(device->cpu, 1);
+    cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0xEF ||
         device->cpu->registers.B != 0x20 ||
         device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.flags.C != 1 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -163,10 +163,10 @@ int test_AND_A_r() {
     device->cpu->registers.A = 0xFF;
     device->cpu->registers.B = 0x0F;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x0F ||
         device->cpu->registers.flags.Z != 0 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -180,10 +180,10 @@ int test_XOR_A_r() {
     device->cpu->registers.A = 0xFF;
     device->cpu->registers.B = 0x0F;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0xF0 ||
         device->cpu->registers.flags.Z != 0 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -197,10 +197,10 @@ int test_OR_A_r() {
     device->cpu->registers.A = 0x00;
     device->cpu->registers.B = 0x0F;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x0F ||
         device->cpu->registers.flags.Z != 0 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -214,14 +214,14 @@ int test_CP_r() {
     device->cpu->registers.A = 0x00;
     device->cpu->registers.B = 0x10;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0 ||
         device->cpu->registers.flags.S != 0 ||
         device->cpu->registers.flags.C != 1 ||
         device->cpu->registers.flags.PV != 1 ||
         device->cpu->registers.flags.N != 1 ||
         device->cpu->registers.flags.Z != 0 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -234,9 +234,9 @@ int test_alu_n() {
     uint8_t test[] = { 0xC6, 0x20 }; // ADD A, 0x20
     device->cpu->registers.A = 0x10;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x30 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }

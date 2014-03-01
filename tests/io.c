@@ -14,9 +14,9 @@ int test_OUT_n_A() {
     uint8_t value = 0;
     z80iodevice_t test_device = { &value, test_read, test_write };
     device->cpu->devices[0x12] = test_device;
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 11);
     if (value != 0x3C ||
-        cycles != -10) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -31,9 +31,9 @@ int test_IN_A_n() {
     uint8_t value = 0x3C;
     z80iodevice_t test_device = { &value, test_read, test_write };
     device->cpu->devices[0x12] = test_device;
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 11);
     if (device->cpu->registers.A != 0x3C ||
-        cycles != -10) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }

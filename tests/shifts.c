@@ -3,10 +3,10 @@ int test_RLCA() {
     uint8_t test[] = { 0x07 }; // RLCA
     device->cpu->registers.A = 0x80;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 1 ||
         device->cpu->registers.flags.C != 1 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -19,10 +19,10 @@ int test_RRCA() {
     uint8_t test[] = { 0x0F }; // RRCA
     device->cpu->registers.A = 1;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0x80 ||
         device->cpu->registers.flags.C != 1 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -35,10 +35,10 @@ int test_RLA() {
     uint8_t test[] = { 0x17 }; // RLA
     device->cpu->registers.A = 0x80;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0 ||
         device->cpu->registers.flags.C != 1 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
@@ -51,10 +51,10 @@ int test_RRA() {
     uint8_t test[] = { 0x1F }; // RRA
     device->cpu->registers.A = 1;
     flash(device, test);
-    int cycles = cpu_execute(device->cpu, 1);
+    int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0 ||
         device->cpu->registers.flags.C != 1 ||
-        cycles != -3) {
+        cycles != 0) {
         asic_free(device);
         return 1;
     }
