@@ -68,6 +68,7 @@ const test_t tests[] = {
     { test_alu_n, "alu[y] n" },
     { test_JP_IX__JP_IY, "JP IX / JP IY" },
     { test_ADD_IX_rp, "ADD IX, rp" },
+    { test_prefix_reset, "prefix reset" },
 };
 
 int main(int argc, char **argv) {

@@ -55,3 +55,21 @@ int test_ADD_IX_rp() {
     asic_free(device);
     return 0;
 }
+
+int test_prefix_reset() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xDD, 0x09, 0x09 }; // ADD IX, BC \ ADD HL, BC
+    device->cpu->registers.IX = 0x1000;
+    device->cpu->registers.HL = 0x2000;
+    device->cpu->registers.BC = 0x0234;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 26);
+    if (device->cpu->registers.IX != 0x1234 ||
+        device->cpu->registers.HL != 0x2234 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

@@ -343,6 +343,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
         int8_t d; uint8_t n; uint16_t nn;
         uint8_t old; uint16_t old16;
         uint8_t new; uint16_t new16;
+        uint8_t prefix = 0;
         z80iodevice_t ioDevice;
 
         if (cpu->prefix) {
@@ -680,7 +681,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     break;
                 case 1: // 0xCB prefixed opcodes
                     context.cycles += 4;
-                    cpu->prefix = 0xCB;
+                    prefix = 0xCB;
                     break;
                 case 2: // OUT (n), A
                     context.cycles += 11;
@@ -742,15 +743,15 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         break;
                     case 1: // 0xDD prefixed opcodes
                         context.cycles += 4;
-                        cpu->prefix = 0xDD;
+                        prefix = 0xDD;
                         break;
                     case 2: // 0xED prefixed opcodes
                         context.cycles += 4;
-                        cpu->prefix = 0xED;
+                        prefix = 0xED;
                         break;
                     case 3: // 0xFD prefixed opcodes
                         context.cycles += 4;
-                        cpu->prefix = 0xFD;
+                        prefix = 0xFD;
                         break;
                     }
                     break; 
@@ -767,6 +768,8 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
             }
             break;
         }
+
+        cpu->prefix = prefix;
 
         cycles -= context.cycles;
         if (context.cycles == 0) {
