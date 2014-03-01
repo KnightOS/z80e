@@ -10,7 +10,7 @@ int test_performance() {
     stop = clock();
     double time = (double)(stop - start) / (CLOCKS_PER_SEC / 1000);
     double mHz = 1000.0 / time;
-    printf("executed 1,000,000 cycles in %f milliseconds (~%f mHz)\n", time, mHz);
+    printf("executed 1,000,000 cycles in %f milliseconds (~%f MHz)\n", time, mHz);
 
     asic_free(device);
     return -1;
