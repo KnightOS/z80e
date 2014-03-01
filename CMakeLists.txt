@@ -23,3 +23,5 @@ include_directories(
     core/
     ti/
 )
+
+set(CMAKE_BUILD_TYPE Release)
