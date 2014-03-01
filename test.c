@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
             printf("FAIL %d\n", result);
             failed++;
         } else if (result == -1) {
-            passed++; // Silent test
+            // Silent test
         } else {
             printf("PASS\n");
             passed++;
