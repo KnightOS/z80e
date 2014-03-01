@@ -1,17 +1,16 @@
 int test_performance() {
     asic_t *device = asic_init(TI83p);
 
-    struct timespec start, stop;
-    unsigned long long t;
+    clock_t start, stop;
     int i;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+    start = clock();
     for (i = 0; i < 1000000; i++) {
         i -= cpu_execute(device->cpu, 1);
     }
-    clock_gettime(CLOCK_MONOTONIC_RAW, &stop);
-    t = (stop.tv_sec*1000000000UL) + stop.tv_nsec;
-    t -= (start.tv_sec * 1000000000UL) + start.tv_nsec;
-    printf("executed 1,000,000 cycles in %llu microseconds (~%llu MHz)\n", t/1000, 1000000000/t);
+    stop = clock();
+    double time = (double)(stop - start) / (CLOCKS_PER_SEC / 1000);
+    double mHz = 1000.0 / time;
+    printf("executed 1,000,000 cycles in %f milliseconds (~%f MHz)\n", time, mHz);
 
     asic_free(device);
     return -1;
