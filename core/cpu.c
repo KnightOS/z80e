@@ -354,22 +354,68 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 }
 
 void execute_rot(int y, int z, struct ExecutionContext* context) {
+    uint8_t r = read_r(z, context);
+    uint8_t old_r = r;
+    uint8_t old_7 = (r & 0x80) > 0;
+    uint8_t old_0 = (r & 1) > 0;
+    uint8_t old_c = context->cpu->registers.flags.C > 0;
+    z80cpu_t *cpu = context->cpu;
     switch (y) { 
     case 0: // RLC r[z]
+        r <<= 1; r |= old_7;
+        write_r(z, r, context);
+        updateFlags_parity(&context->cpu->registers, old_r, r);
+        cpu->registers.flags.C = old_7;
+        cpu->registers.flags.N = cpu->registers.flags.H = 0;
         break;
     case 1: // RRC r[z]
+        r >>= 1; r |= old_0 << 7;
+        write_r(z, r, context);
+        updateFlags_parity(&context->cpu->registers, old_r, r);
+        cpu->registers.flags.C = old_0;
+        cpu->registers.flags.N = cpu->registers.flags.H = 0;
         break;
     case 2: // RL r[z]
+        r <<= 1; r |= old_c;
+        write_r(z, r, context);
+        updateFlags_parity(&context->cpu->registers, old_r, r);
+        cpu->registers.flags.C = old_7;
+        cpu->registers.flags.N = cpu->registers.flags.H = 0;
         break;
     case 3: // RR r[z]
+        r >>= 1; r |= old_c << 7;
+        write_r(z, r, context);
+        updateFlags_parity(&context->cpu->registers, old_r, r);
+        cpu->registers.flags.C = old_0;
+        cpu->registers.flags.N = cpu->registers.flags.H = 0;
         break;
     case 4: // SLA r[z]
+        r <<= 1;
+        write_r(z, r, context);
+        updateFlags_parity(&context->cpu->registers, old_r, r);
+        cpu->registers.flags.C = old_7;
+        cpu->registers.flags.N = cpu->registers.flags.H = 0;
         break;
     case 5: // SRA r[z]
+        r >>= 1;
+        write_r(z, r, context);
+        updateFlags_parity(&context->cpu->registers, old_r, r);
+        cpu->registers.flags.C = old_0;
+        cpu->registers.flags.N = cpu->registers.flags.H = 0;
         break;
     case 6: // SLL r[z]
+        r <<= 1; r |= 1;
+        write_r(z, r, context);
+        updateFlags_parity(&context->cpu->registers, old_r, r);
+        cpu->registers.flags.C = old_7;
+        cpu->registers.flags.N = cpu->registers.flags.H = 0;
         break;
     case 7: // SRL r[z]
+        r >>= 1;
+        write_r(z, r, context);
+        updateFlags_parity(&context->cpu->registers, old_r, r);
+        cpu->registers.flags.C = old_0;
+        cpu->registers.flags.N = cpu->registers.flags.H = 0;
         break;
     }
 }
@@ -410,11 +456,13 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
         uint8_t prefix = 0;
         z80iodevice_t ioDevice;
 
-        if (cpu->prefix) {
+        if (cpu->prefix == 0xCB || cpu->prefix == 0xED) {
             switch (cpu->prefix) {
             case 0xCB:
                 switch (context.x) {
                 case 0: // rot[y] r[z]
+                    context.cycles += 4;
+                    execute_rot(context.y, context.z, &context);
                     break;
                 case 1: // BIT y, r[z]
                     break;
@@ -424,7 +472,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     break;
                 }
                 cpu->prefix = 0;
-                continue;
+                break;
             case 0xED:
                 switch (context.x) {
                 case 1:
@@ -491,347 +539,343 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     break;
                 }
                 cpu->prefix = 0;
-                continue;
-            case 0xDD: // IX prefix
-            case 0xFD: // IY prefix
-                // This space intentionally left blank
                 break;
             }
-        }
-
-        switch (context.x) {
-        case 0:
-            switch (context.z) {
+        } else {
+            switch (context.x) {
             case 0:
-                switch (context.y) {
-                case 0: // NOP
-                    context.cycles += 4;
-                    break;
-                case 1: // EX AF, AF'
-                    context.cycles += 4;
-                    exAFAF(&cpu->registers);
-                    break;
-                case 2: // DJNZ d
-                    context.cycles += 8;
-                    d = context.d(&context);
-                    cpu->registers.B--;
-                    if (cpu->registers.B != 0) {
-                        context.cycles += 5;
-                        cpu->registers.PC += d;
-                    }
-                    break;
-                case 3: // JR d
-                    context.cycles += 12;
-                    d = context.d(&context);
-                    cpu->registers.PC += d;
-                    break;
-                case 4:
-                case 5:
-                case 6:
-                case 7: // JR cc[y-4], d
-                    context.cycles += 7;
-                    d = context.d(&context);
-                    if (read_cc(context.y - 4, &context)) {
-                        context.cycles += 5;
-                        cpu->registers.PC += d;
-                    }
-                    break;
-                }
-                break;
-            case 1:
-                switch (context.q) {
-                case 0: // LD rp[p], nn
-                    context.cycles += 10;
-                    write_rp(context.p, context.nn(&context), &context);
-                    break;
-                case 1: // ADD HL, rp[p]
-                    context.cycles += 11;
-                    old16 = HLorIr(&context);
-                    new16 = HLorIw(&context, old16 + read_rp(context.p, &context));
-                    updateFlags_except(&cpu->registers, old16, new16, FLAG_Z | FLAG_S | FLAG_PV);
-                    break;
-                }
-                break;
-            case 2:
-                switch (context.q) {
+                switch (context.z) {
                 case 0:
-                    switch (context.p) {
-                    case 0: // LD (BC), A
+                    switch (context.y) {
+                    case 0: // NOP
+                        context.cycles += 4;
+                        break;
+                    case 1: // EX AF, AF'
+                        context.cycles += 4;
+                        exAFAF(&cpu->registers);
+                        break;
+                    case 2: // DJNZ d
+                        context.cycles += 8;
+                        d = context.d(&context);
+                        cpu->registers.B--;
+                        if (cpu->registers.B != 0) {
+                            context.cycles += 5;
+                            cpu->registers.PC += d;
+                        }
+                        break;
+                    case 3: // JR d
+                        context.cycles += 12;
+                        d = context.d(&context);
+                        cpu->registers.PC += d;
+                        break;
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7: // JR cc[y-4], d
                         context.cycles += 7;
-                        cpu_write_byte(cpu, cpu->registers.BC, cpu->registers.A);
-                        break;
-                    case 1: // LD (DE), A
-                        context.cycles += 7;
-                        cpu_write_byte(cpu, cpu->registers.DE, cpu->registers.A);
-                        break;
-                    case 2: // LD (nn), HL
-                        context.cycles += 16;
-                        cpu_write_word(cpu, context.nn(&context), HLorIr(&context));
-                        break;
-                    case 3: // LD (nn), A
-                        context.cycles += 13;
-                        cpu_write_byte(cpu, context.nn(&context), cpu->registers.A);
+                        d = context.d(&context);
+                        if (read_cc(context.y - 4, &context)) {
+                            context.cycles += 5;
+                            cpu->registers.PC += d;
+                        }
                         break;
                     }
                     break;
                 case 1:
-                    switch (context.p) {
-                    case 0: // LD A, (BC)
-                        context.cycles += 7;
-                        cpu->registers.A = cpu_read_byte(cpu, cpu->registers.BC);
+                    switch (context.q) {
+                    case 0: // LD rp[p], nn
+                        context.cycles += 10;
+                        write_rp(context.p, context.nn(&context), &context);
                         break;
-                    case 1: // LD A, (DE)
-                        context.cycles += 7;
-                        cpu->registers.A = cpu_read_byte(cpu, cpu->registers.DE);
-                        break;
-                    case 2: // LD HL, (nn)
-                        context.cycles += 16;
-                        HLorIw(&context, cpu_read_word(cpu, context.nn(&context)));
-                        break;
-                    case 3: // LD A, (nn)
-                        context.cycles += 13;
-                        old16 = context.nn(&context);
-                        cpu->registers.A = cpu_read_byte(cpu, old16);
+                    case 1: // ADD HL, rp[p]
+                        context.cycles += 11;
+                        old16 = HLorIr(&context);
+                        new16 = HLorIw(&context, old16 + read_rp(context.p, &context));
+                        updateFlags_except(&cpu->registers, old16, new16, FLAG_Z | FLAG_S | FLAG_PV);
                         break;
                     }
                     break;
-                }
-                break;
-            case 3:
-                switch (context.q) {
-                case 0: // INC rp[p]
-                    context.cycles += 6;
-                    write_rp(context.p, read_rp(context.p, &context) + 1, &context);
+                case 2:
+                    switch (context.q) {
+                    case 0:
+                        switch (context.p) {
+                        case 0: // LD (BC), A
+                            context.cycles += 7;
+                            cpu_write_byte(cpu, cpu->registers.BC, cpu->registers.A);
+                            break;
+                        case 1: // LD (DE), A
+                            context.cycles += 7;
+                            cpu_write_byte(cpu, cpu->registers.DE, cpu->registers.A);
+                            break;
+                        case 2: // LD (nn), HL
+                            context.cycles += 16;
+                            cpu_write_word(cpu, context.nn(&context), HLorIr(&context));
+                            break;
+                        case 3: // LD (nn), A
+                            context.cycles += 13;
+                            cpu_write_byte(cpu, context.nn(&context), cpu->registers.A);
+                            break;
+                        }
+                        break;
+                    case 1:
+                        switch (context.p) {
+                        case 0: // LD A, (BC)
+                            context.cycles += 7;
+                            cpu->registers.A = cpu_read_byte(cpu, cpu->registers.BC);
+                            break;
+                        case 1: // LD A, (DE)
+                            context.cycles += 7;
+                            cpu->registers.A = cpu_read_byte(cpu, cpu->registers.DE);
+                            break;
+                        case 2: // LD HL, (nn)
+                            context.cycles += 16;
+                            HLorIw(&context, cpu_read_word(cpu, context.nn(&context)));
+                            break;
+                        case 3: // LD A, (nn)
+                            context.cycles += 13;
+                            old16 = context.nn(&context);
+                            cpu->registers.A = cpu_read_byte(cpu, old16);
+                            break;
+                        }
+                        break;
+                    }
                     break;
-                case 1: // DEC rp[p]
-                    context.cycles += 6;
-                    write_rp(context.p, read_rp(context.p, &context) - 1, &context);
+                case 3:
+                    switch (context.q) {
+                    case 0: // INC rp[p]
+                        context.cycles += 6;
+                        write_rp(context.p, read_rp(context.p, &context) + 1, &context);
+                        break;
+                    case 1: // DEC rp[p]
+                        context.cycles += 6;
+                        write_rp(context.p, read_rp(context.p, &context) - 1, &context);
+                        break;
+                    }
                     break;
-                }
-                break;
-            case 4: // INC r[y]
-                context.cycles += 4;
-                old = read_r(context.y, &context);
-                new = write_r(context.y, old + 1, &context);
-                updateFlags_except(&cpu->registers, old, new, FLAG_C);
-                break;
-            case 5: // DEC r[y]
-                context.cycles += 4;
-                old = read_r(context.y, &context);
-                new = write_r(context.y, old - 1, &context);
-                updateFlags_except(&cpu->registers, old, new, FLAG_C);
-                break;
-            case 6: // LD r[y], n
-                context.cycles += 7;
-                write_r(context.y, context.nn(&context), &context);
-                break;
-            case 7:
-                switch (context.y) {
-                case 0: // RLCA
+                case 4: // INC r[y]
                     context.cycles += 4;
-                    old = (cpu->registers.A & 0x80) > 0;
-                    cpu->registers.flags.C = old;
-                    cpu->registers.A <<= 1;
-                    cpu->registers.A |= old;
-                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
+                    old = read_r(context.y, &context);
+                    new = write_r(context.y, old + 1, &context);
+                    updateFlags_except(&cpu->registers, old, new, FLAG_C);
                     break;
-                case 1: // RRCA
+                case 5: // DEC r[y]
                     context.cycles += 4;
-                    old = (cpu->registers.A & 1) > 0;
-                    cpu->registers.flags.C = old;
-                    cpu->registers.A >>= 1;
-                    cpu->registers.A |= old << 7;
-                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
+                    old = read_r(context.y, &context);
+                    new = write_r(context.y, old - 1, &context);
+                    updateFlags_except(&cpu->registers, old, new, FLAG_C);
                     break;
-                case 2: // RLA
-                    context.cycles += 4;
-                    old = cpu->registers.flags.C;
-                    cpu->registers.flags.C = (cpu->registers.A & 0x80) > 0;
-                    cpu->registers.A <<= 1;
-                    cpu->registers.A |= old;
-                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
+                case 6: // LD r[y], n
+                    context.cycles += 7;
+                    write_r(context.y, context.nn(&context), &context);
                     break;
-                case 3: // RRA
-                    context.cycles += 4;
-                    old = cpu->registers.flags.C;
-                    cpu->registers.flags.C = (cpu->registers.A & 1) > 0;
-                    cpu->registers.A >>= 1;
-                    cpu->registers.A |= old << 7;
-                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
+                case 7:
+                    switch (context.y) {
+                    case 0: // RLCA
+                        context.cycles += 4;
+                        old = (cpu->registers.A & 0x80) > 0;
+                        cpu->registers.flags.C = old;
+                        cpu->registers.A <<= 1;
+                        cpu->registers.A |= old;
+                        cpu->registers.flags.N = cpu->registers.flags.H = 0;
+                        break;
+                    case 1: // RRCA
+                        context.cycles += 4;
+                        old = (cpu->registers.A & 1) > 0;
+                        cpu->registers.flags.C = old;
+                        cpu->registers.A >>= 1;
+                        cpu->registers.A |= old << 7;
+                        cpu->registers.flags.N = cpu->registers.flags.H = 0;
+                        break;
+                    case 2: // RLA
+                        context.cycles += 4;
+                        old = cpu->registers.flags.C;
+                        cpu->registers.flags.C = (cpu->registers.A & 0x80) > 0;
+                        cpu->registers.A <<= 1;
+                        cpu->registers.A |= old;
+                        cpu->registers.flags.N = cpu->registers.flags.H = 0;
+                        break;
+                    case 3: // RRA
+                        context.cycles += 4;
+                        old = cpu->registers.flags.C;
+                        cpu->registers.flags.C = (cpu->registers.A & 1) > 0;
+                        cpu->registers.A >>= 1;
+                        cpu->registers.A |= old << 7;
+                        cpu->registers.flags.N = cpu->registers.flags.H = 0;
+                        break;
+                    case 4: // DAA
+                        context.cycles += 4;
+                        old = cpu->registers.A;
+                        daa(&context);
+                        break;
+                    case 5: // CPL
+                        context.cycles += 4;
+                        cpu->registers.A = ~cpu->registers.A;
+                        cpu->registers.flags.N = cpu->registers.flags.H = 1;
+                        break;
+                    case 6: // SCF
+                        context.cycles += 4;
+                        cpu->registers.flags.C = 1;
+                        cpu->registers.flags.N = cpu->registers.flags.H = 0;
+                        break;
+                    case 7: // CCF
+                        context.cycles += 4;
+                        cpu->registers.flags.H = cpu->registers.flags.C;
+                        cpu->registers.flags.C = ~cpu->registers.flags.C;
+                        cpu->registers.flags.N = 0;
+                        break;
+                    }
                     break;
-                case 4: // DAA
-                    context.cycles += 4;
-                    old = cpu->registers.A;
-                    daa(&context);
-                    break;
-                case 5: // CPL
-                    context.cycles += 4;
-                    cpu->registers.A = ~cpu->registers.A;
-                    cpu->registers.flags.N = cpu->registers.flags.H = 1;
-                    break;
-                case 6: // SCF
-                    context.cycles += 4;
-                    cpu->registers.flags.C = 1;
-                    cpu->registers.flags.N = cpu->registers.flags.H = 0;
-                    break;
-                case 7: // CCF
-                    context.cycles += 4;
-                    cpu->registers.flags.H = cpu->registers.flags.C;
-                    cpu->registers.flags.C = ~cpu->registers.flags.C;
-                    cpu->registers.flags.N = 0;
-                    break;
-                }
-                break;
-            }
-            break;
-        case 1:
-            if (context.z == 6 && context.y == 6) { // HALT
-            } else { // LD r[y], r[z]
-                context.cycles += 4;
-                write_r(context.y, read_r(context.z, &context), &context);
-            }
-            break;
-        case 2: // ALU[y] r[z]
-            execute_alu(context.y, read_r(context.z, &context), &context);
-            break;
-        case 3:
-            switch (context.z) {
-            case 0: // RET cc[y]
-                context.cycles += 5;
-                if (read_cc(context.y, &context)) {
-                    cpu->registers.PC = pop(cpu);
-                    context.cycles += 6;
                 }
                 break;
             case 1:
-                switch (context.q) {
-                case 0: // POP rp2[p]
-                    context.cycles += 10;
-                    write_rp2(context.p, pop(cpu), &context);
-                    break;
-                case 1:
-                    switch (context.p) {
-                    case 0: // RET
-                        context.cycles += 10;
-                        cpu->registers.PC = pop(cpu);
-                        break;
-                    case 1: // EXX
-                        context.cycles += 4;
-                        exx(&cpu->registers);
-                        break;
-                    case 2: // JP HL
-                        context.cycles += 4;
-                        cpu->registers.PC = HLorIr(&context);
-                        break;
-                    case 3: // LD SP, HL
-                        context.cycles += 6;
-                        cpu->registers.SP = HLorIr(&context);
-                        break;
-                    }
-                    break;
+                if (context.z == 6 && context.y == 6) { // HALT
+                } else { // LD r[y], r[z]
+                    context.cycles += 4;
+                    write_r(context.y, read_r(context.z, &context), &context);
                 }
                 break;
-            case 2: // JP cc[y], nn
-                context.cycles += 10;
-                nn = context.nn(&context);
-                if (read_cc(context.y, &context)) {
-                    cpu->registers.PC = nn;
-                }
+            case 2: // ALU[y] r[z]
+                execute_alu(context.y, read_r(context.z, &context), &context);
                 break;
             case 3:
-                switch (context.y) {
-                case 0: // JP nn
-                    context.cycles += 10;
-                    cpu->registers.PC = context.nn(&context);
-                    break;
-                case 1: // 0xCB prefixed opcodes
-                    context.cycles += 4;
-                    prefix = 0xCB;
-                    break;
-                case 2: // OUT (n), A
-                    context.cycles += 11;
-                    ioDevice = cpu->devices[context.n(&context)];
-                    if (ioDevice.write_out != NULL) {
-                        ioDevice.write_out(ioDevice.device, cpu->registers.A);
+                switch (context.z) {
+                case 0: // RET cc[y]
+                    context.cycles += 5;
+                    if (read_cc(context.y, &context)) {
+                        cpu->registers.PC = pop(cpu);
+                        context.cycles += 6;
                     }
-                    break;
-                case 3: // IN A, (n)
-                    context.cycles += 11;
-                    ioDevice = cpu->devices[context.n(&context)];
-                    if (ioDevice.read_in != NULL) {
-                        cpu->registers.A = ioDevice.read_in(ioDevice.device);
-                    }
-                    break;
-                case 4: // EX (SP), HL
-                    context.cycles += 19;
-                    old16 = cpu_read_word(cpu, cpu->registers.SP);
-                    cpu_write_word(cpu, cpu->registers.SP, HLorIr(&context));
-                    HLorIw(&context, old16);
-                    break;
-                case 5: // EX DE, HL
-                    context.cycles += 4;
-                    exDEHL(&cpu->registers);
-                    break;
-                case 6: // DI
-                    cpu->IFF1 = 0;
-                    cpu->IFF2 = 0;
-                    break;
-                case 7: // EI
-                    cpu->IFF1 = 1;
-                    cpu->IFF2 = 1;
-                    cpu->IFF_wait = 1;
-                    break;
-                }
-                break;
-            case 4: // CALL cc[y], nn
-                context.cycles += 10;
-                nn = context.nn(&context);
-                if (read_cc(context.y, &context)) {
-                    context.cycles += 7;
-                    push(cpu, cpu->registers.PC);
-                    cpu->registers.PC = nn;
-                }
-                break;
-            case 5:
-                switch (context.q) {
-                case 0: // PUSH r2p[p]
-                    context.cycles += 11;
-                    push(cpu, read_rp2(context.p, &context));
                     break;
                 case 1:
-                    switch (context.p) {
-                    case 0: // CALL nn
-                        context.cycles += 17;
-                        nn = context.nn(&context);
+                    switch (context.q) {
+                    case 0: // POP rp2[p]
+                        context.cycles += 10;
+                        write_rp2(context.p, pop(cpu), &context);
+                        break;
+                    case 1:
+                        switch (context.p) {
+                        case 0: // RET
+                            context.cycles += 10;
+                            cpu->registers.PC = pop(cpu);
+                            break;
+                        case 1: // EXX
+                            context.cycles += 4;
+                            exx(&cpu->registers);
+                            break;
+                        case 2: // JP HL
+                            context.cycles += 4;
+                            cpu->registers.PC = HLorIr(&context);
+                            break;
+                        case 3: // LD SP, HL
+                            context.cycles += 6;
+                            cpu->registers.SP = HLorIr(&context);
+                            break;
+                        }
+                        break;
+                    }
+                    break;
+                case 2: // JP cc[y], nn
+                    context.cycles += 10;
+                    nn = context.nn(&context);
+                    if (read_cc(context.y, &context)) {
+                        cpu->registers.PC = nn;
+                    }
+                    break;
+                case 3:
+                    switch (context.y) {
+                    case 0: // JP nn
+                        context.cycles += 10;
+                        cpu->registers.PC = context.nn(&context);
+                        break;
+                    case 1: // 0xCB prefixed opcodes
+                        context.cycles += 4;
+                        prefix = 0xCB;
+                        break;
+                    case 2: // OUT (n), A
+                        context.cycles += 11;
+                        ioDevice = cpu->devices[context.n(&context)];
+                        if (ioDevice.write_out != NULL) {
+                            ioDevice.write_out(ioDevice.device, cpu->registers.A);
+                        }
+                        break;
+                    case 3: // IN A, (n)
+                        context.cycles += 11;
+                        ioDevice = cpu->devices[context.n(&context)];
+                        if (ioDevice.read_in != NULL) {
+                            cpu->registers.A = ioDevice.read_in(ioDevice.device);
+                        }
+                        break;
+                    case 4: // EX (SP), HL
+                        context.cycles += 19;
+                        old16 = cpu_read_word(cpu, cpu->registers.SP);
+                        cpu_write_word(cpu, cpu->registers.SP, HLorIr(&context));
+                        HLorIw(&context, old16);
+                        break;
+                    case 5: // EX DE, HL
+                        context.cycles += 4;
+                        exDEHL(&cpu->registers);
+                        break;
+                    case 6: // DI
+                        cpu->IFF1 = 0;
+                        cpu->IFF2 = 0;
+                        break;
+                    case 7: // EI
+                        cpu->IFF1 = 1;
+                        cpu->IFF2 = 1;
+                        cpu->IFF_wait = 1;
+                        break;
+                    }
+                    break;
+                case 4: // CALL cc[y], nn
+                    context.cycles += 10;
+                    nn = context.nn(&context);
+                    if (read_cc(context.y, &context)) {
+                        context.cycles += 7;
                         push(cpu, cpu->registers.PC);
                         cpu->registers.PC = nn;
-                        break;
-                    case 1: // 0xDD prefixed opcodes
-                        context.cycles += 4;
-                        prefix = 0xDD;
-                        break;
-                    case 2: // 0xED prefixed opcodes
-                        context.cycles += 4;
-                        prefix = 0xED;
-                        break;
-                    case 3: // 0xFD prefixed opcodes
-                        context.cycles += 4;
-                        prefix = 0xFD;
-                        break;
                     }
-                    break; 
+                    break;
+                case 5:
+                    switch (context.q) {
+                    case 0: // PUSH r2p[p]
+                        context.cycles += 11;
+                        push(cpu, read_rp2(context.p, &context));
+                        break;
+                    case 1:
+                        switch (context.p) {
+                        case 0: // CALL nn
+                            context.cycles += 17;
+                            nn = context.nn(&context);
+                            push(cpu, cpu->registers.PC);
+                            cpu->registers.PC = nn;
+                            break;
+                        case 1: // 0xDD prefixed opcodes
+                            context.cycles += 4;
+                            prefix = 0xDD;
+                            break;
+                        case 2: // 0xED prefixed opcodes
+                            context.cycles += 4;
+                            prefix = 0xED;
+                            break;
+                        case 3: // 0xFD prefixed opcodes
+                            context.cycles += 4;
+                            prefix = 0xFD;
+                            break;
+                        }
+                        break; 
+                    }
+                    break;
+                case 6: // alu[y] n
+                    execute_alu(context.y, context.n(&context), &context);
+                    break;
+                case 7: // RST y*8
+                    context.cycles += 11;
+                    push(context.cpu, context.cpu->registers.PC + 2);
+                    context.cpu->registers.PC = context.y * 8;
+                    break;
                 }
                 break;
-            case 6: // alu[y] n
-                execute_alu(context.y, context.n(&context), &context);
-                break;
-            case 7: // RST y*8
-                context.cycles += 11;
-                push(context.cpu, context.cpu->registers.PC + 2);
-                context.cpu->registers.PC = context.y * 8;
-                break;
             }
-            break;
         }
 
         cpu->prefix = prefix;

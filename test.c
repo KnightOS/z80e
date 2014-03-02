@@ -75,6 +75,14 @@ const test_t tests[] = {
     { test_index_offsets, "index offsets" },
     { test_ixh_ixl, "IXH/IXL" },
     { test_IM_set, "interrupt mode set" },
+    { test_RLC, "RLC r" },
+    { test_RRC, "RRC r" },
+    { test_RL, "RL r" },
+    { test_RR, "RR r" },
+    { test_SLA, "SLA r" },
+    { test_SRA, "SRA r" },
+    { test_SLL, "SLL r" },
+    { test_SRL, "SRL r" },
 };
 
 int main(int argc, char **argv) {
