@@ -88,6 +88,10 @@ const test_t tests[] = {
     { test_SET, "SET y, r" },
     { test_EI_DI, "EI/DI" },
     { test_NEG, "NEG" },
+    { test_IN_C, "IN (C)" },
+    { test_IN_r_C, "IN r, (C)" },
+    { test_OUT_C_0, "OUT (C), 0" },
+    { test_OUT_C_r, "OUT (C), r" },
 };
 
 int main(int argc, char **argv) {

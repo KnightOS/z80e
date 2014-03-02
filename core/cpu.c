@@ -492,12 +492,41 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     switch (context.z) {
                     case 0:
                         if (context.y == 6) { // IN (C)
+                            context.cycles += 8;
+                            ioDevice = cpu->devices[cpu->registers.C];
+                            if (ioDevice.read_in != NULL) {
+                                new = ioDevice.read_in(ioDevice.device);
+                                updateFlags_except(&cpu->registers, new, new, FLAG_C);
+                                cpu->registers.flags.H = cpu->registers.flags.N = 0;
+                            }
                         } else { // IN r[y], (C)
+                            context.cycles += 8;
+                            ioDevice = cpu->devices[cpu->registers.C];
+                            if (ioDevice.read_in != NULL) {
+                                new = ioDevice.read_in(ioDevice.device);
+                                old = read_r(context.y, &context);
+                                write_r(context.y, new, &context);
+                                updateFlags_withOptions(&cpu->registers, old, new, 0, 1, FLAG_C);
+                            }
                         }
                         break;
                     case 1:
                         if (context.y == 6) { // OUT (C), 0
+                            // This instruction outputs 0 for NMOS z80s, and 0xFF for CMOS z80s.
+                            // TIs are the CMOS variant. Most emulators do *not* emulate this
+                            // correctly, but I have verified through my own research that the
+                            // correct value to output is 0xFF.
+                            context.cycles += 8;
+                            ioDevice = cpu->devices[cpu->registers.C];
+                            if (ioDevice.write_out != NULL) {
+                                ioDevice.write_out(ioDevice.device, 0xFF);
+                            }
                         } else { // OUT (C), r[y]
+                            context.cycles += 8;
+                            ioDevice = cpu->devices[cpu->registers.C];
+                            if (ioDevice.write_out != NULL) {
+                                ioDevice.write_out(ioDevice.device, read_r(context.y, &context));
+                            }
                         }
                         break;
                     case 2:
@@ -516,7 +545,9 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         break;
                     case 5:
                         if (context.y == 1) { // RETI
+                            // Note: Intentionally not implemented, not relevant for TI devices
                         } else { // RETN
+                            // Note: Intentionally not implemented, not relevant for TI devices
                         }
                         break;
                     case 6: // IM im[y]
@@ -538,6 +569,7 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         case 5: // RLD
                             break;
                         default: // NOP (invalid instruction)
+                            context.cycles += 4;
                             break;
                         }
                         break;
@@ -546,10 +578,12 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                 case 2:
                     if (context.y >= 4) { // bli[y,z]
                     } else { // NONI (invalid instruction)
+                        context.cycles += 4;
                         cpu->IFF_wait = 1;
                     }
                     break;
                 default: // NONI (invalid instruction)
+                    context.cycles += 4;
                     cpu->IFF_wait = 1;
                     break;
                 }
