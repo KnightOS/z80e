@@ -242,3 +242,28 @@ int test_IM_set() {
     asic_free(device);
     return 0;
 }
+
+int test_EI_DI() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xFB }; // EI
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 4);
+    if (device->cpu->IFF1 != 1 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    device = asic_init(TI83p);
+    uint8_t test2[] = { 0xF3 }; // DI
+    device->cpu->IFF1 = 1;
+    flash(device, test2);
+    cycles = cpu_execute(device->cpu, 4);
+    if (device->cpu->IFF1 != 0 ||
+        cycles != 0) {
+        asic_free(device);
+        return 2;
+    }
+    asic_free(device);
+    return 0;
+}

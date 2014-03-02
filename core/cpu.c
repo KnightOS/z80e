@@ -829,10 +829,12 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         exDEHL(&cpu->registers);
                         break;
                     case 6: // DI
+                        context.cycles += 4;
                         cpu->IFF1 = 0;
                         cpu->IFF2 = 0;
                         break;
                     case 7: // EI
+                        context.cycles += 4;
                         cpu->IFF1 = 1;
                         cpu->IFF2 = 1;
                         cpu->IFF_wait = 1;
