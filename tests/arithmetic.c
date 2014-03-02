@@ -173,3 +173,18 @@ int test_SET() {
     asic_free(device);
     return 0;
 }
+
+int test_NEG() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0x44 }; // NEG
+    device->cpu->registers.A = 2;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 8);
+    if (device->cpu->registers.A != 0xFE ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

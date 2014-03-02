@@ -511,6 +511,8 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         }
                         break;
                     case 4: // NEG
+                        context.cycles += 4;
+                        cpu->registers.A = -cpu->registers.A;
                         break;
                     case 5:
                         if (context.y == 1) { // RETI
