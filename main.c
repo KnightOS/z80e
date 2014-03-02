@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
             asic_free(device);
             return 1;
         }
-        fread(device->mmu->flash, 0x4000, device->mmu->settings->flash_pages, file);
+        length = fread(device->mmu->flash, 0x4000, device->mmu->settings->flash_pages, file);
         fclose(file);
     }
     if (context.cycles == -1) { // Run indefinitely
