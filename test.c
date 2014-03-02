@@ -83,6 +83,9 @@ const test_t tests[] = {
     { test_SRA, "SRA r" },
     { test_SLL, "SLL r" },
     { test_SRL, "SRL r" },
+    { test_BIT, "BIT y, r" },
+    { test_RES, "RES y, r" },
+    { test_SET, "SET y, r" },
 };
 
 int main(int argc, char **argv) {

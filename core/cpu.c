@@ -465,10 +465,23 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     execute_rot(context.y, context.z, &context);
                     break;
                 case 1: // BIT y, r[z]
+                    context.cycles += 4;
+                    old = read_r(context.z, &context);
+                    cpu->registers.flags.H = 1;
+                    cpu->registers.flags.N = 0;
+                    cpu->registers.flags.Z = (old & (1 << context.y)) > 0;
                     break;
                 case 2: // RES y, r[z]
+                    context.cycles += 4;
+                    old = read_r(context.z, &context);
+                    old &= ~(1 << context.y);
+                    write_r(context.z, old, &context);
                     break;
                 case 3: // SET y, r[z]
+                    context.cycles += 4;
+                    old = read_r(context.z, &context);
+                    old |= 1 << context.y;
+                    write_r(context.z, old, &context);
                     break;
                 }
                 cpu->prefix = 0;
