@@ -100,6 +100,7 @@ const test_t tests[] = {
     { test_LD_A_I, "LD A, I" },
     { test_RRD_RLD, "RRD/RLD" },
     { test_LDI, "LDI" },
+    { test_LDIR, "LDIR" },
 };
 
 int main(int argc, char **argv) {

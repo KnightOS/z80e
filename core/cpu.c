@@ -454,6 +454,14 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
     case 6:
         switch (z) {
         case 0: // LDIR
+            context->cycles += 12;
+            cpu_write_byte(context->cpu, r->DE++, cpu_read_byte(context->cpu, r->HL++));
+            r->flags.PV = !r->BC--;
+            r->flags.N = r->flags.H = 0;
+            if (r->BC) {
+                context->cycles += 5;
+                r->PC -= 2;
+            }
             break;
         case 1: // CPIR
             break;
