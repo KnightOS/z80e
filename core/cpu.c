@@ -545,7 +545,11 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                         break;
                     case 3:
                         if (context.q == 0) { // LD (nn), rp[p]
+                            context.cycles += 16;
+                            cpu_write_word(cpu, context.nn(&context), read_rp(context.p, &context));
                         } else { // LD rp[p], (nn)
+                            context.cycles += 16;
+                            write_rp(context.p, cpu_read_word(cpu, context.nn(&context)), &context);
                         }
                         break;
                     case 4: // NEG

@@ -226,3 +226,33 @@ int test_PUSH_rp2() {
     asic_free(device);
     return 0;
 }
+
+int test_LD_nn_rp() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0x43, 0x00, 0xC0 }; // LD (0xC000), BC
+    device->cpu->registers.BC = 0x1234;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 20);
+    if (cpu_read_word(device->cpu, 0xC000) != 0x1234 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_LD_rp_nn_ind() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0x4B, 0x00, 0xC0 }; // LD BC, (0xC000)
+    cpu_write_word(device->cpu, 0xC000, 0x1234);
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 20);
+    if (device->cpu->registers.BC != 0x1234 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
