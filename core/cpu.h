@@ -13,7 +13,6 @@ typedef struct {
     z80iodevice_t devices[0x100];
     z80registers_t registers;
     struct {
-        // We're using IFF1 to indicate that an EI has just executed, not for its actual purpose (which is only related to NMIs, unsupported here)
         uint8_t IFF1 : 1;
         uint8_t IFF2 : 1;
         uint8_t int_mode : 2;
