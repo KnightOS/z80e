@@ -422,6 +422,7 @@ void execute_rot(int y, int z, struct ExecutionContext *context) {
 
 void execute_bli(int y, int z, struct ExecutionContext *context) {
     z80registers_t *r = &context->cpu->registers;
+    uint8_t new;
     switch (y) {
     case 4:
         switch (z) {
@@ -432,6 +433,11 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             r->flags.N = r->flags.H = 0;
             break;
         case 1: // CPI
+            context->cycles += 12;
+            new = cpu_read_byte(context->cpu, r->HL++);
+            updateFlags_except(r, r->A, r->A - new, FLAG_C);
+            r->flags.PV = !r->BC--;
+            r->flags.N = 1;
             break;
         case 2: // INI
             break;
@@ -448,6 +454,11 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             r->flags.N = r->flags.H = 0;
             break;
         case 1: // CPD
+            context->cycles += 12;
+            new = cpu_read_byte(context->cpu, r->HL--);
+            updateFlags_except(r, r->A, r->A - new, FLAG_C);
+            r->flags.PV = !r->BC--;
+            r->flags.N = 1;
             break;
         case 2: // IND
             break;
