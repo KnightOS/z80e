@@ -420,6 +420,64 @@ void execute_rot(int y, int z, struct ExecutionContext *context) {
     }
 }
 
+void execute_bli(int y, int z, struct ExecutionContext *context) {
+    z80registers_t *r = &context->cpu->registers;
+    switch (y) {
+    case 4:
+        switch (z) {
+        case 0: // LDI
+            context->cycles += 12;
+            cpu_write_byte(context->cpu, r->DE++, cpu_read_byte(context->cpu, r->HL++));
+            r->flags.PV = !r->BC--;
+            r->flags.N = r->flags.H = 0;
+            break;
+        case 1: // CPI
+            break;
+        case 2: // INI
+            break;
+        case 3: // OUTI
+            break;
+        }
+        break;
+    case 5:
+        switch (z) {
+        case 0: // LDD
+            break;
+        case 1: // CPD
+            break;
+        case 2: // IND
+            break;
+        case 3: // OUTD
+            break;
+        }
+        break;
+    case 6:
+        switch (z) {
+        case 0: // LDIR
+            break;
+        case 1: // CPIR
+            break;
+        case 2: // INIR
+            break;
+        case 3: // OTDR
+            break;
+        }
+        break;
+    case 7:
+        switch (z) {
+        case 0: // LDDR
+            break;
+        case 1: // CPDR
+            break;
+        case 2: // INDR
+            break;
+        case 3: // OTDR
+            break;
+        }
+        break;
+    }
+}
+
 void execute_im(int y, struct ExecutionContext *context) {
     switch (y) {
         case 0: context->cpu->int_mode = 0; break;
@@ -620,6 +678,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                     break;
                 case 2:
                     if (context.y >= 4) { // bli[y,z]
+                        execute_bli(context.y, context.z, &context);
                     } else { // NONI (invalid instruction)
                         context.cycles += 4;
                         cpu->IFF_wait = 1;

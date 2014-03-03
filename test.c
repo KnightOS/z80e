@@ -14,6 +14,7 @@ void flash(asic_t *device, const uint8_t *data);
 #include "tests/io.c"
 #include "tests/index.c"
 #include "tests/performance.c"
+#include "tests/block.c"
 
 typedef struct {
     int (*execute)(void);
@@ -98,6 +99,7 @@ const test_t tests[] = {
     { test_LD_rp_nn_ind, "LD rp, (nn)" },
     { test_LD_A_I, "LD A, I" },
     { test_RRD_RLD, "RRD/RLD" },
+    { test_LDI, "LDI" },
 };
 
 int main(int argc, char **argv) {
