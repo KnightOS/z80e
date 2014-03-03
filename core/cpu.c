@@ -442,6 +442,10 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
     case 5:
         switch (z) {
         case 0: // LDD
+            context->cycles += 12;
+            cpu_write_byte(context->cpu, r->DE--, cpu_read_byte(context->cpu, r->HL--));
+            r->flags.PV = !r->BC--;
+            r->flags.N = r->flags.H = 0;
             break;
         case 1: // CPD
             break;
@@ -474,6 +478,14 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
     case 7:
         switch (z) {
         case 0: // LDDR
+            context->cycles += 12;
+            cpu_write_byte(context->cpu, r->DE--, cpu_read_byte(context->cpu, r->HL--));
+            r->flags.PV = !r->BC--;
+            r->flags.N = r->flags.H = 0;
+            if (r->BC) {
+                context->cycles += 5;
+                r->PC -= 2;
+            }
             break;
         case 1: // CPDR
             break;
