@@ -256,3 +256,19 @@ int test_LD_rp_nn_ind() {
     asic_free(device);
     return 0;
 }
+
+int test_LD_A_I() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0x57 }; // LD A, I
+    device->cpu->registers.I = 0x34;
+    device->cpu->IFF2 = 1;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 9);
+    if (device->cpu->registers.flags.PV != 1 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

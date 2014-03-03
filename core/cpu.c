@@ -570,12 +570,28 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                     case 7:
                         switch (context.y) {
                         case 0: // LD I, A
+                            context.cycles += 5;
+                            r->I = r->A;
                             break;
                         case 1: // LD R, A
+                            context.cycles += 5;
+                            r->R = r->A;
                             break;
                         case 2: // LD A, I
+                            context.cycles += 5;
+                            old = r->A;
+                            r->A = r->I;
+                            updateFlags_except(r, old, r->A, FLAG_C);
+                            r->flags.H = r->flags.N = 0;
+                            r->flags.PV = cpu->IFF2;
                             break;
                         case 3: // LD A, R
+                            context.cycles += 5;
+                            old = r->A;
+                            r->A = r->R;
+                            updateFlags_except(r, old, r->A, FLAG_C);
+                            r->flags.H = r->flags.N = 0;
+                            r->flags.PV = cpu->IFF2;
                             break;
                         case 4: // RRD
                             break;
