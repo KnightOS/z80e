@@ -1,8 +1,9 @@
-#include "asic.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <strings.h>
 #include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+
+#include "asic.h"
 
 typedef struct {
     ti_device_type device;
@@ -26,7 +27,7 @@ appContext_t create_context(void) {
     return context;
 }
 
-void setDevice(appContext_t *context, char* target) {
+void setDevice(appContext_t *context, char *target) {
     if (strcasecmp(target, "TI73") == 0) {
         context->device = TI73;
     } else if (strcasecmp(target, "TI83p") == 0) {
