@@ -451,6 +451,14 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             r->flags.N = 1;
             break;
         case 3: // OUTI
+            context->cycles += 12;
+            ioDevice = context->cpu->devices[r->C];
+            if (ioDevice.write_out != NULL) {
+                ioDevice.write_out(ioDevice.device, cpu_read_byte(context->cpu, r->HL));
+            }
+            r->HL++;
+            r->flags.Z = !--r->B;
+            r->flags.N = 1;
             break;
         }
         break;
@@ -480,6 +488,14 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             r->flags.N = 1;
             break;
         case 3: // OUTD
+            context->cycles += 12;
+            ioDevice = context->cpu->devices[r->C];
+            if (ioDevice.write_out != NULL) {
+                ioDevice.write_out(ioDevice.device, cpu_read_byte(context->cpu, r->HL));
+            }
+            r->HL--;
+            r->flags.Z = !--r->B;
+            r->flags.N = 1;
             break;
         }
         break;
@@ -520,7 +536,19 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
                 r->PC -= 2;
             }
             break;
-        case 3: // OTDR
+        case 3: // OTIR
+            context->cycles += 12;
+            ioDevice = context->cpu->devices[r->C];
+            if (ioDevice.write_out != NULL) {
+                ioDevice.write_out(ioDevice.device, cpu_read_byte(context->cpu, r->HL));
+            }
+            r->HL++;
+            r->flags.Z = !--r->B;
+            r->flags.N = 1;
+            if (!r->flags.Z) {
+                context->cycles += 5;
+                r->PC -= 2;
+            }
             break;
         }
         break;
@@ -562,6 +590,18 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             }
             break;
         case 3: // OTDR
+            context->cycles += 12;
+            ioDevice = context->cpu->devices[r->C];
+            if (ioDevice.write_out != NULL) {
+                ioDevice.write_out(ioDevice.device, cpu_read_byte(context->cpu, r->HL));
+            }
+            r->HL--;
+            r->flags.Z = !--r->B;
+            r->flags.N = 1;
+            if (!r->flags.Z) {
+                context->cycles += 5;
+                r->PC -= 2;
+            }
             break;
         }
         break;
@@ -970,6 +1010,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                 break;
             case 1:
                 if (context.z == 6 && context.y == 6) { // HALT
+                    context.cycles += 4;
+                    cpu->halted = 1;
                 } else { // LD r[y], r[z]
                     context.cycles += 4;
                     write_r(context.y, read_r(context.z, &context), &context);

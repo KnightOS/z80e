@@ -210,3 +210,111 @@ int test_INDR() {
     asic_free(device);
     return 0;
 }
+
+int test_OUTI() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0xA3 };
+    uint8_t value = 0x00;
+    z80iodevice_t test_device = { &value, test_read, test_write };
+    device->cpu->devices[0x12] = test_device;
+    device->cpu->registers.C = 0x12;
+    device->cpu->registers.B = 5;
+    device->cpu->registers.HL = 0xC000;
+    cpu_write_byte(device->cpu, 0xC000, 0x11);
+    cpu_write_byte(device->cpu, 0xC001, 0x22);
+    cpu_write_byte(device->cpu, 0xC002, 0x33);
+    cpu_write_byte(device->cpu, 0xC003, 0x44);
+    cpu_write_byte(device->cpu, 0xC004, 0x55);
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 16);
+    if (value != 0x11 ||
+        device->cpu->registers.B != 4 ||
+        device->cpu->registers.HL != 0xC001 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_OUTD() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0xAB };
+    uint8_t value = 0x00;
+    z80iodevice_t test_device = { &value, test_read, test_write };
+    device->cpu->devices[0x12] = test_device;
+    device->cpu->registers.C = 0x12;
+    device->cpu->registers.B = 5;
+    device->cpu->registers.HL = 0xC004;
+    cpu_write_byte(device->cpu, 0xC000, 0x11);
+    cpu_write_byte(device->cpu, 0xC001, 0x22);
+    cpu_write_byte(device->cpu, 0xC002, 0x33);
+    cpu_write_byte(device->cpu, 0xC003, 0x44);
+    cpu_write_byte(device->cpu, 0xC004, 0x55);
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 16);
+    if (value != 0x55 ||
+        device->cpu->registers.B != 4 ||
+        device->cpu->registers.HL != 0xC003 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_OTIR() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0xB3 };
+    uint8_t value = 0x00;
+    z80iodevice_t test_device = { &value, test_read, test_write };
+    device->cpu->devices[0x12] = test_device;
+    device->cpu->registers.C = 0x12;
+    device->cpu->registers.B = 5;
+    device->cpu->registers.HL = 0xC000;
+    cpu_write_byte(device->cpu, 0xC000, 0x11);
+    cpu_write_byte(device->cpu, 0xC001, 0x22);
+    cpu_write_byte(device->cpu, 0xC002, 0x33);
+    cpu_write_byte(device->cpu, 0xC003, 0x44);
+    cpu_write_byte(device->cpu, 0xC004, 0x55);
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 100);
+    if (value != 0x55 ||
+        device->cpu->registers.B != 0 ||
+        device->cpu->registers.HL != 0xC005 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_OTDR() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0xBB };
+    uint8_t value = 0x00;
+    z80iodevice_t test_device = { &value, test_read, test_write };
+    device->cpu->devices[0x12] = test_device;
+    device->cpu->registers.C = 0x12;
+    device->cpu->registers.B = 5;
+    device->cpu->registers.HL = 0xC004;
+    cpu_write_byte(device->cpu, 0xC000, 0x11);
+    cpu_write_byte(device->cpu, 0xC001, 0x22);
+    cpu_write_byte(device->cpu, 0xC002, 0x33);
+    cpu_write_byte(device->cpu, 0xC003, 0x44);
+    cpu_write_byte(device->cpu, 0xC004, 0x55);
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 100);
+    if (value != 0x11 ||
+        device->cpu->registers.B != 0 ||
+        device->cpu->registers.HL != 0xBFFF ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

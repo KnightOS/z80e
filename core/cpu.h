@@ -18,7 +18,7 @@ typedef struct {
         uint8_t int_mode : 2;
         // Internal use:
         uint8_t IFF_wait : 1;
-        uint8_t IFF_pending : 1;
+        uint8_t halted : 1;
     };
     uint8_t prefix;
     void *memory;

@@ -111,6 +111,10 @@ const test_t tests[] = {
     { test_IND, "IND" },
     { test_INIR, "INIR" },
     { test_INDR, "INDR" },
+    { test_OUTI, "OUTI" },
+    { test_OUTD, "OUTD" },
+    { test_OTIR, "OTIR" },
+    { test_OTDR, "OTDR" },
 };
 
 int main(int argc, char **argv) {
