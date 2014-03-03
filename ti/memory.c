@@ -1,13 +1,7 @@
 #include "memory.h"
-#include "cpu.h"
-#include "ti.h"
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
-ti_mmu_t* ti_mmu_init(ti_device_type device_type) {
-    ti_mmu_t* mmu = malloc(sizeof(ti_mmu_t));
+ti_mmu_t *ti_mmu_init(ti_device_type device_type) {
+    ti_mmu_t *mmu = malloc(sizeof(ti_mmu_t));
     mmu->settings = malloc(sizeof(ti_mmu_settings_t));
     switch (device_type) {
         case TI83p:

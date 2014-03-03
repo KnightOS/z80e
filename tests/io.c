@@ -1,9 +1,9 @@
-uint8_t test_read(void* device) {
-    return *(uint8_t*)device;
+uint8_t test_read(void *device) {
+    return *(uint8_t *)device;
 }
 
-void test_write(void* device, uint8_t value) {
-    *(uint8_t*)device = value;
+void test_write(void *device, uint8_t value) {
+    *(uint8_t *)device = value;
 }
 
 int test_OUT_n_A() {
