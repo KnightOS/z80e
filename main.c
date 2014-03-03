@@ -26,7 +26,7 @@ appContext_t create_context(void) {
     return context;
 }
 
-void setDevice(appContext_t *context, char* target) {
+void setDevice(appContext_t *context, char *target) {
     if (strcasecmp(target, "TI73") == 0) {
         context->device = TI73;
     } else if (strcasecmp(target, "TI83p") == 0) {
@@ -76,8 +76,7 @@ void handleFlag(appContext_t *context, char flag, int *i, char **argv) {
 
 void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
     if (strcasecmp(flag, "device") == 0) {
-        char *next = argv[*i];
-        *i += 1;
+        char *next = argv[*i++];
         setDevice(context, next);
     } else if (strcasecmp(flag, "print-state") == 0) {
         context->print_state = 1;

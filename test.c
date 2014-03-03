@@ -17,7 +17,7 @@ void flash(asic_t *device, const uint8_t *data);
 
 typedef struct {
     int (*execute)(void);
-    char* name;
+    char *name;
 } test_t;
 
 const test_t tests[] = {

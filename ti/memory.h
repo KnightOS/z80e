@@ -15,10 +15,10 @@ typedef struct {
 } ti_mmu_bank_state_t;
 
 typedef struct {
-    ti_mmu_settings_t* settings;
+    ti_mmu_settings_t *settings;
     ti_mmu_bank_state_t banks[4];
-    uint8_t* ram;
-    uint8_t* flash;
+    uint8_t *ram;
+    uint8_t *flash;
     int flash_unlocked;
 } ti_mmu_t;
 

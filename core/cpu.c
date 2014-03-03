@@ -20,9 +20,9 @@ struct ExecutionContext {
             uint8_t p : 2;
         };
     };
-    uint8_t (*n)(struct ExecutionContext*);
-    uint16_t (*nn)(struct ExecutionContext*);
-    int8_t (*d)(struct ExecutionContext*);
+    uint8_t (*n)(struct ExecutionContext *);
+    uint16_t (*nn)(struct ExecutionContext *);
+    int8_t (*d)(struct ExecutionContext *);
 };
 
 z80cpu_t* cpu_init(void) {
@@ -35,33 +35,33 @@ z80cpu_t* cpu_init(void) {
     return cpu;
 }
 
-void cpu_free(z80cpu_t* cpu) {
+void cpu_free(z80cpu_t *cpu) {
     free(cpu);
 }
 
-uint8_t cpu_read_byte(z80cpu_t* cpu, uint16_t address) {
+uint8_t cpu_read_byte(z80cpu_t *cpu, uint16_t address) {
     return cpu->read_byte(cpu->memory, address);
 }
 
-void cpu_write_byte(z80cpu_t* cpu, uint16_t address, uint8_t value) {
+void cpu_write_byte(z80cpu_t *cpu, uint16_t address, uint8_t value) {
     cpu->write_byte(cpu->memory, address, value);
 }
 
-uint16_t cpu_read_word(z80cpu_t* cpu, uint16_t address) {
+uint16_t cpu_read_word(z80cpu_t *cpu, uint16_t address) {
     return cpu->read_byte(cpu->memory, address) | (cpu->read_byte(cpu->memory, address + 1) << 8);
 }
 
-void cpu_write_word(z80cpu_t* cpu, uint16_t address, uint16_t value) {
+void cpu_write_word(z80cpu_t *cpu, uint16_t address, uint16_t value) {
     cpu->write_byte(cpu->memory, address, value & 0xFF);
     cpu->write_byte(cpu->memory, address + 1, value >> 8);
 }
 
-void push(z80cpu_t* cpu, uint16_t value) {
+void push(z80cpu_t *cpu, uint16_t value) {
     cpu_write_word(cpu, cpu->registers.SP - 2, value);
     cpu->registers.SP -= 2;
 }
 
-uint16_t pop(z80cpu_t* cpu) {
+uint16_t pop(z80cpu_t *cpu) {
     uint16_t a = 0;
     a |= cpu_read_byte(cpu, cpu->registers.SP++);
     a |= cpu_read_byte(cpu, cpu->registers.SP++) << 8;
@@ -83,7 +83,7 @@ int8_t read_d(struct ExecutionContext *context) {
     return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC++);
 }
 
-uint8_t HorIHr(struct ExecutionContext* context) {
+uint8_t HorIHr(struct ExecutionContext *context) {
     if (context->cpu->prefix == 0xDD) {
         return context->cpu->registers.IXH;
     } else if (context->cpu->prefix == 0xFD) {
@@ -93,7 +93,7 @@ uint8_t HorIHr(struct ExecutionContext* context) {
     }
 }
 
-uint8_t HorIHw(struct ExecutionContext* context, uint8_t value) {
+uint8_t HorIHw(struct ExecutionContext *context, uint8_t value) {
     if (context->cpu->prefix == 0xDD) {
         context->cpu->registers.IXH = value;
     } else if (context->cpu->prefix == 0xFD) {
@@ -104,7 +104,7 @@ uint8_t HorIHw(struct ExecutionContext* context, uint8_t value) {
     return value;
 }
 
-uint8_t LorILr(struct ExecutionContext* context) {
+uint8_t LorILr(struct ExecutionContext *context) {
     if (context->cpu->prefix == 0xDD) {
         return context->cpu->registers.IXL;
     } else if (context->cpu->prefix == 0xFD) {
@@ -114,7 +114,7 @@ uint8_t LorILr(struct ExecutionContext* context) {
     }
 }
 
-uint8_t LorILw(struct ExecutionContext* context, uint8_t value) {
+uint8_t LorILw(struct ExecutionContext *context, uint8_t value) {
     if (context->cpu->prefix == 0xDD) {
         context->cpu->registers.IXL = value;
     } else if (context->cpu->prefix == 0xFD) {
@@ -125,7 +125,7 @@ uint8_t LorILw(struct ExecutionContext* context, uint8_t value) {
     return value;
 }
 
-uint16_t HLorIr(struct ExecutionContext* context) {
+uint16_t HLorIr(struct ExecutionContext *context) {
     if (context->cpu->prefix == 0xDD) {
         return context->cpu->registers.IX;
     } else if (context->cpu->prefix == 0xFD) {
@@ -135,7 +135,7 @@ uint16_t HLorIr(struct ExecutionContext* context) {
     }
 }
 
-uint16_t HLorIw(struct ExecutionContext* context, uint16_t value) {
+uint16_t HLorIw(struct ExecutionContext *context, uint16_t value) {
     if (context->cpu->prefix == 0xDD) {
         context->cpu->registers.IX = value;
     } else if (context->cpu->prefix == 0xFD) {
@@ -146,7 +146,7 @@ uint16_t HLorIw(struct ExecutionContext* context, uint16_t value) {
     return value;
 }
 
-uint8_t indHLorIr(struct ExecutionContext* context) {
+uint8_t indHLorIr(struct ExecutionContext *context) {
     // This function erases the prefix early so that the next read (H or L) does not
     // use IXH or IXL
     if (context->cpu->prefix == 0xDD) {
@@ -162,7 +162,7 @@ uint8_t indHLorIr(struct ExecutionContext* context) {
     }
 }
 
-uint8_t indHLorIw(struct ExecutionContext* context, uint8_t value) {
+uint8_t indHLorIw(struct ExecutionContext *context, uint8_t value) {
     if (context->cpu->prefix == 0xDD) {
         context->cycles += 9;
         context->cpu->prefix = 0;
@@ -353,7 +353,7 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
     }
 }
 
-void execute_rot(int y, int z, struct ExecutionContext* context) {
+void execute_rot(int y, int z, struct ExecutionContext *context) {
     uint8_t r = read_r(z, context);
     uint8_t old_r = r;
     uint8_t old_7 = (r & 0x80) > 0;
@@ -420,7 +420,7 @@ void execute_rot(int y, int z, struct ExecutionContext* context) {
     }
 }
 
-void execute_im(int y, struct ExecutionContext* context) {
+void execute_im(int y, struct ExecutionContext *context) {
     switch (y) {
         case 0: context->cpu->int_mode = 0; break;
         case 1: context->cpu->int_mode = 0; break; // 0/1
@@ -433,7 +433,7 @@ void execute_im(int y, struct ExecutionContext* context) {
     }
 }
 
-int cpu_execute(z80cpu_t* cpu, int cycles) {
+int cpu_execute(z80cpu_t *cpu, int cycles) {
     struct ExecutionContext context;
     context.cpu = cpu;
     while (cycles > 0) {
