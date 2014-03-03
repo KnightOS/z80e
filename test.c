@@ -97,6 +97,7 @@ const test_t tests[] = {
     { test_LD_nn_rp, "LD (nn), rp" },
     { test_LD_rp_nn_ind, "LD rp, (nn)" },
     { test_LD_A_I, "LD A, I" },
+    { test_RRD_RLD, "RRD/RLD" },
 };
 
 int main(int argc, char **argv) {

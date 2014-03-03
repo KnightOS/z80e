@@ -272,3 +272,28 @@ int test_LD_A_I() {
     asic_free(device);
     return 0;
 }
+
+int test_RRD_RLD() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0x67, 0xED, 0x6F }; // RRD \ RLD
+    device->cpu->registers.HL = 0xC000;
+    device->cpu->registers.A = 0x12;
+    cpu_write_word(device->cpu, 0xC000, 0x3456);
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 18);
+    if (device->cpu->registers.A != 0x56 ||
+        cpu_read_word(device->cpu, 0xC000) != 0x1234 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    cycles = cpu_execute(device->cpu, 18);
+    if (device->cpu->registers.A != 0x12 ||
+        cpu_read_word(device->cpu, 0xC000) != 0x3456 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

@@ -594,8 +594,22 @@ int cpu_execute(z80cpu_t* cpu, int cycles) {
                             r->flags.PV = cpu->IFF2;
                             break;
                         case 4: // RRD
+                            context.cycles += 14;
+                            old = r->A;
+                            old16 = cpu_read_word(cpu, r->HL);
+                            r->A = old16 & 0xFF;
+                            old16 >>= 8;
+                            old16 |= old << 8;
+                            cpu_write_word(cpu, r->HL, old16);
                             break;
                         case 5: // RLD
+                            context.cycles += 14;
+                            old = r->A;
+                            old16 = cpu_read_word(cpu, r->HL);
+                            r->A = old16 >> 8;
+                            old16 <<= 8;
+                            old16 |= old;
+                            cpu_write_word(cpu, r->HL, old16);
                             break;
                         default: // NOP (invalid instruction)
                             context.cycles += 4;
