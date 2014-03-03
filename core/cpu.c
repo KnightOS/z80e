@@ -422,6 +422,7 @@ void execute_rot(int y, int z, struct ExecutionContext *context) {
 
 void execute_bli(int y, int z, struct ExecutionContext *context) {
     z80registers_t *r = &context->cpu->registers;
+    z80iodevice_t ioDevice;
     uint8_t new;
     switch (y) {
     case 4:
@@ -429,17 +430,25 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
         case 0: // LDI
             context->cycles += 12;
             cpu_write_byte(context->cpu, r->DE++, cpu_read_byte(context->cpu, r->HL++));
-            r->flags.PV = !r->BC--;
+            r->flags.PV = !--r->BC;
             r->flags.N = r->flags.H = 0;
             break;
         case 1: // CPI
             context->cycles += 12;
             new = cpu_read_byte(context->cpu, r->HL++);
             updateFlags_except(r, r->A, r->A - new, FLAG_C);
-            r->flags.PV = !r->BC--;
+            r->flags.PV = !--r->BC;
             r->flags.N = 1;
             break;
         case 2: // INI
+            context->cycles += 12;
+            ioDevice = context->cpu->devices[r->C];
+            if (ioDevice.read_in != NULL) {
+                cpu_write_byte(context->cpu, r->HL, ioDevice.read_in(ioDevice.device));
+            }
+            r->HL++;
+            r->flags.Z = !--r->B;
+            r->flags.N = 1;
             break;
         case 3: // OUTI
             break;
@@ -450,17 +459,25 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
         case 0: // LDD
             context->cycles += 12;
             cpu_write_byte(context->cpu, r->DE--, cpu_read_byte(context->cpu, r->HL--));
-            r->flags.PV = !r->BC--;
+            r->flags.PV = !--r->BC;
             r->flags.N = r->flags.H = 0;
             break;
         case 1: // CPD
             context->cycles += 12;
             new = cpu_read_byte(context->cpu, r->HL--);
             updateFlags_except(r, r->A, r->A - new, FLAG_C);
-            r->flags.PV = !r->BC--;
+            r->flags.PV = !--r->BC;
             r->flags.N = 1;
             break;
         case 2: // IND
+            context->cycles += 12;
+            ioDevice = context->cpu->devices[r->C];
+            if (ioDevice.read_in != NULL) {
+                cpu_write_byte(context->cpu, r->HL, ioDevice.read_in(ioDevice.device));
+            }
+            r->HL--;
+            r->flags.Z = !--r->B;
+            r->flags.N = 1;
             break;
         case 3: // OUTD
             break;
@@ -471,7 +488,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
         case 0: // LDIR
             context->cycles += 12;
             cpu_write_byte(context->cpu, r->DE++, cpu_read_byte(context->cpu, r->HL++));
-            r->flags.PV = !r->BC--;
+            r->flags.PV = !--r->BC;
             r->flags.N = r->flags.H = 0;
             if (r->BC) {
                 context->cycles += 5;
@@ -482,7 +499,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             context->cycles += 12;
             new = cpu_read_byte(context->cpu, r->HL++);
             updateFlags_except(r, r->A, r->A - new, FLAG_C);
-            r->flags.PV = !r->BC--;
+            r->flags.PV = !--r->BC;
             r->flags.N = 1;
             if (r->BC && !r->flags.Z) {
                 context->cycles += 5;
@@ -490,6 +507,18 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             }
             break;
         case 2: // INIR
+            context->cycles += 12;
+            ioDevice = context->cpu->devices[r->C];
+            if (ioDevice.read_in != NULL) {
+                cpu_write_byte(context->cpu, r->HL, ioDevice.read_in(ioDevice.device));
+            }
+            r->HL++;
+            r->flags.Z = !--r->B;
+            r->flags.N = 1;
+            if (!r->flags.Z) {
+                context->cycles += 5;
+                r->PC -= 2;
+            }
             break;
         case 3: // OTDR
             break;
@@ -519,6 +548,18 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             }
             break;
         case 2: // INDR
+            context->cycles += 12;
+            ioDevice = context->cpu->devices[r->C];
+            if (ioDevice.read_in != NULL) {
+                cpu_write_byte(context->cpu, r->HL, ioDevice.read_in(ioDevice.device));
+            }
+            r->HL--;
+            r->flags.Z = !--r->B;
+            r->flags.N = 1;
+            if (!r->flags.Z) {
+                context->cycles += 5;
+                r->PC -= 2;
+            }
             break;
         case 3: // OTDR
             break;

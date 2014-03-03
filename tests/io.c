@@ -114,3 +114,99 @@ int test_OUT_C_r() {
     asic_free(device);
     return 0;
 }
+
+int test_INI() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0xA2 }; // INI
+    uint8_t value = 0x3E;
+    z80iodevice_t test_device = { &value, test_read, test_write };
+    device->cpu->devices[0x12] = test_device;
+    device->cpu->registers.B = 1;
+    device->cpu->registers.HL = 0xC000;
+    device->cpu->registers.C = 0x12;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 16);
+    if (cpu_read_byte(device->cpu, 0xC000) != 0x3E ||
+        device->cpu->registers.B != 0 ||
+        device->cpu->registers.HL != 0xC001 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_IND() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0xAA }; // IND
+    uint8_t value = 0x3E;
+    z80iodevice_t test_device = { &value, test_read, test_write };
+    device->cpu->devices[0x12] = test_device;
+    device->cpu->registers.B = 1;
+    device->cpu->registers.HL = 0xC000;
+    device->cpu->registers.C = 0x12;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 16);
+    if (cpu_read_byte(device->cpu, 0xC000) != 0x3E ||
+        device->cpu->registers.B != 0 ||
+        device->cpu->registers.HL != 0xBFFF ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_INIR() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0xB2 }; // INIR
+    uint8_t value = 0x3E;
+    z80iodevice_t test_device = { &value, test_read, test_write };
+    device->cpu->devices[0x12] = test_device;
+    device->cpu->registers.B = 5;
+    device->cpu->registers.HL = 0xC000;
+    device->cpu->registers.C = 0x12;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 100);
+    if (cpu_read_byte(device->cpu, 0xC000) != 0x3E ||
+        cpu_read_byte(device->cpu, 0xC001) != 0x3E ||
+        cpu_read_byte(device->cpu, 0xC002) != 0x3E ||
+        cpu_read_byte(device->cpu, 0xC003) != 0x3E ||
+        cpu_read_byte(device->cpu, 0xC004) != 0x3E ||
+        device->cpu->registers.B != 0 ||
+        device->cpu->registers.HL != 0xC005 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_INDR() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0xBA }; // INDR
+    uint8_t value = 0x3E;
+    z80iodevice_t test_device = { &value, test_read, test_write };
+    device->cpu->devices[0x12] = test_device;
+    device->cpu->registers.B = 5;
+    device->cpu->registers.HL = 0xC004;
+    device->cpu->registers.C = 0x12;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 100);
+    if (cpu_read_byte(device->cpu, 0xC000) != 0x3E ||
+        cpu_read_byte(device->cpu, 0xC001) != 0x3E ||
+        cpu_read_byte(device->cpu, 0xC002) != 0x3E ||
+        cpu_read_byte(device->cpu, 0xC003) != 0x3E ||
+        cpu_read_byte(device->cpu, 0xC004) != 0x3E ||
+        device->cpu->registers.B != 0 ||
+        device->cpu->registers.HL != 0xBFFF ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    return 0;
+}

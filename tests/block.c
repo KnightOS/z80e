@@ -213,3 +213,5 @@ int test_CPDR() {
     asic_free(device);
     return 0;
 }
+
+// Note: INI, INIR, IND, INDR, OUTI, OUTD, OTIR, and OTDR are tested in io.c
