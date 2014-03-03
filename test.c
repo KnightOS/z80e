@@ -105,6 +105,8 @@ const test_t tests[] = {
     { test_LDDR, "LDDR" },
     { test_CPI, "CPI" },
     { test_CPD, "CPD" },
+    { test_CPIR, "CPIR" },
+    { test_CPDR, "CPDR" },
 };
 
 int main(int argc, char **argv) {

@@ -479,6 +479,15 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             }
             break;
         case 1: // CPIR
+            context->cycles += 12;
+            new = cpu_read_byte(context->cpu, r->HL++);
+            updateFlags_except(r, r->A, r->A - new, FLAG_C);
+            r->flags.PV = !r->BC--;
+            r->flags.N = 1;
+            if (r->BC && !r->flags.Z) {
+                context->cycles += 5;
+                r->PC -= 2;
+            }
             break;
         case 2: // INIR
             break;
@@ -499,6 +508,15 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             }
             break;
         case 1: // CPDR
+            context->cycles += 12;
+            new = cpu_read_byte(context->cpu, r->HL--);
+            updateFlags_except(r, r->A, r->A - new, FLAG_C);
+            r->flags.PV = !r->BC--;
+            r->flags.N = 1;
+            if (r->BC && !r->flags.Z) {
+                context->cycles += 5;
+                r->PC -= 2;
+            }
             break;
         case 2: // INDR
             break;
