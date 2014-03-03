@@ -92,6 +92,8 @@ const test_t tests[] = {
     { test_IN_r_C, "IN r, (C)" },
     { test_OUT_C_0, "OUT (C), 0" },
     { test_OUT_C_r, "OUT (C), r" },
+    { test_SBC_HL_rp, "SBC HL, rp" },
+    { test_ADC_HL_rp, "ADC HL, rp" },
 };
 
 int main(int argc, char **argv) {

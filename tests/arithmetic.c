@@ -188,3 +188,71 @@ int test_NEG() {
     asic_free(device);
     return 0;
 }
+
+int test_SBC_HL_rp() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0x42 }; // SBC HL, BC
+    device->cpu->registers.HL = 0x4000;
+    device->cpu->registers.BC = 0x100;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 15);
+    if (device->cpu->registers.HL != 0x3F00 ||
+        device->cpu->registers.BC != 0x100 ||
+        device->cpu->registers.flags.Z != 0 ||
+        device->cpu->registers.flags.C != 0 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    device = asic_init(TI83p);
+    device->cpu->registers.HL = 0x1000;
+    device->cpu->registers.BC = 0x2000;
+    device->cpu->registers.flags.C = 1;
+    flash(device, test);
+    cycles = cpu_execute(device->cpu, 15);
+    if (device->cpu->registers.HL != 0xEFFF ||
+        device->cpu->registers.BC != 0x2000 ||
+        device->cpu->registers.flags.Z != 0 ||
+        device->cpu->registers.flags.C != 1 ||
+        cycles != 0) {
+        asic_free(device);
+        return 2;
+    }
+    asic_free(device);
+    return 0;
+}
+
+int test_ADC_HL_rp() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test[] = { 0xED, 0x4A }; // ADC HL, BC
+    device->cpu->registers.HL = 0x4000;
+    device->cpu->registers.BC = 0x100;
+    flash(device, test);
+    int cycles = cpu_execute(device->cpu, 15);
+    if (device->cpu->registers.HL != 0x4100 ||
+        device->cpu->registers.BC != 0x100 ||
+        device->cpu->registers.flags.Z != 0 ||
+        device->cpu->registers.flags.C != 0 ||
+        cycles != 0) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+    device = asic_init(TI83p);
+    device->cpu->registers.HL = 0xF000;
+    device->cpu->registers.BC = 0x2000;
+    device->cpu->registers.flags.C = 1;
+    flash(device, test);
+    cycles = cpu_execute(device->cpu, 15);
+    if (device->cpu->registers.HL != 0x1001 ||
+        device->cpu->registers.BC != 0x2000 ||
+        device->cpu->registers.flags.Z != 0 ||
+        device->cpu->registers.flags.C != 1 ||
+        cycles != 0) {
+        asic_free(device);
+        return 2;
+    }
+    asic_free(device);
+    return 0;
+}
