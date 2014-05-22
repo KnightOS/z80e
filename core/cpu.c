@@ -676,6 +676,11 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
         z80registers_t *r = &cpu->registers;
         z80iodevice_t ioDevice;
 
+        uint8_t old_r = r->R;
+        r->R++;
+        r->R &= 0x7F;
+        r->R |= old_r & 0x80;
+
         if (cpu->prefix == 0xCB || cpu->prefix == 0xED) {
             switch (cpu->prefix) {
             case 0xCB:
