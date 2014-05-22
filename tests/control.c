@@ -235,6 +235,7 @@ int test_IM_set() {
     flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 8);
     if (device->cpu->int_mode != 2 ||
+        device->cpu->registers.PC != 2 ||
         cycles != 0) {
         asic_free(device);
         return 1;

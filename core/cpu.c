@@ -633,7 +633,7 @@ void handle_interrupt(struct ExecutionContext *context) {
     z80registers_t *r = &cpu->registers;
     switch (cpu->int_mode) {
     case 0:
-        // TODO
+        fprintf(stderr, "Warning: Interrupt mode 0 is not currently supported.\n");
         break;
     case 1:
         context->cycles += 13;
@@ -652,6 +652,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
     struct ExecutionContext context;
     context.cpu = cpu;
     while (cycles > 0) {
+        context.cycles = 0;
         if (cpu->IFF2) {
             if (cpu->IFF_wait) {
                 cpu->IFF_wait = 0;
@@ -659,11 +660,11 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                 if (cpu->INT_pending) {
                     cpu->INT_pending = 0;
                     handle_interrupt(&context);
+                    goto exit_loop;
                 }
             }
         }
 
-        context.cycles = 0;
         context.opcode = cpu_read_byte(cpu, cpu->registers.PC++);
         context.n = read_n;
         context.nn = read_nn;
@@ -977,7 +978,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                     break;
                 case 6: // LD r[y], n
                     context.cycles += 7;
-                    write_r(context.y, context.nn(&context), &context);
+                    write_r(context.y, context.n(&context), &context);
                     break;
                 case 7:
                     switch (context.y) {
@@ -1195,8 +1196,10 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 
         cpu->prefix = prefix;
 
+exit_loop:
         cycles -= context.cycles;
         if (context.cycles == 0) {
+            fprintf(stderr, "Warning: Unrecognized instruction %02X.\n", context.opcode);
             cycles--;
         }
     }

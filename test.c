@@ -116,6 +116,8 @@ const test_t tests[] = {
     { test_OUTD, "OUTD" },
     { test_OTIR, "OTIR" },
     { test_OTDR, "OTDR" },
+    { test_IM_1, "mode 1 interrupts" },
+    { test_IM_2, "mode 2 interrupts" },
 };
 
 int main(int argc, char **argv) {

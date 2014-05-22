@@ -110,6 +110,7 @@ int test_LD_r_n() {
     flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 7);
     if (device->cpu->registers.B != 0x2F ||
+        device->cpu->registers.PC != 2 ||
         cycles != 0) {
         asic_free(device);
         return 1;
