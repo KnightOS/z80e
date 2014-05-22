@@ -35,6 +35,10 @@ z80cpu_t* cpu_init(void) {
     return cpu;
 }
 
+void cpu_raise_interrupt(z80cpu_t  *cpu) {
+    cpu->INT_pending = 1;
+}
+
 void cpu_free(z80cpu_t *cpu) {
     free(cpu);
 }
@@ -621,6 +625,29 @@ void execute_im(int y, struct ExecutionContext *context) {
     }
 }
 
+void handle_interrupt(struct ExecutionContext *context) {
+    // Note: Should we consider doing a proper raise/acknowledge mechanism
+    // with interrupting devices? It's probably not entirely required but it
+    // might be nice to follow the actual behavior more closely.
+    z80cpu_t *cpu = context->cpu;
+    z80registers_t *r = &cpu->registers;
+    switch (cpu->int_mode) {
+    case 0:
+        // TODO
+        break;
+    case 1:
+        context->cycles += 13;
+        push(cpu, r->PC);
+        r->PC = 0x38;
+        break;
+    case 2:
+        context->cycles += 19;
+        push(cpu, r->PC);
+        r->PC = r->I * 256 + cpu->bus;
+        break;
+    }
+}
+
 int cpu_execute(z80cpu_t *cpu, int cycles) {
     struct ExecutionContext context;
     context.cpu = cpu;
@@ -629,7 +656,10 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
             if (cpu->IFF_wait) {
                 cpu->IFF_wait = 0;
             } else {
-                // TODO: Check interrupt queue
+                if (cpu->INT_pending) {
+                    cpu->INT_pending = 0;
+                    handle_interrupt(&context);
+                }
             }
         }
 

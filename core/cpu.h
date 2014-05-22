@@ -19,7 +19,9 @@ typedef struct {
         // Internal use:
         uint8_t IFF_wait : 1;
         uint8_t halted : 1;
+        uint8_t INT_pending : 1;
     };
+    uint8_t bus;
     uint8_t prefix;
     void *memory;
     uint8_t (*read_byte)(void *, uint16_t);
@@ -35,5 +37,6 @@ void cpu_write_word(z80cpu_t *cpu, uint16_t address, uint16_t value);
 uint8_t cpu_hw_in(z80cpu_t *cpu, uint8_t port);
 void cpu_hw_out(z80cpu_t *cpu, uint8_t port, uint8_t value);
 int cpu_execute(z80cpu_t *cpu, int cycles);
+void cpu_raise_interrupt(z80cpu_t *cpu);
 
 #endif

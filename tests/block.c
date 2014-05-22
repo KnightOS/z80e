@@ -9,7 +9,7 @@ int test_LDI() {
     cpu_write_byte(device->cpu, 0xC002, 0x33);
     cpu_write_byte(device->cpu, 0xC003, 0x44);
     cpu_write_byte(device->cpu, 0xC004, 0x55);
-    flash(device, test);
+    flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 16);
     if (cpu_read_byte(device->cpu, 0xD000) != 0x11 ||
         device->cpu->registers.HL != 0xC001 ||
@@ -34,7 +34,7 @@ int test_LDIR() {
     cpu_write_byte(device->cpu, 0xC002, 0x33);
     cpu_write_byte(device->cpu, 0xC003, 0x44);
     cpu_write_byte(device->cpu, 0xC004, 0x55);
-    flash(device, test);
+    flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 100);
     if (cpu_read_byte(device->cpu, 0xD000) != 0x11 ||
         cpu_read_byte(device->cpu, 0xD001) != 0x22 ||
@@ -63,7 +63,7 @@ int test_LDD() {
     cpu_write_byte(device->cpu, 0xC002, 0x33);
     cpu_write_byte(device->cpu, 0xC003, 0x44);
     cpu_write_byte(device->cpu, 0xC004, 0x55);
-    flash(device, test);
+    flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 16);
     if (cpu_read_byte(device->cpu, 0xD004) != 0x55 ||
         device->cpu->registers.HL != 0xC003 ||
@@ -88,7 +88,7 @@ int test_LDDR() {
     cpu_write_byte(device->cpu, 0xC002, 0x33);
     cpu_write_byte(device->cpu, 0xC003, 0x44);
     cpu_write_byte(device->cpu, 0xC004, 0x55);
-    flash(device, test);
+    flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 100);
     if (cpu_read_byte(device->cpu, 0xD000) != 0x11 ||
         cpu_read_byte(device->cpu, 0xD001) != 0x22 ||
@@ -115,7 +115,7 @@ int test_CPI() {
     cpu_write_byte(device->cpu, 0xC000, 0x11);
     cpu_write_byte(device->cpu, 0xC001, 0x22);
     cpu_write_byte(device->cpu, 0xC002, 0x33);
-    flash(device, test);
+    flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 16);
     if (device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.HL != 0xC001 ||
@@ -147,7 +147,7 @@ int test_CPD() {
     cpu_write_byte(device->cpu, 0xC000, 0x11);
     cpu_write_byte(device->cpu, 0xC001, 0x22);
     cpu_write_byte(device->cpu, 0xC002, 0x33);
-    flash(device, test);
+    flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 16);
     if (device->cpu->registers.flags.Z != 0 ||
         device->cpu->registers.HL != 0xC001 ||
@@ -180,7 +180,7 @@ int test_CPIR() {
     cpu_write_byte(device->cpu, 0xC001, 0x22);
     cpu_write_byte(device->cpu, 0xC002, 0x33);
     cpu_write_byte(device->cpu, 0xC003, 0x44);
-    flash(device, test);
+    flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 58);
     if (device->cpu->registers.HL != 0xC003 ||
         device->cpu->registers.BC != 2 ||
@@ -202,7 +202,7 @@ int test_CPDR() {
     cpu_write_byte(device->cpu, 0xC002, 0x33);
     cpu_write_byte(device->cpu, 0xC003, 0x44);
     cpu_write_byte(device->cpu, 0xC004, 0x55);
-    flash(device, test);
+    flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 58);
     if (device->cpu->registers.HL != 0xC001 ||
         device->cpu->registers.BC != 2 ||

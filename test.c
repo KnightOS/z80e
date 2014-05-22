@@ -4,7 +4,7 @@
 #include <string.h>
 #include <time.h>
 
-void flash(asic_t *device, const uint8_t *data);
+void flash(asic_t *device, const uint8_t *data, size_t length);
 
 #include "tests/alu.c"
 #include "tests/control.c"
@@ -15,6 +15,7 @@ void flash(asic_t *device, const uint8_t *data);
 #include "tests/index.c"
 #include "tests/performance.c"
 #include "tests/block.c"
+#include "tests/interrupts.c"
 
 typedef struct {
     int (*execute)(void);
@@ -140,9 +141,9 @@ int main(int argc, char **argv) {
     return failed;
 }
 
-void flash(asic_t *device, const uint8_t *data) {
+void flash(asic_t *device, const uint8_t *data, size_t length) {
     int i;
-    for (i = 0; i < sizeof(data) / sizeof(uint8_t); i++) {
+    for (i = 0; i < length; i++) {
         device->mmu->flash[i] = data[i];
     }
 }
