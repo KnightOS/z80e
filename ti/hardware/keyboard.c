@@ -26,22 +26,21 @@ void release_key(z80iodevice_t keyboard, uint8_t keycode) {
 }
 
 uint8_t read_keyboard(void *_state) {
-    keyboard_state_t *state = (keyboard_state_t*)state;
+    keyboard_state_t *state = (keyboard_state_t*)_state;
     uint8_t mask = state->group_mask;
-    printf("[%02X]", mask);
     uint8_t value = 0;
     int i;
-    for (i = 0; i < 8; i++) {
-        if (mask & 1) {
+    for (i = 7; i >= 0; i--) {
+        if (!(mask & 0x80)) {
             value |= state->groups[i];
         }
-        mask >>= 1;
+        mask <<= 1;
     }
-    return 0;
+    return value;
 }
 
 void write_keyboard(void *_state, uint8_t value) {
-    keyboard_state_t *state = (keyboard_state_t*)state;
+    keyboard_state_t *state = (keyboard_state_t*)_state;
     state->group_mask = value;
 }
 
@@ -50,4 +49,8 @@ z80iodevice_t init_keyboard() {
     state->group_mask = 0xFF;
     z80iodevice_t device = { state, read_keyboard, write_keyboard };
     return device;
+}
+
+void free_keyboard(z80iodevice_t keyboard) {
+    free(keyboard.device);
 }
