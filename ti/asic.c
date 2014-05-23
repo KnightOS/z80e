@@ -4,14 +4,18 @@
 #include "memory.h"
 #include "cpu.h"
 #include "keyboard.h"
+#include "status.h"
 
 void plug_devices(asic_t *asic, ti_device_type type) {
     /* Link port unimplemented */
-    asic->cpu->devices[0x01] = init_keyboard(asic);
+    asic->cpu->devices[0x01] = init_keyboard();
+    asic->cpu->devices[0x02] = init_status(asic, type);
 }
 
 void free_devices(asic_t *asic) {
+    /* Link port unimplemented */
     free_keyboard(asic->cpu->devices[0x01]);
+    free_status(asic->cpu->devices[0x02]);
 }
 
 asic_t *asic_init(ti_device_type type) {
@@ -21,6 +25,7 @@ asic_t *asic_init(ti_device_type type) {
     device->cpu->memory = (void*)device->mmu;
     device->cpu->read_byte = ti_read_byte;
     device->cpu->write_byte = ti_write_byte;
+    device->battery = BATTERIES_GOOD;
     plug_devices(device, type);
     return device;
 }
