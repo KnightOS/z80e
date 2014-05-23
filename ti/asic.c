@@ -10,6 +10,10 @@ void plug_devices(asic_t *asic, ti_device_type type) {
     asic->cpu->devices[0x01] = init_keyboard(asic);
 }
 
+void free_devices(asic_t *asic) {
+    free_keyboard(asic->cpu->devices[0x01]);
+}
+
 asic_t *asic_init(ti_device_type type) {
     asic_t* device = malloc(sizeof(asic_t));
     device->cpu = cpu_init();
@@ -24,5 +28,6 @@ asic_t *asic_init(ti_device_type type) {
 void asic_free(asic_t* device) {
     cpu_free(device->cpu);
     ti_mmu_free(device->mmu);
+    free_devices(device);
     free(device);
 }
