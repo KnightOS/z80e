@@ -5,7 +5,6 @@
 #include "ti.h"
 #include <stdint.h>
 
-
 typedef struct {
     z80cpu_t* cpu;
     ti_mmu_t* mmu;

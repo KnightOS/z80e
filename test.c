@@ -1,4 +1,6 @@
 #include "asic.h"
+#include "cpu.h"
+#include "keyboard.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -16,6 +18,7 @@ void flash(asic_t *device, const uint8_t *data, size_t length);
 #include "tests/performance.c"
 #include "tests/block.c"
 #include "tests/interrupts.c"
+#include "tests/devices.c"
 
 typedef struct {
     int (*execute)(void);
@@ -118,6 +121,7 @@ const test_t tests[] = {
     { test_OTDR, "OTDR" },
     { test_IM_1, "mode 1 interrupts" },
     { test_IM_2, "mode 2 interrupts" },
+    { test_keyboard, "keyboard" },
 };
 
 int main(int argc, char **argv) {

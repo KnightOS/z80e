@@ -1,0 +1,9 @@
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
+#include "cpu.h"
+
+z80iodevice_t init_keyboard();
+void release_key(z80iodevice_t keyboard, uint8_t keycode);
+void depress_key(z80iodevice_t keyboard, uint8_t keycode);
+
+#endif

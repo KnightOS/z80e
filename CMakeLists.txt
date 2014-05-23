@@ -4,11 +4,14 @@ set(CMAKE_CXX_FLAGS "-g")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
 add_definitions("-Wall")
 
+FILE(GLOB Hardware ti/hardware/*.c)
+
 add_executable(test
     core/cpu.c
     core/registers.c
     ti/asic.c
     ti/memory.c
+    ${Hardware}
     test.c
 )
 
@@ -17,12 +20,14 @@ add_executable(z80e
     core/registers.c
     ti/asic.c
     ti/memory.c
+    ${Hardware}
     main.c
 )
 
 include_directories(
     core/
     ti/
+    ti/hardware/
 )
 
 set(CMAKE_BUILD_TYPE Release)
