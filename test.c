@@ -28,7 +28,7 @@ typedef struct {
 
 const test_t tests[] = {
     { test_performance, "performance" },
-    { 0, "--- Operator tests" },
+    { 0, "--- Instruction tests" },
     { test_ADD_A_r, "ADD A, r" },
     { test_ADC_A_r, "ADC A, r" },
     { test_SUB_A_r, "SUB A, r" },
