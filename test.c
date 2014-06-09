@@ -124,6 +124,7 @@ const test_t tests[] = {
     { test_OTDR, "OTDR" },
     { test_IM_1, "mode 1 interrupts" },
     { test_IM_2, "mode 2 interrupts" },
+    { test_debugger_register_command, "debugger: register_command()" },
     { test_debugger_find_command, "debugger: find_best_command()" },
     { test_keyboard, "port 0x01 (keyboard)" },
     { test_status, "port 0x02 (status)" },

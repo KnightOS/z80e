@@ -3,21 +3,23 @@ int debugger_initialized = 0;
 int debugger_alwaysokc = 0;
 int debugger_alwaysfailc = 0;
 
-int debugger_alwaysok(debugger_state_t *state, int argc, char **argv) {
+int debugger_alwaysok(debugger_state_t *state, int argc, char **argv)
+{
 	debugger_alwaysokc++;
 	return 0;
 }
 
 debugger_command_t *debugger_alwaysok_struct = 0;
 
-int debugger_alwaysfail(debugger_state_t *state, int argc, char **argv) {
+int debugger_alwaysfail(debugger_state_t *state, int argc, char **argv)
+{
 	debugger_alwaysfailc++;
 	return 0;
 }
 
 debugger_command_t *debugger_alwaysfail_struct = 0;
 
-void debugger_init() {
+int test_debugger_register_command() {
 	debugger_alwaysok_struct = malloc(sizeof(debugger_command_t));
 	debugger_alwaysok_struct->name = "alwaysok";
 	debugger_alwaysok_struct->function = debugger_alwaysok;
