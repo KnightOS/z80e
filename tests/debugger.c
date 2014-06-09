@@ -31,11 +31,13 @@ int test_debugger_register_command() {
 	register_command(debugger_alwaysok_struct);
 	register_command(debugger_alwaysfail_struct);
 	debugger_initialized = 1;
+
+	return 0;
 }
 
 int test_debugger_find_command() {
 	if(!debugger_initialized)
-		debugger_init();
+		return 5;
 
 	debugger_command_t *command;
 	int result = find_best_command("always", &command);
