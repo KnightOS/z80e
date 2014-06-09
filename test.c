@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     const int min_width = 50;
     for (i = 0; i < sizeof(tests) / sizeof(test_t); i++) {
 	if (tests[i].execute == 0) {
-		printf("\n%s\n", tests[i].name);
+		printf("%s\n", tests[i].name);
 		continue;
 	}
 
