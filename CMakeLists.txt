@@ -9,6 +9,7 @@ FILE(GLOB Hardware ti/hardware/*.c)
 add_executable(test
     core/cpu.c
     core/registers.c
+    debugger/debugger.c
     ti/asic.c
     ti/memory.c
     ${Hardware}
@@ -18,6 +19,7 @@ add_executable(test
 add_executable(z80e
     core/cpu.c
     core/registers.c
+    debugger/debugger.c
     ti/asic.c
     ti/memory.c
     ${Hardware}
@@ -26,6 +28,7 @@ add_executable(z80e
 
 include_directories(
     core/
+    debugger/
     ti/
     ti/hardware/
 )

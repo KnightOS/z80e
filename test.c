@@ -1,5 +1,6 @@
 #include "asic.h"
 #include "cpu.h"
+#include "debugger.h"
 #include "keyboard.h"
 #include "status.h"
 #include <stdlib.h>
@@ -11,6 +12,7 @@ void flash(asic_t *device, const uint8_t *data, size_t length);
 
 #include "tests/alu.c"
 #include "tests/control.c"
+#include "tests/debugger.c"
 #include "tests/load.c"
 #include "tests/arithmetic.c"
 #include "tests/shifts.c"
@@ -122,6 +124,7 @@ const test_t tests[] = {
     { test_OTDR, "OTDR" },
     { test_IM_1, "mode 1 interrupts" },
     { test_IM_2, "mode 2 interrupts" },
+    { test_debugger_find_command, "debugger: find_best_command()" },
     { test_keyboard, "port 0x01 (keyboard)" },
     { test_status, "port 0x02 (status)" },
 };
