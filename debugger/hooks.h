@@ -6,7 +6,21 @@
 #include "asic.h"
 #include "cpu.h"
 
+typedef int (*generic_function_pointer)(void *, ...);
+
+typedef struct {
+	int capacity;
+	int used;
+	generic_function_pointer *array;
+} hook_array_t;
+
+hook_array_t *read_memory_hooks;
+hook_array_t *write_memory_hooks;
+hook_array_t *read_register_hooks;
+hook_array_t *write_register_hooks;
+
 void init_hooks();
+void deinit_hooks();
 
 typedef struct {
 	uint16_t memory_location;

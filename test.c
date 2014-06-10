@@ -1,6 +1,7 @@
 #include "asic.h"
 #include "cpu.h"
 #include "debugger.h"
+#include "hooks.h"
 #include "keyboard.h"
 #include "status.h"
 #include <stdlib.h>
@@ -129,6 +130,10 @@ const test_t tests[] = {
     { NULL, "Port tests" },
     { test_keyboard, "port 0x01 (keyboard)" },
     { test_status, "port 0x02 (status)" },
+    { NULL, "Debugger tests" },
+    { test_debugger_register_command, "register_command()" },
+    { test_debugger_find_command, "find_best_command()" },
+    { test_debugger_hooks, "Hooks" },
 };
 
 int main(int argc, char **argv) {
