@@ -1,6 +1,7 @@
 #include "hooks.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef int (*generic_function_pointer)(void *,...);
 
@@ -48,7 +49,7 @@ void register_hook_read_memory(read_memory_hook hook) {
 	hook_array_push(read_memory_hooks, (generic_function_pointer)hook);
 }
 
-void call_read_memory_hooks(asic_t *asic, read_memory_struct_t *truct) {
+void call_read_memory_hooks(ti_mmu_t *asic, read_memory_struct_t *truct) {
 	int result = 0;
 	int i = 0;
 	for (i = 0; i < read_memory_hooks->used && result == 0; i++) {
@@ -60,7 +61,7 @@ void register_hook_write_memory(write_memory_hook hook) {
 	hook_array_push(write_memory_hooks, (generic_function_pointer)hook);
 }
 
-void call_write_memory_hooks(asic_t *asic, write_memory_struct_t *truct) {
+void call_write_memory_hooks(ti_mmu_t *asic, write_memory_struct_t *truct) {
 	int result = 0;
 	int i = 0;
 	for (i = 0; i < write_memory_hooks->used && result == 0; i++) {

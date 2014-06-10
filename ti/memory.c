@@ -1,6 +1,9 @@
 #include "memory.h"
 #include "cpu.h"
 #include "ti.h"
+
+#include "hooks.h"
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -55,10 +58,18 @@ uint8_t ti_read_byte(void *memory, uint16_t address) {
     uint32_t mapped_address = address;
     mapped_address %= 0x4000;
     mapped_address += bank.page * 0x4000;
+    uint8_t byte = 0;
     if (bank.flash)
-        return mmu->flash[mapped_address];
+        byte = mmu->flash[mapped_address];
     else
-        return mmu->ram[mapped_address];
+        byte = mmu->ram[mapped_address];
+#if defined(ENABLE_HOOKS) && ENABLE_READ_BYTE_HOOK
+    read_memory_struct_t hooks = { address, byte };
+    call_read_memory_hooks(mmu, &hooks);
+    return hooks.read_byte;
+#else
+    return byte;
+#endif
 }
 
 void ti_write_byte(void *memory, uint16_t address, uint8_t value) {
@@ -67,6 +78,13 @@ void ti_write_byte(void *memory, uint16_t address, uint8_t value) {
     uint32_t mapped_address = address;
     mapped_address %= 0x4000;
     mapped_address += bank.page * 0x4000;
+
+#if defined(ENABLE_HOOKS) && ENABLE_WRITE_BYTE_HOOK
+    write_memory_struct_t hooks = { address, value };
+    call_write_memory_hooks(mmu, &hooks);
+    value = hooks.write_byte;
+#endif
+
     if (!bank.flash)
         mmu->ram[mapped_address] = value;
     else {

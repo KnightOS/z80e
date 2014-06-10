@@ -28,6 +28,13 @@ typedef struct {
     void (*write_byte)(void *, uint16_t, uint8_t);
 } z80cpu_t;
 
+
+uint8_t cpu_read_register_byte(z80cpu_t *, registers);
+uint16_t cpu_read_register_word(z80cpu_t *, registers);
+
+uint8_t cpu_write_register_byte(z80cpu_t *, registers, uint8_t);
+uint16_t cpu_write_register_word(z80cpu_t *, registers, uint16_t);
+
 z80cpu_t* cpu_init(void);
 void cpu_free(z80cpu_t *cpu);
 uint8_t cpu_read_byte(z80cpu_t *cpu, uint16_t address);

@@ -4,6 +4,8 @@
 #include <strings.h>
 #include <signal.h>
 
+#include "hooks.h"
+
 typedef struct {
     ti_device_type device;
     char *rom_file;
@@ -147,6 +149,7 @@ int main(int argc, char **argv) {
         length = fread(device->mmu->flash, 0x4000, device->mmu->settings->flash_pages, file);
         fclose(file);
     }
+    init_hooks();
     if (context.cycles == -1) { // Run indefinitely
         while (1) {
             // TODO: Timings

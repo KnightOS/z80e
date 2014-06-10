@@ -74,6 +74,16 @@ typedef enum {
     FLAG_NONE = 0
 } z80flags;
 
+typedef enum {
+        A, F, AF, _AF,
+        B, C, BC, _BC,
+        D, E, DE, _DE,
+        H, L, HL, _HL,
+        PC, SP, I, R,
+        IXH, IXL, IX,
+        IYH, IYL, IY,
+} registers;
+
 void exAFAF(z80registers_t *r);
 void exDEHL(z80registers_t *r);
 void exx(z80registers_t *r);
