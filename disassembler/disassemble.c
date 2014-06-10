@@ -38,7 +38,7 @@ void parse_nn(struct context *context) {
 }
 
 void parse_HorIHw(struct context *context) {
-	switch(context->second_prefix) {
+	switch (context->second_prefix) {
 	case 0xDD: fprintf(context->write, "IXH"); break;
 	case 0xFD: fprintf(context->write, "IYH"); break;
 	default: fprintf(context->write, "H"); break;
@@ -46,7 +46,7 @@ void parse_HorIHw(struct context *context) {
 }
 
 void parse_LorILw(struct context *context) {
-	switch(context->second_prefix) {
+	switch (context->second_prefix) {
 	case 0xDD: fprintf(context->write, "IXL"); break;
 	case 0xFD: fprintf(context->write, "IYL"); break;
 	default: fprintf(context->write, "L"); break;
@@ -54,7 +54,7 @@ void parse_LorILw(struct context *context) {
 }
 
 void parse_HLorIr(struct context *context) {
-	switch(context->second_prefix) {
+	switch (context->second_prefix) {
 	case 0xDD: fprintf(context->write, "IX"); break;
 	case 0xFD: fprintf(context->write, "IY"); break;
 	default: fprintf(context->write, "HL"); break;
@@ -62,7 +62,7 @@ void parse_HLorIr(struct context *context) {
 }
 
 void parse_r(struct context *context, uint8_t part) {
-	switch(part) {
+	switch (part) {
 	case 0: fprintf(context->write, "B"); break;
 	case 1: fprintf(context->write, "C"); break;
 	case 2: fprintf(context->write, "D"); break;
@@ -257,8 +257,7 @@ void parse_bli(int y, int z, struct context *context) {
     }
 }
 
-void parse_instruction(struct disassemble_memory *d)
-{
+void parse_instruction(struct disassemble_memory *d) {
 	struct context context;
 
         context.prefix = 0;

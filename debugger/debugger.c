@@ -5,18 +5,18 @@
 
 debugger_list_t *gDebuggerList = 0;
 
-int compare_strings(const char *a, const char *b)
-{
+int compare_strings(const char *a, const char *b) {
 	int i = 0;
-	while(*a != 0 && *b != 0 && *(a++) == *(b++))
+	while (*a != 0 && *b != 0 && *(a++) == *(b++)) {
 		i++;
+	}
 	return i;
 }
 
-int find_best_command(const char *f_command, debugger_command_t ** pointer)
-{
-	if (gDebuggerList == 0)
+int find_best_command(const char *f_command, debugger_command_t ** pointer) {
+	if (gDebuggerList == 0) {
 		return 0;
+	}
 
 	int i;
 	int max_match = 0;
@@ -36,13 +36,13 @@ int find_best_command(const char *f_command, debugger_command_t ** pointer)
 	}
 
 	*pointer = best_command;
-	if (max_match && match_numbers == 1)
+	if (max_match && match_numbers == 1) {
 		return 1;
+	}
 	return match_numbers > 1 ? -1 : 0;
 }
 
-void register_command(debugger_command_t *command)
-{
+void register_command(debugger_command_t *command) {
 	if (gDebuggerList == 0) {
 		gDebuggerList = malloc(sizeof(debugger_list_t));
 		gDebuggerList->count = 0;

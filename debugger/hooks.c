@@ -54,15 +54,17 @@ void deinit_hooks() {
 }
 
 void register_hook_read_memory(read_memory_hook hook) {
-	if (!read_memory_hooks)
+	if (!read_memory_hooks) {
 		return;
+	}
 
 	hook_array_push(read_memory_hooks, (generic_function_pointer)hook);
 }
 
 void call_read_memory_hooks(ti_mmu_t *asic, read_memory_struct_t *truct) {
-	if (!read_memory_hooks)
+	if (!read_memory_hooks) {
 		return;
+	}
 
 	int result = 0;
 	int i = 0;
@@ -72,15 +74,17 @@ void call_read_memory_hooks(ti_mmu_t *asic, read_memory_struct_t *truct) {
 }
 
 void register_hook_write_memory(write_memory_hook hook) {
-	if (!write_memory_hooks)
+	if (!write_memory_hooks) {
 		return;
+	}
 
 	hook_array_push(write_memory_hooks, (generic_function_pointer)hook);
 }
 
 void call_write_memory_hooks(ti_mmu_t *asic, write_memory_struct_t *truct) {
-	if (!write_memory_hooks)
+	if (!write_memory_hooks) {
 		return;
+	}
 
 	int result = 0;
 	int i = 0;
@@ -90,15 +94,17 @@ void call_write_memory_hooks(ti_mmu_t *asic, write_memory_struct_t *truct) {
 }
 
 void register_hook_read_register(register_hook hook) {
-	if (!read_register_hooks)
+	if (!read_register_hooks) {
 		return;
+	}
 
 	hook_array_push(read_register_hooks, (generic_function_pointer)hook);
 }
 
 void call_read_register_hooks(z80cpu_t *cpu, register_hook_struct_t *truct) {
-	if (!read_register_hooks)
+	if (!read_register_hooks) {
 		return;
+	}
 
 	int result = 0;
 	int i = 0;
@@ -108,15 +114,17 @@ void call_read_register_hooks(z80cpu_t *cpu, register_hook_struct_t *truct) {
 }
 
 void register_hook_write_register(register_hook hook) {
-	if (!write_register_hooks)
+	if (!write_register_hooks) {
 		return;
+	}
 
 	hook_array_push(write_register_hooks, (generic_function_pointer)hook);
 }
 
 void call_write_register_hooks(z80cpu_t *cpu, register_hook_struct_t *truct) {
-	if (!write_register_hooks)
+	if (!write_register_hooks) {
 		return;
+	}
 
 	int result = 0;
 	int i = 0;
