@@ -1,4 +1,5 @@
 #include "asic.h"
+#include "debugger.h"
 #include "tui.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,6 +10,7 @@
 
 typedef struct {
     ti_device_type device;
+    asic_t *device_asic;
     char *rom_file;
     int cycles;
     int print_state;
@@ -101,18 +103,27 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
 void sigint_handler(int sig) {
     signal(SIGINT, sigint_handler);
 
-    if (context.debugger == 1) {
-        printf(" Caught interrupt, entering debugger\n");
-        context.stop = 2;
-    } else if (context.debugger == 2) {
-        printf(" Caught interrupt, stopping emulator\n");
+    printf("\n Caught interrupt, stopping emulation\n");
+    context.stop = 1;
+
+    if (context.debugger > 1) {
         exit(0);
-    } else {
-        printf(" Caught interrupt, stopping emulation\n");
-        context.stop = 1;
     }
 
     fflush(stdout);
+}
+
+int debugger_run_command(debugger_state_t *state, int argc, char **argv) {
+    context.stop = 0;
+    context.debugger = 1;
+    while (1) {
+        cpu_execute(context.device_asic->cpu, 1);
+        if (context.stop) {
+            break;
+        }
+    }
+    context.debugger = 2;
+    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -142,6 +153,7 @@ int main(int argc, char **argv) {
     }
 
     asic_t *device = asic_init(context.device);
+    context.device_asic = device;
     if (context.rom_file == NULL) {
         printf("Warning: No ROM file specified\n");
     } else {
@@ -166,9 +178,13 @@ int main(int argc, char **argv) {
     }
 
     init_hooks();
+    debugger_command_t run_command = { "run", debugger_run_command };
+    register_command(&run_command);
 
     if (context.debugger) {
+        context.debugger = 2;
         tui_tick(device);
+        context.debugger = 1;
     }
 
     if (context.cycles == -1) { // Run indefinitely
