@@ -139,7 +139,8 @@ int main(int argc, char **argv) {
         length = ftell(file);
         fseek(file, 0L, SEEK_SET);
         if (!context.no_rom_check && length != device->mmu->settings->flash_pages * 0x4000) {
-            printf("Error: This file does not match the required ROM size of %d bytes (use --no-rom-check to override).\n", length);
+            printf("Error: This file does not match the required ROM size of %d bytes, but it is %d bytes (use --no-rom-check to override).\n",
+		device->mmu->settings->flash_pages * 0x4000, length);
             fclose(file);
             asic_free(device);
             return 1;
