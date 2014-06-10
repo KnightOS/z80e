@@ -30,7 +30,7 @@ typedef struct {
 
 const test_t tests[] = {
     { test_performance, "performance" },
-    { 0, "--- Operator tests" },
+    { NULL, "Instruction tests" },
     { test_ADD_A_r, "ADD A, r" },
     { test_ADC_A_r, "ADC A, r" },
     { test_SUB_A_r, "SUB A, r" },
@@ -123,13 +123,10 @@ const test_t tests[] = {
     { test_OUTD, "OUTD" },
     { test_OTIR, "OTIR" },
     { test_OTDR, "OTDR" },
-    { 0, "--- Interrupt tests" },
+    { NULL, "Interrupt tests" },
     { test_IM_1, "mode 1 interrupts" },
     { test_IM_2, "mode 2 interrupts" },
-    { 0, "--- Debugger tests" },
-    { test_debugger_register_command, "debugger: register_command()" },
-    { test_debugger_find_command, "debugger: find_best_command()" },
-    { 0, "--- Port tests" },
+    { NULL, "Port tests" },
     { test_keyboard, "port 0x01 (keyboard)" },
     { test_status, "port 0x02 (status)" },
 };
@@ -139,11 +136,13 @@ int main(int argc, char **argv) {
     int i;
     const int min_width = 50;
     for (i = 0; i < sizeof(tests) / sizeof(test_t); i++) {
-	if (tests[i].execute == 0) {
-		printf("\n%s\n", tests[i].name);
+	if (tests[i].execute == NULL) {
+		int length = (min_width + 9) - strlen(tests[i].name);
+		while (length--) printf(".");
+		printf(tests[i].name);
+		printf("....\n");
 		continue;
 	}
-
         printf("Testing %s ", tests[i].name);
         int length = min_width - strlen(tests[i].name);
         while (length--) printf(".");
