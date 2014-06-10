@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "registers.h"
 #include "cpu.h"
+#include "hooks.h"
 
 struct ExecutionContext {
     uint8_t cycles;

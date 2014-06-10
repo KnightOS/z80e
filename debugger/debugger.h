@@ -1,6 +1,10 @@
 #ifndef DEBUGGER_H
 #define DEBUGGER_H
 
+#include <stdio.h>
+
+#include "asic.h"
+
 struct debugger_state;
 
 typedef int (*debugger_function_t)(struct debugger_state *, int, char **);
@@ -17,12 +21,9 @@ typedef struct {
 } debugger_list_t;
 
 typedef struct debugger_state {
-	void (*print)(struct debugger_state *, const char *, ...);
+	asic_t *asic;
+	int (*print)(struct debugger_state *, const char *, ...);
 } debugger_state_t;
-
-typedef struct {
-	
-} debugger_interface_t;
 
 int find_best_command(const char *, debugger_command_t **);
 void register_command(debugger_command_t *);
