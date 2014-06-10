@@ -11,6 +11,7 @@ add_executable(test
     core/registers.c
     debugger/debugger.c
     debugger/hooks.c
+    debugger/tui.c
     ti/asic.c
     ti/memory.c
     ${Hardware}
@@ -22,12 +23,16 @@ add_executable(z80e
     core/registers.c
     debugger/debugger.c
     debugger/hooks.c
+    debugger/tui.c
     ti/asic.c
     ti/memory.c
     disassembler/disassemble.c
     ${Hardware}
     main.c
 )
+
+TARGET_LINK_LIBRARIES(z80e readline)
+TARGET_LINK_LIBRARIES(test readline)
 
 include_directories(
     core/

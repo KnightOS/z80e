@@ -1,4 +1,5 @@
 #include "asic.h"
+#include "tui.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
@@ -12,6 +13,7 @@ typedef struct {
     int cycles;
     int print_state;
     int stop;
+    int debugger;
     int no_rom_check;
 } appContext_t;
 
@@ -55,7 +57,8 @@ void print_help(void) {
            "\t\tTI73, TI83p, TI83pSE, TI84p, TI84pSE, TI84pCSE\n"
            "\t-c <cycles>: Emulate this number of cycles, then exit. If omitted, the machine will be emulated indefinitely.\n"
            "\t--print-state: Prints the state of the machine on exit.\n"
-           "\t--no-rom-check: Skips the check that ensure the provided ROM file is the correct size.\n");
+           "\t--no-rom-check: Skips the check that ensure the provided ROM file is the correct size.\n"
+           "\t--debug: Enable the debugger, which is enabled by interrupting the emulator.\n");
 }
 
 void handleFlag(appContext_t *context, char flag, int *i, char **argv) {
@@ -84,6 +87,8 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
         context->print_state = 1;
     } else if (strcasecmp(flag, "no-rom-check") == 0) {
         context->no_rom_check = 1;
+    } else if (strcasecmp(flag, "debug") == 0) {
+        context->debugger = 1;
     } else if (strcasecmp(flag, "help") == 0) {
         print_help();
         exit(0);
@@ -95,8 +100,18 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
 
 void sigint_handler(int sig) {
     signal(SIGINT, sigint_handler);
-    context.stop = 1;
-    printf(" Caught interrupt, stopping emulation\n");
+
+    if (context.debugger == 1) {
+        printf(" Caught interrupt, entering debugger\n");
+        context.stop = 2;
+    } else if (context.debugger == 2) {
+        printf(" Caught interrupt, stopping emulator\n");
+        exit(0);
+    } else {
+        printf(" Caught interrupt, stopping emulation\n");
+        context.stop = 1;
+    }
+
     fflush(stdout);
 }
 
@@ -149,14 +164,29 @@ int main(int argc, char **argv) {
         length = fread(device->mmu->flash, 0x4000, device->mmu->settings->flash_pages, file);
         fclose(file);
     }
+
     init_hooks();
+
+    if (context.debugger) {
+        tui_tick(device);
+    }
+
     if (context.cycles == -1) { // Run indefinitely
         while (1) {
             // TODO: Timings
             cpu_execute(device->cpu, 1);
+
+        backInLoop:
             if (context.stop) {
                 break;
             }
+        }
+        if (context.stop == 2) {
+            context.stop = 0;
+            context.debugger = 2;
+            tui_tick(device);
+            context.debugger = 1;
+            goto backInLoop;
         }
     } else {
         cpu_execute(device->cpu, context.cycles);
