@@ -185,27 +185,19 @@ int main(int argc, char **argv) {
         context.debugger = 2;
         tui_tick(device);
         context.debugger = 1;
-    }
-
-    if (context.cycles == -1) { // Run indefinitely
-        while (1) {
-            // TODO: Timings
-            cpu_execute(device->cpu, 1);
-
-        backInLoop:
-            if (context.stop) {
-                break;
-            }
-        }
-        if (context.stop == 2) {
-            context.stop = 0;
-            context.debugger = 2;
-            tui_tick(device);
-            context.debugger = 1;
-            goto backInLoop;
-        }
     } else {
-        cpu_execute(device->cpu, context.cycles);
+        if (context.cycles == -1) { // Run indefinitely
+            while (1) {
+                // TODO: Timings
+                cpu_execute(device->cpu, 1);
+
+                if (context.stop) {
+                    break;
+                }
+            }
+        } else {
+            cpu_execute(device->cpu, context.cycles);
+        }
     }
 
     if (context.print_state) {
