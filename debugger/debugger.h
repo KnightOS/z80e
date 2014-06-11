@@ -21,7 +21,6 @@ typedef struct {
 } debugger_list_t;
 
 typedef struct debugger_state {
-	asic_t *asic;
 	int (*print)(struct debugger_state *, const char *, ...);
 } debugger_state_t;
 

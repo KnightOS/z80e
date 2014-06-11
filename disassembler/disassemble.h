@@ -9,7 +9,7 @@ struct disassemble_memory {
 };
 
 
-typedef int (*write_pointer)(const char *, ...);
+typedef int (*write_pointer)(struct disassemble_memory *, const char *, ...);
 
 void parse_instruction(struct disassemble_memory *, write_pointer);
 
