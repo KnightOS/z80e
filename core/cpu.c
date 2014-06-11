@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "registers.h"
 #include "cpu.h"
+#include "hooks.h"
 
 struct ExecutionContext {
     uint8_t cycles;
@@ -41,6 +42,202 @@ void cpu_raise_interrupt(z80cpu_t  *cpu) {
 
 void cpu_free(z80cpu_t *cpu) {
     free(cpu);
+}
+
+uint16_t cpu_read_register_word(z80cpu_t *cpu, registers reg_to_read) {
+	uint16_t return_value = 0;
+	switch(reg_to_read) {
+	case  AF:
+		return_value = cpu->registers.AF;
+		break;
+	case _AF:
+		return_value = cpu->registers._AF;
+		break;
+	case  BC:
+		return_value = cpu->registers.BC;
+		break;
+	case _BC:
+		return_value = cpu->registers._BC;
+		break;
+	case  DE:
+		return_value = cpu->registers.DE;
+		break;
+	case _DE:
+		return_value = cpu->registers._DE;
+		break;
+	case  HL:
+		return_value = cpu->registers.HL;
+		break;
+	case _HL:
+		return_value = cpu->registers._HL;
+		break;
+	default:
+		return_value = -1;
+	}
+
+#if defined(ENABLE_HOOKS) && ENABLE_READ_REGISTER_HOOK
+	register_hook_struct_t data = { reg_to_read, return_value };
+	call_read_register_hooks(cpu, &data);
+	return_value = data.contents;
+#endif
+
+	return return_value;
+}
+
+uint8_t cpu_read_register_byte(z80cpu_t *cpu, registers reg_to_read) {
+	uint8_t return_value = 0;
+	switch(reg_to_read) {
+	case A:
+		return_value = cpu->registers.A;
+		break;
+	case F:
+		return_value = cpu->registers.F;
+		break;
+	case B:
+		return_value = cpu->registers.B;
+		break;
+	case C:
+		return_value = cpu->registers.C;
+		break;
+	case D:
+		return_value = cpu->registers.D;
+		break;
+	case E:
+		return_value = cpu->registers.E;
+		break;
+	case H:
+		return_value = cpu->registers.H;
+		break;
+	case L:
+		return_value = cpu->registers.L;
+		break;
+	case I:
+		return_value = cpu->registers.I;
+		break;
+	case R:
+		return_value = cpu->registers.R;
+		break;
+	case IXH:
+		return_value = cpu->registers.IXH;
+		break;
+	case IXL:
+		return_value = cpu->registers.IXL;
+		break;
+	case IYH:
+		return_value = cpu->registers.IYH;
+		break;
+	case IYL:
+		return_value = cpu->registers.IYL;
+		break;
+	default:
+		return_value = -1;
+	}
+#if defined(ENABLE_HOOKS) && ENABLE_READ_REGISTER_HOOK
+	register_hook_struct_t data = { reg_to_read, return_value };
+	call_read_register_hooks(cpu, &data);
+	return_value = (uint8_t) data.contents;
+#endif
+
+	return return_value;
+}
+uint16_t cpu_write_register_word(z80cpu_t *cpu, registers reg_to_read, uint16_t value) {
+	uint16_t return_value = value;
+
+#if defined(ENABLE_HOOKS) && ENABLE_WRITE_REGISTER_HOOK
+	register_hook_struct_t data = { reg_to_read, return_value };
+	call_write_register_hooks(cpu, &data);
+	return_value = data.contents;
+#endif
+	switch(reg_to_read) {
+	case  AF:
+		cpu->registers.AF = return_value;
+		break;
+	case _AF:
+		cpu->registers._AF = return_value;
+		break;
+	case  BC:
+		cpu->registers.BC = return_value;
+		break;
+	case _BC:
+		cpu->registers._BC = return_value;
+		break;
+	case  DE:
+		cpu->registers.DE = return_value;
+		break;
+	case _DE:
+		cpu->registers._DE = return_value;
+		break;
+	case  HL:
+		cpu->registers.HL = return_value;
+		break;
+	case _HL:
+		cpu->registers._HL = return_value;
+		break;
+	default:
+		break;
+	}
+
+	return return_value;
+}
+
+uint8_t cpu_write_register_byte(z80cpu_t *cpu, registers reg_to_read, uint8_t value) {
+	uint8_t return_value = value;
+
+#if defined(ENABLE_HOOKS) && ENABLE_WRITE_REGISTER_HOOK
+	register_hook_struct_t data = { reg_to_read, return_value };
+	call_write_register_hooks(cpu, &data);
+	return_value = (uint8_t) data.contents;
+#endif
+
+
+	switch(reg_to_read) {
+	case A:
+		cpu->registers.A = return_value;
+		break;
+	case F:
+		cpu->registers.F = return_value;
+		break;
+	case B:
+		cpu->registers.B = return_value;
+		break;
+	case C:
+		cpu->registers.C = return_value;
+		break;
+	case D:
+		cpu->registers.D = return_value;
+		break;
+	case E:
+		cpu->registers.E = return_value;
+		break;
+	case H:
+		cpu->registers.H = return_value;
+		break;
+	case L:
+		cpu->registers.L = return_value;
+		break;
+	case I:
+		cpu->registers.I = return_value;
+		break;
+	case R:
+		cpu->registers.R = return_value;
+		break;
+	case IXH:
+		cpu->registers.IXH = return_value;
+		break;
+	case IXL:
+		cpu->registers.IXL = return_value;
+		break;
+	case IYH:
+		cpu->registers.IYH = return_value;
+		break;
+	case IYL:
+		cpu->registers.IYL = return_value;
+		break;
+	default:
+		break;
+	}
+
+	return return_value;
 }
 
 uint8_t cpu_read_byte(z80cpu_t *cpu, uint16_t address) {

@@ -1,15 +1,21 @@
 #include "asic.h"
+#include "debugger.h"
+#include "tui.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
 #include <signal.h>
 
+#include "hooks.h"
+
 typedef struct {
     ti_device_type device;
+    asic_t *device_asic;
     char *rom_file;
     int cycles;
     int print_state;
     int stop;
+    int debugger;
     int no_rom_check;
 } appContext_t;
 
@@ -53,7 +59,8 @@ void print_help(void) {
            "\t\tTI73, TI83p, TI83pSE, TI84p, TI84pSE, TI84pCSE\n"
            "\t-c <cycles>: Emulate this number of cycles, then exit. If omitted, the machine will be emulated indefinitely.\n"
            "\t--print-state: Prints the state of the machine on exit.\n"
-           "\t--no-rom-check: Skips the check that ensure the provided ROM file is the correct size.\n");
+           "\t--no-rom-check: Skips the check that ensure the provided ROM file is the correct size.\n"
+           "\t--debug: Enable the debugger, which is enabled by interrupting the emulator.\n");
 }
 
 void handleFlag(appContext_t *context, char flag, int *i, char **argv) {
@@ -82,6 +89,8 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
         context->print_state = 1;
     } else if (strcasecmp(flag, "no-rom-check") == 0) {
         context->no_rom_check = 1;
+    } else if (strcasecmp(flag, "debug") == 0) {
+        context->debugger = 1;
     } else if (strcasecmp(flag, "help") == 0) {
         print_help();
         exit(0);
@@ -93,9 +102,28 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
 
 void sigint_handler(int sig) {
     signal(SIGINT, sigint_handler);
+
+    printf("\n Caught interrupt, stopping emulation\n");
     context.stop = 1;
-    printf(" Caught interrupt, stopping emulation\n");
+
+    if (context.debugger > 1) {
+        exit(0);
+    }
+
     fflush(stdout);
+}
+
+int debugger_run_command(debugger_state_t *state, int argc, char **argv) {
+    context.stop = 0;
+    context.debugger = 1;
+    while (1) {
+        cpu_execute(context.device_asic->cpu, 1);
+        if (context.stop) {
+            break;
+        }
+    }
+    context.debugger = 2;
+    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -125,6 +153,7 @@ int main(int argc, char **argv) {
     }
 
     asic_t *device = asic_init(context.device);
+    context.device_asic = device;
     if (context.rom_file == NULL) {
         printf("Warning: No ROM file specified\n");
     } else {
@@ -148,16 +177,28 @@ int main(int argc, char **argv) {
         length = fread(device->mmu->flash, 0x4000, device->mmu->settings->flash_pages, file);
         fclose(file);
     }
-    if (context.cycles == -1) { // Run indefinitely
-        while (1) {
-            // TODO: Timings
-            cpu_execute(device->cpu, 1);
-            if (context.stop) {
-                break;
-            }
-        }
+
+    init_hooks();
+    debugger_command_t run_command = { "run", debugger_run_command };
+    register_command(&run_command);
+
+    if (context.debugger) {
+        context.debugger = 2;
+        tui_tick(device);
+        context.debugger = 1;
     } else {
-        cpu_execute(device->cpu, context.cycles);
+        if (context.cycles == -1) { // Run indefinitely
+            while (1) {
+                // TODO: Timings
+                cpu_execute(device->cpu, 1);
+
+                if (context.stop) {
+                    break;
+                }
+            }
+        } else {
+            cpu_execute(device->cpu, context.cycles);
+        }
     }
 
     if (context.print_state) {

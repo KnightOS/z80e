@@ -1,0 +1,56 @@
+#ifndef DEBUGGER_HOOKS_H
+#define DEBUGGER_HOOKS_H
+
+#include <stdint.h>
+
+#include "asic.h"
+#include "cpu.h"
+
+typedef int (*generic_function_pointer)(void *, ...);
+
+typedef struct {
+	int capacity;
+	int used;
+	generic_function_pointer *array;
+} hook_array_t;
+
+hook_array_t *read_memory_hooks;
+hook_array_t *write_memory_hooks;
+hook_array_t *read_register_hooks;
+hook_array_t *write_register_hooks;
+
+void init_hooks();
+void deinit_hooks();
+
+typedef struct {
+	uint16_t memory_location;
+	uint8_t read_byte;
+} read_memory_struct_t;
+
+typedef int (*read_memory_hook)(ti_mmu_t *, read_memory_struct_t *);
+void register_hook_read_memory(read_memory_hook);
+void call_read_memory_hooks(ti_mmu_t *, read_memory_struct_t *);
+
+typedef struct {
+	uint16_t memory_location;
+	uint8_t write_byte;
+} write_memory_struct_t;
+
+typedef int (*write_memory_hook)(ti_mmu_t *, write_memory_struct_t *);
+void register_hook_write_memory(write_memory_hook);
+void call_write_memory_hooks(ti_mmu_t *, write_memory_struct_t *);
+
+typedef struct register_hook_struct {
+	uint8_t register_id;
+	uint16_t contents;
+} register_hook_struct_t;
+
+typedef int (*register_hook)(z80cpu_t *, register_hook_struct_t *);
+
+void register_hook_read_register(register_hook);
+void call_read_register_hooks(z80cpu_t *, register_hook_struct_t *);
+
+void register_hook_write_register(register_hook);
+void call_write_register_hooks(z80cpu_t *, register_hook_struct_t *);
+
+#endif
