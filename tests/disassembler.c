@@ -2,7 +2,7 @@ char dis_buffer[40];
 char *dis_pointer = dis_buffer;
 uint8_t *dis_input;
 
-int dis_write(const char *data, ...) {
+int dis_write(struct disassemble_memory *memp, const char *data, ...) {
 	va_list list;
 	va_start(list, data);
 

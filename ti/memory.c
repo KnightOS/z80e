@@ -2,8 +2,11 @@
 #include "cpu.h"
 #include "ti.h"
 
+#include "debugger.h"
+#include "disassemble.h"
 #include "hooks.h"
 
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>

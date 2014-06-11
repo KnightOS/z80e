@@ -1,8 +1,11 @@
 #include "asic.h"
 #include "debugger.h"
 #include "tui.h"
+#include "commands.h"
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <strings.h>
 #include <signal.h>
 
@@ -115,10 +118,28 @@ void sigint_handler(int sig) {
 
 int debugger_run_command(debugger_state_t *state, int argc, char **argv) {
     context.stop = 0;
+    int cycles = -1;
+
+    if ((argc == 2 && strcmp(argv[1], "--help") == 0) || argc > 2) {
+        state->print(state, "run [cycles] - run the emulator for a number of cycles\n"
+		" This command will run the emulator for `cycles` amount of cycles,\n"
+		" or indefinite if not defined. If the emulator is interrupted (^C)\n"
+		" the emulation will stop if ran indefinitely.\n");
+	return 0;
+    } else if(argc == 2) {
+        cycles = strtol(argv[1], NULL, 0);
+        context.debugger = 1;
+        cpu_execute(context.device_asic->cpu, cycles);
+        context.debugger = 2;
+        return 0;
+    }
+
     context.debugger = 1;
     while (1) {
         cpu_execute(context.device_asic->cpu, 1);
         if (context.stop) {
+            context.debugger = 2;
+            return 1;
             break;
         }
     }
@@ -179,8 +200,10 @@ int main(int argc, char **argv) {
     }
 
     init_hooks();
-    debugger_command_t run_command = { "run", debugger_run_command };
-    register_command(&run_command);
+    register_command("run", debugger_run_command, NULL);
+    register_hexdump("hexdump", device->mmu);
+    register_disassemble("disassemble", device->mmu);
+    register_print_registers("print_registers", device->cpu);
 
     if (context.debugger) {
         context.debugger = 2;

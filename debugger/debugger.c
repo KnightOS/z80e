@@ -5,6 +5,33 @@
 
 debugger_list_t *gDebuggerList = 0;
 
+int debugger_list_commands(struct debugger_state *state, int argc, char **argv) {
+	if (argc != 1) {
+		state->print(state,
+			"list_commands - List all registered commands\nThis command takes no arguments.\n");
+		return 0;
+	}
+
+	int i = 0;
+	for (i = 0; i < gDebuggerList->count; i++) {
+		state->print(state, "%d. %s\n", i, gDebuggerList->commands[i]->name);
+	}
+	return 0;
+}
+
+debugger_command_t list_command = {
+	"list_commands", debugger_list_commands
+};
+
+void init_debugger() {
+	gDebuggerList = malloc(sizeof(debugger_list_t));
+	gDebuggerList->count = 1;
+	gDebuggerList->capacity = 10;
+	gDebuggerList->commands = malloc(sizeof(debugger_command_t *) * 10);
+
+	gDebuggerList->commands[0] = &list_command;
+}
+
 int compare_strings(const char *a, const char *b) {
 	int i = 0;
 	while (*a != 0 && *b != 0 && *(a++) == *(b++)) {
@@ -42,13 +69,15 @@ int find_best_command(const char *f_command, debugger_command_t ** pointer) {
 	return match_numbers > 1 ? -1 : 0;
 }
 
-void register_command(debugger_command_t *command) {
+void register_command(const char *name, debugger_function_t function, void *state) {
 	if (gDebuggerList == 0) {
-		gDebuggerList = malloc(sizeof(debugger_list_t));
-		gDebuggerList->count = 0;
-		gDebuggerList->capacity = 10;
-		gDebuggerList->commands = malloc(sizeof(debugger_command_t *) * 10);
+		init_debugger();
 	}
+
+	debugger_command_t *command = malloc(sizeof(debugger_command_t));
+	command->name = name;
+	command->function = function;
+	command->state = state;
 
 	if (gDebuggerList->count >= gDebuggerList->capacity) {
 		gDebuggerList->commands = realloc(gDebuggerList->commands,

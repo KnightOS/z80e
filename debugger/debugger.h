@@ -12,6 +12,7 @@ typedef int (*debugger_function_t)(struct debugger_state *, int, char **);
 typedef struct {
 	const char *name;
 	debugger_function_t function;
+	void *state;
 } debugger_command_t;
 
 typedef struct {
@@ -21,11 +22,11 @@ typedef struct {
 } debugger_list_t;
 
 typedef struct debugger_state {
-	asic_t *asic;
 	int (*print)(struct debugger_state *, const char *, ...);
+	void *state;
 } debugger_state_t;
 
 int find_best_command(const char *, debugger_command_t **);
-void register_command(debugger_command_t *);
+void register_command(const char *, debugger_function_t, void *);
 
 #endif
