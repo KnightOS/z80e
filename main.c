@@ -223,6 +223,7 @@ int main(int argc, char **argv) {
 
     init_hooks();
     register_command("run", debugger_run_command);
+    register_command("print_registers", debugger_print_registers_command);
 
     if (context.debugger) {
         context.debugger = 2;
