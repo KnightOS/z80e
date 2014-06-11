@@ -5,6 +5,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
 add_definitions("-Wall")
 
 FILE(GLOB Hardware ti/hardware/*.c)
+FILE(GLOB Commands debugger/commands/*.c)
 
 add_executable(test
     core/cpu.c
@@ -16,6 +17,7 @@ add_executable(test
     ti/asic.c
     ti/memory.c
     ${Hardware}
+    ${Commands}
     test.c
 )
 
@@ -29,6 +31,7 @@ add_executable(z80e
     ti/asic.c
     ti/memory.c
     ${Hardware}
+    ${Commands}
     main.c
 )
 
