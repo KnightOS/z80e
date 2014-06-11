@@ -8,18 +8,14 @@ int debugger_alwaysok(debugger_state_t *state, int argc, char **argv) {
 	return 0;
 }
 
-debugger_command_t *debugger_alwaysok_struct = 0;
-
 int debugger_alwaysfail(debugger_state_t *state, int argc, char **argv) {
 	debugger_alwaysfailc++;
 	return 0;
 }
 
-debugger_command_t *debugger_alwaysfail_struct = 0;
-
 int test_debugger_register_command() {
-	register_command("debugger_alwaysok", debugger_alwaysok);
-	register_command("debugger_alwaysfail", debugger_alwaysfail);
+	register_command("alwaysok", debugger_alwaysok);
+	register_command("alwaysfail", debugger_alwaysfail);
 	debugger_initialized = 1;
 
 	return 0;
@@ -37,12 +33,12 @@ int test_debugger_find_command() {
 	}
 
 	result = find_best_command("alwaysok", &command);
-	if (!result || command != debugger_alwaysok_struct) {
+	if (!result || command->function != debugger_alwaysok) {
 		return 2;
 	}
 
 	result = find_best_command("alwaysfail", &command);
-	if (!result || command != debugger_alwaysfail_struct) {
+	if (!result || command->function != debugger_alwaysfail) {
 		return 3;
 	}
 
