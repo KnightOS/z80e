@@ -222,8 +222,9 @@ int main(int argc, char **argv) {
     }
 
     init_hooks();
-    register_command("run", debugger_run_command);
-    register_command("print_registers", debugger_print_registers_command);
+    register_command("run", debugger_run_command, NULL);
+    register_command("print_registers", debugger_print_registers_command, NULL);
+    mmu_register(device->mmu, "hex", "disassemble");
 
     if (context.debugger) {
         context.debugger = 2;

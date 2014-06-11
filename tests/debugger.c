@@ -14,8 +14,8 @@ int debugger_alwaysfail(debugger_state_t *state, int argc, char **argv) {
 }
 
 int test_debugger_register_command() {
-	register_command("alwaysok", debugger_alwaysok);
-	register_command("alwaysfail", debugger_alwaysfail);
+	register_command("alwaysok", debugger_alwaysok, 0);
+	register_command("alwaysfail", debugger_alwaysfail, 0);
 	debugger_initialized = 1;
 
 	return 0;

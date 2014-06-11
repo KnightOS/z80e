@@ -103,7 +103,7 @@ void tui_tick(asic_t *asic) {
 			} else if (status == 0) {
 				printf("Error: Unknown command %s\n", result);
 			} else {
-				debugger_state_t state = { asic, print_tui };
+				debugger_state_t state = { print_tui, command->state };
 				printf("Result: %d\n", command->function(&state, argc, cmdline));
 			}
 
