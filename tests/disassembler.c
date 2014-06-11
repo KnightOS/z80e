@@ -1,5 +1,5 @@
-uint8_t dis_buffer[40];
-uint8_t *dis_pointer = dis_buffer;
+char dis_buffer[40];
+char *dis_pointer = dis_buffer;
 uint8_t *dis_input;
 
 int dis_write(const char *data, ...) {
