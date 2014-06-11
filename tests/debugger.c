@@ -18,16 +18,8 @@ int debugger_alwaysfail(debugger_state_t *state, int argc, char **argv) {
 debugger_command_t *debugger_alwaysfail_struct = 0;
 
 int test_debugger_register_command() {
-	debugger_alwaysok_struct = malloc(sizeof(debugger_command_t));
-	debugger_alwaysok_struct->name = "alwaysok";
-	debugger_alwaysok_struct->function = debugger_alwaysok;
-
-	debugger_alwaysfail_struct = malloc(sizeof(debugger_command_t));
-	debugger_alwaysfail_struct->name = "alwaysfail";
-	debugger_alwaysfail_struct->function = debugger_alwaysfail;
-
-	register_command(debugger_alwaysok_struct);
-	register_command(debugger_alwaysfail_struct);
+	register_command("debugger_alwaysok", debugger_alwaysok);
+	register_command("debugger_alwaysfail", debugger_alwaysfail);
 	debugger_initialized = 1;
 
 	return 0;

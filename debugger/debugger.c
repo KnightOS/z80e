@@ -69,10 +69,14 @@ int find_best_command(const char *f_command, debugger_command_t ** pointer) {
 	return match_numbers > 1 ? -1 : 0;
 }
 
-void register_command(debugger_command_t *command) {
+void register_command(const char *name, debugger_function_t function) {
 	if (gDebuggerList == 0) {
 		init_debugger();
 	}
+
+	debugger_command_t *command = malloc(sizeof(debugger_command_t));
+	command->name = name;
+	command->function = function;
 
 	if (gDebuggerList->count >= gDebuggerList->capacity) {
 		gDebuggerList->commands = realloc(gDebuggerList->commands,

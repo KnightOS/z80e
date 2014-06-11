@@ -26,6 +26,6 @@ typedef struct debugger_state {
 } debugger_state_t;
 
 int find_best_command(const char *, debugger_command_t **);
-void register_command(debugger_command_t *);
+void register_command(const char *, debugger_function_t);
 
 #endif

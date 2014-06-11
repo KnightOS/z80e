@@ -153,7 +153,7 @@ int debugger_print_registers_command(struct debugger_state *state, int argc, cha
 		return 0;
 	}
 
-        z80registers_t r = context.device->cpu->registers;
+        z80registers_t r = context.device_asic->cpu->registers;
         state->print(state, "   AF: 0x%04X   BC: 0x%04X   DE: 0x%04X  HL: 0x%04X\n", r.AF, r.BC, r.DE, r.HL);
         state->print(state, "  'AF: 0x%04X  'BC: 0x%04X  'DE: 0x%04X 'HL: 0x%04X\n", r._AF, r._BC, r._DE, r._HL);
         state->print(state, "   PC: 0x%04X   SP: 0x%04X   IX: 0x%04X  IY: 0x%04X\n", r.PC, r.SP, r.IX, r.IY);
@@ -222,8 +222,7 @@ int main(int argc, char **argv) {
     }
 
     init_hooks();
-    debugger_command_t run_command = { "run", debugger_run_command };
-    register_command(&run_command);
+    register_command("run", debugger_run_command);
 
     if (context.debugger) {
         context.debugger = 2;
