@@ -3,16 +3,14 @@ int debugger_initialized = 0;
 int debugger_alwaysokc = 0;
 int debugger_alwaysfailc = 0;
 
-int debugger_alwaysok(debugger_state_t *state, int argc, char **argv)
-{
+int debugger_alwaysok(debugger_state_t *state, int argc, char **argv) {
 	debugger_alwaysokc++;
 	return 0;
 }
 
 debugger_command_t *debugger_alwaysok_struct = 0;
 
-int debugger_alwaysfail(debugger_state_t *state, int argc, char **argv)
-{
+int debugger_alwaysfail(debugger_state_t *state, int argc, char **argv) {
 	debugger_alwaysfailc++;
 	return 0;
 }
@@ -36,25 +34,30 @@ int test_debugger_register_command() {
 }
 
 int test_debugger_find_command() {
-	if(!debugger_initialized)
+	if (!debugger_initialized) {
 		test_debugger_register_command();
+	}
 
 	debugger_command_t *command;
 	int result = find_best_command("always", &command);
-	if (result != -1)
+	if (result != -1) {
 		return 1;
+	}
 
 	result = find_best_command("alwaysok", &command);
-	if (!result || command != debugger_alwaysok_struct)
+	if (!result || command != debugger_alwaysok_struct) {
 		return 2;
+	}
 
 	result = find_best_command("alwaysfail", &command);
-	if (!result || command != debugger_alwaysfail_struct)
+	if (!result || command != debugger_alwaysfail_struct) {
 		return 3;
+	}
 
 	result = find_best_command("dontexist", &command);
-	if (result != 0)
+	if (result != 0) {
 		return 4;
+	}
 
 	return 0;
 }
@@ -90,8 +93,9 @@ int test_debugger_hooks() {
 	read_memory_struct_t t = {0, 0};
 	call_read_memory_hooks(0, &t);
 
-	if (hook_test_counter != 1)
+	if (hook_test_counter != 1) {
 		return 3;
+	}
 
 	deinit_hooks();
 	return read_memory_hooks ? 4 : 0;
