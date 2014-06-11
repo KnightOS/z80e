@@ -12,6 +12,7 @@ add_executable(test
     debugger/debugger.c
     debugger/hooks.c
     debugger/tui.c
+    disassembler/disassemble.c
     ti/asic.c
     ti/memory.c
     ${Hardware}
@@ -24,9 +25,9 @@ add_executable(z80e
     debugger/debugger.c
     debugger/hooks.c
     debugger/tui.c
+    disassembler/disassemble.c
     ti/asic.c
     ti/memory.c
-    disassembler/disassemble.c
     ${Hardware}
     main.c
 )

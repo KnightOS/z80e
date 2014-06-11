@@ -1,6 +1,7 @@
 #include "asic.h"
 #include "cpu.h"
 #include "debugger.h"
+#include "disassemble.h"
 #include "hooks.h"
 #include "keyboard.h"
 #include "status.h"
@@ -8,12 +9,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <stdarg.h>
 
 void flash(asic_t *device, const uint8_t *data, size_t length);
 
 #include "tests/alu.c"
 #include "tests/control.c"
 #include "tests/debugger.c"
+#include "tests/disassembler.c"
 #include "tests/load.c"
 #include "tests/arithmetic.c"
 #include "tests/shifts.c"
@@ -134,6 +137,7 @@ const test_t tests[] = {
     { test_debugger_register_command, "register_command()" },
     { test_debugger_find_command, "find_best_command()" },
     { test_debugger_hooks, "Hooks" },
+    { test_disassembler, "Disassembler" },
 };
 
 int main(int argc, char **argv) {
