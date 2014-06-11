@@ -5,6 +5,7 @@
 #include "hooks.h"
 #include "keyboard.h"
 #include "status.h"
+#include "tui.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -137,6 +138,7 @@ const test_t tests[] = {
     { test_debugger_register_command, "register_command()" },
     { test_debugger_find_command, "find_best_command()" },
     { test_debugger_hooks, "Hooks" },
+    { test_debugger_tui_commandline, "Text UI commandline parser" },
     { test_disassembler, "Disassembler" },
 };
 

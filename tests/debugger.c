@@ -100,3 +100,32 @@ int test_debugger_hooks() {
 	deinit_hooks();
 	return read_memory_hooks ? 4 : 0;
 }
+
+int test_debugger_tui_commandline() {
+	const char *test_data = "a \"b\\n\"acon is nom\"\\t\""; // a "b\n"acon is nom"\t"
+
+	int argc = 0;
+	char **result = tui_parse_commandline(test_data, &argc);
+
+	if (argc != 4) {
+		return 1;
+	}
+
+	if (strcmp(result[0], "a") != 0) {
+		return 2;
+	}
+
+	if (strcmp(result[1], "b\nacon") != 0) {
+		return 3;
+	}
+
+	if (strcmp(result[2], "is") != 0) {
+		return 4;
+	}
+
+	if (strcmp(result[3], "nom\t") != 0) {
+		return 5;
+	}
+
+	return 0;
+}
