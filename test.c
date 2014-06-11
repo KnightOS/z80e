@@ -136,9 +136,8 @@ int main(int argc, char **argv) {
     for (i = 0; i < sizeof(tests) / sizeof(test_t); i++) {
 	if (tests[i].execute == NULL) {
 		int length = (min_width + 9) - strlen(tests[i].name);
-		while (length--) printf(".");
-		printf(tests[i].name);
-		printf("....\n");
+		while (length--) putchar('.');
+		printf("%s....\n", tests[i].name);
 		continue;
 	}
         printf("Testing %s ", tests[i].name);
