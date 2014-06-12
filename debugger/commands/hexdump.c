@@ -52,7 +52,7 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
     }
 
     state->print(state, "%*s |", (16 - count) * 3, " ");
-    for (j = 0; j < 16; j++) {
+    for (j = 0; j < count; j++) {
         char byte = ti_read_byte(mmu, start + i + j);
         if (isprint(byte) && byte != '\t') {
             state->print(state, "%c", byte);
