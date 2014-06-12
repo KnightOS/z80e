@@ -118,18 +118,18 @@ void sigint_handler(int sig) {
 
 int debugger_run_command(debugger_state_t *state, int argc, char **argv) {
     context.stop = 0;
-    int cycles = -1;
+    int instructions = -1;
 
     if ((argc == 2 && strcmp(argv[1], "--help") == 0) || argc > 2) {
-        state->print(state, "run [cycles] - run the emulator for a number of cycles\n"
-		" This command will run the emulator for `cycles` amount of cycles,\n"
-		" or indefinite if not defined. If the emulator is interrupted (^C)\n"
-		" the emulation will stop if ran indefinitely.\n");
+        state->print(state, "run [instructions] - run a specified number of instructions\n"
+		" If no number is specified, the emulator will run until interrupted (^C).\n");
 	return 0;
     } else if(argc == 2) {
-        cycles = strtol(argv[1], NULL, 0);
+        instructions = strtol(argv[1], NULL, 0);
         context.debugger = 1;
-        cpu_execute(context.device_asic->cpu, cycles);
+        for (; instructions > 0; instructions--) {
+            cpu_execute(context.device_asic->cpu, 1);
+        }
         context.debugger = 2;
         return 0;
     }
