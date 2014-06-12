@@ -17,8 +17,6 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
     uint16_t length = strtol(argv[2], NULL, 0);
 
 
-// ti_read_byte(mmu, start + i);
-
     int count = length;
     int i = 0;
     while (count >= 16) {
