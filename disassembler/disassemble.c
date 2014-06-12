@@ -30,6 +30,11 @@ void parse_d(struct context *context) {
     context->write(context->memory, "%d", (int8_t)context->memory->read_byte(context->memory, context->memory->current++));
 }
 
+void parse_d_relative(struct context *context) {
+    uint16_t address = context->memory->current + 1;
+    context->write(context->memory, "0x%02X", (int8_t)context->memory->read_byte(context->memory, context->memory->current++) + address);
+}
+
 void parse_nn(struct context *context) {
     uint8_t first = context->memory->read_byte(context->memory, context->memory->current++);
     uint8_t second = context->memory->read_byte(context->memory, context->memory->current++);
@@ -417,11 +422,11 @@ void parse_instruction(struct disassemble_memory *memory, write_pointer write_p)
                         break;
                     case 2: // DJNZ d
                         write(memory, "DJNZ ");
-                        parse_d(&context);
+                        parse_d_relative(&context);
                         break;
                     case 3: // JR d
                         write(memory, "JR ");
-                        parse_d(&context);
+                        parse_d_relative(&context);
                         break;
                     case 4:
                     case 5:
@@ -430,7 +435,7 @@ void parse_instruction(struct disassemble_memory *memory, write_pointer write_p)
                         write(memory, "JR ");
                         parse_cc(context.y - 4, &context);
                         write(memory, ", ");
-                        parse_d(&context);
+                        parse_d_relative(&context);
                         break;
                     }
                     break;

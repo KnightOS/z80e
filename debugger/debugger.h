@@ -24,6 +24,7 @@ typedef struct {
 typedef struct debugger_state {
 	int (*print)(struct debugger_state *, const char *, ...);
 	void *state;
+	asic_t *asic;
 } debugger_state_t;
 
 int find_best_command(const char *, debugger_command_t **);

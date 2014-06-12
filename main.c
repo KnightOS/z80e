@@ -139,12 +139,16 @@ int debugger_run_command(debugger_state_t *state, int argc, char **argv) {
         cpu_execute(context.device_asic->cpu, 1);
         if (context.stop) {
             context.debugger = 2;
-            return 1;
-            break;
+            return 0;
         }
     }
     context.debugger = 2;
     return 0;
+}
+
+int debugger_step_command(debugger_state_t *state, int argc, char **argv) {
+    char *_argv[] = { "run", "1" };
+    return debugger_run_command(state, 2, _argv);
 }
 
 int main(int argc, char **argv) {
@@ -201,6 +205,7 @@ int main(int argc, char **argv) {
 
     init_hooks();
     register_command("run", debugger_run_command, NULL);
+    register_command("step", debugger_step_command, NULL);
     register_hexdump("hexdump", device->mmu);
     register_disassemble("disassemble", device->mmu);
     register_print_registers("print_registers", device->cpu);

@@ -32,7 +32,7 @@ uint8_t disassemble_read(struct disassemble_memory *s, uint16_t pointer) {
 }
 
 int command_disassemble(struct debugger_state *state, int argc, char **argv) {
-    if (argc != 3) {
+    if (argc > 3) {
         state->print(state, "%s `start` `count` - Print the disassembled commands\n"
                 " Prints `count` disassembled commands starting in memory from `start`.\n", argv[0]);
         return 0;
@@ -40,8 +40,14 @@ int command_disassemble(struct debugger_state *state, int argc, char **argv) {
 
     ti_mmu_t *mmu = (ti_mmu_t *)state->state;
 
-    uint16_t start = strtol(argv[1], NULL, 0);
-    uint16_t count = strtol(argv[2], NULL, 0);
+    uint16_t start = state->asic->cpu->registers.PC;
+    uint16_t count = 10;
+    if (argc > 1) {
+        start = strtol(argv[1], NULL, 0);
+    }
+    if (argc > 2) {
+        count = strtol(argv[2], NULL, 0);
+    }
 
     uint16_t i = 0;
 
