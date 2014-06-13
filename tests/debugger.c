@@ -42,7 +42,7 @@ int test_debugger_find_command() {
 		return 3;
 	}
 
-	result = find_best_command("dontexist", &command);
+	result = find_best_command("alwaysdontexist", &command);
 	if (result != 0) {
 		return 4;
 	}
