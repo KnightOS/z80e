@@ -3,7 +3,7 @@
 
 int command_print_expression(struct debugger_state *state, int argc, char **argv) {
 	if (argc != 2) {
-		state->print(state, "%s `expression` - Print an expression\n Don't forget to quote your expression!");
+		state->print(state, "%s `expression` - Print an expression\n Don't forget to quote your expression!", argv[0]);
 		return 0;
 	}
 

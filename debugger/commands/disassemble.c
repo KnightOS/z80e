@@ -48,7 +48,7 @@ int command_disassemble(struct debugger_state *state, int argc, char **argv) {
         start = parse_expression(state, argv[1]);
     }
     if (argc > 2) {
-        count = strtol(argv[2], NULL, 0);
+        count = parse_expression(state, argv[2]);
     }
 
     uint16_t i = 0;

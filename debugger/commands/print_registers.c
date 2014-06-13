@@ -1,6 +1,7 @@
 #include "debugger.h"
 #include "cpu.h"
 #include "registers.h"
+
 int command_print_registers(struct debugger_state *state, int argc, char **argv) {
         if (argc != 1) {
                 state->print(state, "print_registers - Print the contents of the emulator's registers\n"
