@@ -1,3 +1,4 @@
+#include "commands.h"
 #include "debugger.h"
 #include "memory.h"
 
@@ -13,8 +14,8 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
 
     ti_mmu_t *mmu = (ti_mmu_t *)state->state;
 
-    uint16_t start = strtol(argv[1], NULL, 0);
-    uint16_t length = strtol(argv[2], NULL, 0);
+    uint16_t start = parse_expression(state, argv[1]);
+    uint16_t length = parse_expression(state, argv[2]);
 
     int column = 26;
     if (argc == 4) {
@@ -24,7 +25,7 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
     uint16_t i = 0;
     for (i = 0; i < length; i++) {
         if (i % 16 == 0) {
-            state->print(state, "%02X  ");
+            state->print(state, "0x%02X  ");
         }
         state->print(state, "%02X ", ti_read_byte(mmu, start + i));
         if (i % column == 0 && i > 0) {

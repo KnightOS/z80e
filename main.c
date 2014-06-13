@@ -209,6 +209,7 @@ int main(int argc, char **argv) {
     register_hexdump("hexdump", device->mmu);
     register_disassemble("disassemble", device->mmu);
     register_print_registers("print_registers", device->cpu);
+    register_print_expression("expression");
 
     if (context.debugger) {
         context.debugger = 2;

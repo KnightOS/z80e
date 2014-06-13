@@ -21,7 +21,7 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 		int length = 0;
 		int is_string = 0;
 		const char *tmp = cmdline;
-		while (*tmp != ' ' && *tmp != '\n' && *tmp) {
+		while ((is_string || *tmp != ' ') && *tmp != '\n' && *tmp) {
 			length++;
 			if (*tmp == '\\' && is_string) {
 				tmp++;
@@ -40,7 +40,7 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 
 		tmp = cmdline;
 		char *tmp2 = buffer[buffer_pos];
-		while (*tmp != ' ' && *tmp != '\n' && *tmp) {
+		while ((is_string || *tmp != ' ') && *tmp != '\n' && *tmp) {
 			if (*tmp == '\\' && is_string) {
 				tmp++;
 				switch (*tmp) {

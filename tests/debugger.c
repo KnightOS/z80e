@@ -90,7 +90,7 @@ int test_debugger_hooks() {
 }
 
 int test_debugger_tui_commandline() {
-	const char *test_data = "a \"b\\n\"acon is nom\"\\t\""; // a "b\n"acon is nom"\t"
+	const char *test_data = "5 + 3 \"5 + 3\""; // 5 + 3 "5 + 3"
 
 	int argc = 0;
 	char **result = tui_parse_commandline(test_data, &argc);
@@ -99,19 +99,19 @@ int test_debugger_tui_commandline() {
 		return 1;
 	}
 
-	if (strcmp(result[0], "a") != 0) {
+	if (strcmp(result[0], "5") != 0) {
 		return 2;
 	}
 
-	if (strcmp(result[1], "b\nacon") != 0) {
+	if (strcmp(result[1], "+") != 0) {
 		return 3;
 	}
 
-	if (strcmp(result[2], "is") != 0) {
+	if (strcmp(result[2], "3") != 0) {
 		return 4;
 	}
 
-	if (strcmp(result[3], "nom\t") != 0) {
+	if (strcmp(result[3], "5 + 3") != 0) {
 		return 5;
 	}
 

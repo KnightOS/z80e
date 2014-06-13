@@ -1,5 +1,6 @@
 #include "memory.h"
 
+#include "commands.h"
 #include "debugger.h"
 #include "disassemble.h"
 
@@ -42,8 +43,9 @@ int command_disassemble(struct debugger_state *state, int argc, char **argv) {
 
     uint16_t start = state->asic->cpu->registers.PC;
     uint16_t count = 10;
+
     if (argc > 1) {
-        start = strtol(argv[1], NULL, 0);
+        start = parse_expression(state, argv[1]);
     }
     if (argc > 2) {
         count = strtol(argv[2], NULL, 0);
