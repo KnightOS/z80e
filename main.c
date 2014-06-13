@@ -125,7 +125,7 @@ int debugger_run_command(debugger_state_t *state, int argc, char **argv) {
 		" If no number is specified, the emulator will run until interrupted (^C).\n");
 	return 0;
     } else if(argc == 2) {
-        instructions = strtol(argv[1], NULL, 0);
+        instructions = parse_expression(status, argv[1]);
         context.debugger = 1;
         for (; instructions > 0; instructions--) {
             cpu_execute(context.device_asic->cpu, 1);
