@@ -29,9 +29,9 @@ void init_hooks();
 void deinit_hooks();
 
 typedef struct {
-	void *state;
 	uint16_t memory_location;
 	uint8_t read_byte;
+	void *state;
 } read_memory_struct_t;
 
 typedef int (*read_memory_hook)(ti_mmu_t *, read_memory_struct_t *);
@@ -39,9 +39,9 @@ void register_hook_read_memory(read_memory_hook, void *);
 void call_read_memory_hooks(ti_mmu_t *, read_memory_struct_t *);
 
 typedef struct {
-	void *state;
 	uint16_t memory_location;
 	uint8_t write_byte;
+	void *state;
 } write_memory_struct_t;
 
 typedef int (*write_memory_hook)(ti_mmu_t *, write_memory_struct_t *);
@@ -49,9 +49,9 @@ void register_hook_write_memory(write_memory_hook, void *);
 void call_write_memory_hooks(ti_mmu_t *, write_memory_struct_t *);
 
 typedef struct register_hook_struct {
-	void *state;
 	uint8_t register_id;
 	uint16_t contents;
+	void *state;
 } register_hook_struct_t;
 
 typedef int (*register_hook)(z80cpu_t *, register_hook_struct_t *);
