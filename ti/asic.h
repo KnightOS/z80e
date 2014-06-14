@@ -13,6 +13,7 @@ typedef enum {
 
 typedef struct {
     z80cpu_t* cpu;
+    ti_device_type device;
     ti_mmu_t* mmu;
     battery_state battery;
     int battery_remove_check;
