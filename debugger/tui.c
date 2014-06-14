@@ -97,7 +97,7 @@ void tui_tick(asic_t *asic) {
 			int argc = 0;
 			char **cmdline = tui_parse_commandline(result, &argc);
 
-			int status = find_best_command(result, &command);
+			int status = find_best_command(cmdline[0], &command);
 			if (status == -1) {
 				printf("Error: Ambiguous command %s\n", result);
 			} else if (status == 0) {
