@@ -214,6 +214,7 @@ int main(int argc, char **argv) {
     register_print_expression("expression");
     register_stack("stack");
     register_print_mappings("mappings");
+    register_on_read("on_read");
 
     if (context.debugger) {
         context.debugger = 2;

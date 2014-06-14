@@ -70,8 +70,8 @@ int test_debugger_hooks() {
 		return 1;
 	}
 
-	register_hook_read_memory(&hook);
-	register_hook_read_memory(&hook2);
+	register_hook_read_memory(&hook, NULL);
+	register_hook_read_memory(&hook2, NULL);
 
 	if (read_memory_hooks->used != 2) {
 		deinit_hooks();

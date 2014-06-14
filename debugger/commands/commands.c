@@ -31,6 +31,10 @@ void register_print_mappings(const char *name) {
 	register_command(name, command_print_mappings, NULL);
 }
 
+void register_on_read(const char *name) {
+	register_command(name, command_on_read, NULL);
+}
+
 uint16_t parse_operand(debugger_state_t *state, const char *start, const char **end) {
 	if (*start >= '0' && *start <= '9') {
 		return strtol(start, (char **)end, 0);
