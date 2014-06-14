@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "memory.h"
+#include "memorymapping.h"
 #include "cpu.h"
 #include "keyboard.h"
 #include "status.h"
@@ -10,12 +11,15 @@ void plug_devices(asic_t *asic) {
     /* Link port unimplemented */
     asic->cpu->devices[0x01] = init_keyboard();
     asic->cpu->devices[0x02] = init_status(asic);
+
+    init_mapping_ports(asic);
 }
 
 void free_devices(asic_t *asic) {
     /* Link port unimplemented */
     free_keyboard(asic->cpu->devices[0x01]);
     free_status(asic->cpu->devices[0x02]);
+    free_mapping_ports(asic);
 }
 
 asic_t *asic_init(ti_device_type type) {

@@ -1,15 +1,9 @@
-typedef struct {
-    asic_t *asic;
-    int map_mode;
+#include "asic.h"
+#include "memory.h"
+#include "memorymapping.h"
 
-    uint8_t bank_a_page;
-    int bank_a_flash;
-
-    uint8_t bank_b_page;
-    int bank_b_flash;
-
-    uint8_t ram_bank_page;
-} memory_mapping_state_t;
+#include <stdlib.h>
+#include <string.h>
 
 void reload_mapping(memory_mapping_state_t *state) {
     ti_mmu_bank_state_t *banks = state->asic->mmu->banks;
@@ -47,6 +41,18 @@ void reload_mapping(memory_mapping_state_t *state) {
     }
 }
 
+uint8_t read_device_status_port(void *device) {
+    memory_mapping_state_t *state = device;
+
+    return 0; // Nothing to read yet
+}
+
+void write_device_status_port(void *device, uint8_t data) {
+    memory_mapping_state_t *state = device;
+
+    state->map_mode = data & 1;
+}
+
 uint8_t read_ram_paging_port(void *device) {
     memory_mapping_state_t *state = device;
 
@@ -65,7 +71,7 @@ uint8_t read_bank_a_paging_port(void *device) {
 
     uint8_t return_value = state->bank_a_page;
     if (state->bank_a_flash) {
-        if (state->device == TI83p) {
+        if (state->asic->device == TI83p) {
             return_value &= ~(1 << 6);
             return_value |= 1 << 6;
         } else {
@@ -82,7 +88,7 @@ void write_bank_a_paging_port(void *device, uint8_t data) {
 
     int is_flash = 0;
 
-    if (state->device == TI83p) {
+    if (state->asic->device == TI83p) {
         is_flash = data & (1 << 6);
         data &= 0x1F; // 0b11111
     } else {
@@ -101,7 +107,7 @@ uint8_t read_bank_b_paging_port(void *device) {
 
     uint8_t return_value = state->bank_b_page;
     if (state->bank_b_flash) {
-        if (state->device == TI83p) {
+        if (state->asic->device == TI83p) {
             return_value &= ~(1 << 6);
             return_value |= 1 << 6;
         } else {
@@ -118,7 +124,7 @@ void write_bank_b_paging_port(void *device, uint8_t data) {
 
     int is_flash = 0;
 
-    if (state->device == TI83p) {
+    if (state->asic->device == TI83p) {
         is_flash = data & (1 << 6);
         data &= 0x1F; // 0b11111
     } else {
@@ -132,3 +138,27 @@ void write_bank_b_paging_port(void *device, uint8_t data) {
     reload_mapping(state);
 }
 
+void init_mapping_ports(asic_t *asic) {
+    memory_mapping_state_t *state = malloc(sizeof(memory_mapping_state_t));
+
+    memset(state, 0, sizeof(memory_mapping_state_t));
+    state->asic = asic;
+
+    z80iodevice_t device_status_port = { state, read_device_status_port, write_device_status_port };
+    z80iodevice_t ram_paging_port = { state, read_ram_paging_port, write_ram_paging_port };
+    z80iodevice_t bank_a_paging_port = { state, read_bank_a_paging_port, write_bank_a_paging_port };
+    z80iodevice_t bank_b_paging_port = { state, read_bank_b_paging_port, write_bank_b_paging_port };
+
+    asic->cpu->devices[0x04] = device_status_port;
+
+    if (asic->device != TI83p) {
+        asic->cpu->devices[0x05] = ram_paging_port;
+    }
+
+    asic->cpu->devices[0x06] = bank_a_paging_port;
+    asic->cpu->devices[0x07] = bank_b_paging_port;
+}
+
+void free_mapping_ports(asic_t *asic) {
+    free(asic->cpu->devices[0x06].device);
+}

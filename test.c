@@ -4,6 +4,7 @@
 #include "disassemble.h"
 #include "hooks.h"
 #include "keyboard.h"
+#include "memorymapping.h"
 #include "status.h"
 #include "tui.h"
 #include <stdlib.h>
@@ -134,6 +135,8 @@ const test_t tests[] = {
     { NULL, "Port tests" },
     { test_keyboard, "port 0x01 (keyboard)" },
     { test_status, "port 0x02 (status)" },
+    { test_memorymapping_83p, "port 0x04, 0x05, 0x06, 0x07 (mapping, TI-83+)" },
+    { test_memorymapping_others, "port 0x04, 0x05, 0x06, 0x07 (mapping, Others)" },
     { NULL, "Debugger tests" },
     { test_debugger_register_command, "register_command()" },
     { test_debugger_find_command, "find_best_command()" },
