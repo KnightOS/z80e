@@ -7,8 +7,8 @@
 
 int command_hexdump(struct debugger_state *state, int argc, char **argv) {
     if (argc > 3) {
-        state->print(state, "%s `start` `length` - print an amount of bytes from the memory\n"
-                " Prints the bytes starting from `start`, `length` bytes in total.\n", argv[0]);
+        state->print(state, "%s [start] [length] - print an amount of bytes from the memory\n"
+                " Prints the bytes starting from `start` (or PC), `length` (default: 64) bytes in total.\n", argv[0]);
         return 0;
     }
 
