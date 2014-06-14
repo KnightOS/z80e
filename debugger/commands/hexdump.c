@@ -12,7 +12,7 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
         return 0;
     }
 
-    ti_mmu_t *mmu = (ti_mmu_t *)state->state;
+    ti_mmu_t *mmu = state->asic->mmu;
 
     uint16_t start = state->asic->cpu->registers.PC;
     if (argc > 1) {
