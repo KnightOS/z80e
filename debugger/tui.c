@@ -21,7 +21,7 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 		int length = 0;
 		int is_string = 0;
 		const char *tmp = cmdline;
-		while (*tmp != ' ' && *tmp != '\n' && *tmp) {
+		while ((is_string || *tmp != ' ') && *tmp != '\n' && *tmp) {
 			length++;
 			if (*tmp == '\\' && is_string) {
 				tmp++;
@@ -40,7 +40,7 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 
 		tmp = cmdline;
 		char *tmp2 = buffer[buffer_pos];
-		while (*tmp != ' ' && *tmp != '\n' && *tmp) {
+		while ((is_string || *tmp != ' ') && *tmp != '\n' && *tmp) {
 			if (*tmp == '\\' && is_string) {
 				tmp++;
 				switch (*tmp) {
@@ -97,7 +97,7 @@ void tui_tick(asic_t *asic) {
 			int argc = 0;
 			char **cmdline = tui_parse_commandline(result, &argc);
 
-			int status = find_best_command(result, &command);
+			int status = find_best_command(cmdline[0], &command);
 			if (status == -1) {
 				printf("Error: Ambiguous command %s\n", result);
 			} else if (status == 0) {
@@ -106,7 +106,7 @@ void tui_tick(asic_t *asic) {
 				debugger_state_t state = { print_tui, command->state, asic };
 				int output = command->function(&state, argc, cmdline);
 				if (output != 0) {
-					printf("Result: %d\n", output);
+					printf("The command returned %d\n", output);
 				}
 			}
 

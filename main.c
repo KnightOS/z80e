@@ -118,14 +118,15 @@ void sigint_handler(int sig) {
 
 int debugger_run_command(debugger_state_t *state, int argc, char **argv) {
     context.stop = 0;
-    int instructions = -1;
+    uint16_t instructions = -1;
 
     if ((argc == 2 && strcmp(argv[1], "--help") == 0) || argc > 2) {
         state->print(state, "run [instructions] - run a specified number of instructions\n"
 		" If no number is specified, the emulator will run until interrupted (^C).\n");
 	return 0;
     } else if(argc == 2) {
-        instructions = strtol(argv[1], NULL, 0);
+        instructions = parse_expression(state, argv[1]);
+        state->print(state, "Running for 0x%04X (%u) instructions:\n", instructions, instructions);
         context.debugger = 1;
         for (; instructions > 0; instructions--) {
             cpu_execute(context.device_asic->cpu, 1);
@@ -134,6 +135,7 @@ int debugger_run_command(debugger_state_t *state, int argc, char **argv) {
         return 0;
     }
 
+    state->print(state, "Running indefinitely:\n");
     context.debugger = 1;
     while (1) {
         cpu_execute(context.device_asic->cpu, 1);
@@ -209,6 +211,8 @@ int main(int argc, char **argv) {
     register_hexdump("hexdump", device->mmu);
     register_disassemble("disassemble", device->mmu);
     register_print_registers("print_registers", device->cpu);
+    register_print_expression("expression");
+    register_stack("stack");
 
     if (context.debugger) {
         context.debugger = 2;

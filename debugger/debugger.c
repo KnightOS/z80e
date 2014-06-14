@@ -45,6 +45,8 @@ int find_best_command(const char *f_command, debugger_command_t ** pointer) {
 		return 0;
 	}
 
+	int command_length = strlen(f_command);
+
 	int i;
 	int max_match = 0;
 	int match_numbers = 0;
@@ -53,7 +55,7 @@ int find_best_command(const char *f_command, debugger_command_t ** pointer) {
 	for (i = 0; i < gDebuggerList->count; i++) {
 		debugger_command_t *cmd = gDebuggerList->commands[i];
 		int match = compare_strings(f_command, cmd->name);
-		if (match > max_match) {
+		if (match > max_match && command_length == match) {
 			max_match = match;
 			match_numbers = 1;
 			best_command = cmd;
@@ -66,6 +68,11 @@ int find_best_command(const char *f_command, debugger_command_t ** pointer) {
 	if (max_match && match_numbers == 1) {
 		return 1;
 	}
+
+	if (!max_match) {
+		return 0;
+	}
+
 	return match_numbers > 1 ? -1 : 0;
 }
 
