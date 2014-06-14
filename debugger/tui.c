@@ -106,7 +106,7 @@ void tui_tick(asic_t *asic) {
 				debugger_state_t state = { print_tui, command->state, asic };
 				int output = command->function(&state, argc, cmdline);
 				if (output != 0) {
-					printf("Result: %d\n", output);
+					printf("The command returned %d\n", output);
 				}
 			}
 
