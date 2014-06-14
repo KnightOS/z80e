@@ -6,7 +6,7 @@
 #include <ctype.h>
 
 int command_hexdump(struct debugger_state *state, int argc, char **argv) {
-    if (argc != 3) {
+    if (argc > 3) {
         state->print(state, "%s `start` `length` - print an amount of bytes from the memory\n"
                 " Prints the bytes starting from `start`, `length` bytes in total.\n", argv[0]);
         return 0;
@@ -14,8 +14,15 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
 
     ti_mmu_t *mmu = (ti_mmu_t *)state->state;
 
-    uint16_t start = parse_expression(state, argv[1]);
-    uint16_t length = parse_expression(state, argv[2]);
+    uint16_t start = state->asic->cpu->registers.PC;
+    if (argc > 1) {
+        start  = parse_expression(state, argv[1]);
+    }
+
+    uint16_t length = 64;
+    if (argc > 2) {
+        length = parse_expression(state, argv[2]);
+    }
 
     uint16_t i, total;
 

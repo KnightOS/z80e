@@ -1,15 +1,11 @@
 #include "memory.h"
 #include "cpu.h"
+#include "commands.h"
 #include "debugger.h"
 
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-
-int command_hexdump(struct debugger_state *state, int argc, char **argv);
-int command_disassemble(struct debugger_state *state, int argc, char **argv);
-int command_print_registers(struct debugger_state *state, int argc, char **argv);
-int command_print_expression(struct debugger_state *state, int argc, char **argv);
 
 void register_hexdump(const char *name, ti_mmu_t *mmu) {
 	register_command(name, command_hexdump, mmu);
@@ -27,9 +23,13 @@ void register_print_expression(const char *name) {
 	register_command(name, command_print_expression, NULL);
 }
 
-uint16_t parse_operand(debugger_state_t *state, const char *start, char **end) {
+void register_stack(const char *name) {
+	register_command(name, command_stack, NULL);
+}
+
+uint16_t parse_operand(debugger_state_t *state, const char *start, const char **end) {
 	if (*start >= '0' && *start <= '9') {
-		return strtol(start, end, 0);
+		return strtol(start, (char **)end, 0);
 	} else {
 #define REGISTER(num, len, print) \
 	if (strncasecmp(start, print, len) == 0) {\
@@ -62,6 +62,12 @@ uint16_t parse_operand(debugger_state_t *state, const char *start, char **end) {
 		REGISTER(IYH, 3, "IYH");
 		REGISTER(IYL, 3, "IYL");
 		REGISTER(IY, 2, "IY");
+
+		state->print(state, "ERROR: Unknown register/number!\n");
+                while(!strchr("+-*/(){} 	\n", *start)) {
+			start++;
+		}
+		*end = 0;
 		return 0;
 	}
 }
@@ -200,6 +206,9 @@ uint16_t parse_expression(debugger_state_t *state, const char *string) {
 			string++;
 		} else {
 			value_stack[value_stack_pos++] = parse_operand(state, string, &string);
+			if (string == 0) {
+				return 0;
+			}
 		}
 
 		while (isspace(*string)) {
