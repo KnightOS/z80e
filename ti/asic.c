@@ -6,10 +6,10 @@
 #include "keyboard.h"
 #include "status.h"
 
-void plug_devices(asic_t *asic, ti_device_type type) {
+void plug_devices(asic_t *asic) {
     /* Link port unimplemented */
     asic->cpu->devices[0x01] = init_keyboard();
-    asic->cpu->devices[0x02] = init_status(asic, type);
+    asic->cpu->devices[0x02] = init_status(asic);
 }
 
 void free_devices(asic_t *asic) {
@@ -26,7 +26,8 @@ asic_t *asic_init(ti_device_type type) {
     device->cpu->read_byte = ti_read_byte;
     device->cpu->write_byte = ti_write_byte;
     device->battery = BATTERIES_GOOD;
-    plug_devices(device, type);
+    device->device = type;
+    plug_devices(device);
     return device;
 }
 

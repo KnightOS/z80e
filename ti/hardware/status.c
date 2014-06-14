@@ -7,7 +7,6 @@
 
 typedef struct {
     asic_t *asic;
-    ti_device_type device;
 } status_t;
 
 uint8_t read_status(void *_status) {
@@ -26,7 +25,7 @@ uint8_t read_status(void *_status) {
         value |= 4;
     }
     // Bits 3-6 unimplemented on the TI-83+ and TI-73 (link assist)
-    switch (status->device) {
+    switch (status->asic->device) {
     case TI73:
     case TI83p:
         value |= 128;
@@ -40,20 +39,19 @@ uint8_t read_status(void *_status) {
 
 void write_status(void *_status, uint8_t value) {
     status_t *status = (status_t*)_status;
-    if (status->device == TI83p || status->device == TI73) {
+    if (status->asic->device == TI83p || status->asic->device == TI73) {
         return;
     }
     // TODO: Acknowledge interrupts
 }
 
-z80iodevice_t init_status(asic_t *asic, ti_device_type type) {
+z80iodevice_t init_status(asic_t *asic) {
     status_t *state = malloc(sizeof(status_t));
     state->asic = asic;
-    state->device = type;
     z80iodevice_t device = { state, read_status, write_status };
     return device;
 }
 
 void free_status(z80iodevice_t status) {
-    // do nothing
+    free(status.device);
 }

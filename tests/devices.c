@@ -36,7 +36,7 @@ int test_keyboard() {
 
 int test_status() {
     asic_t *asic = asic_init(TI83p);
-    z80iodevice_t status = init_status(asic, TI83p);
+    z80iodevice_t status = init_status(asic);
     // Test battery status
     asic->battery = BATTERIES_GOOD;
     asic->battery_remove_check = 0;
