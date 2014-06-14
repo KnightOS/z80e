@@ -52,7 +52,13 @@ int command_on_read(struct debugger_state *state, int argc, char **argv) {
     }
 
     char **new_arguments = malloc(sizeof(char *) * (argc - 2));
-    memcpy(new_arguments, &(argv[2]), sizeof(char *) * (argc - 2));
+
+    int i;
+    for (i = 0; i < argc - 2; i++) {
+        int len = strlen(argv[i + 2]);
+        new_arguments[i] = malloc(len);
+        memcpy(new_arguments[i], argv[i + 2], len);
+    }
 
     size_t strsize = strlen(argv[1]);
     char *expression = malloc(strsize);
