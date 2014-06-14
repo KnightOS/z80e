@@ -7,7 +7,7 @@ add_definitions("-Wall")
 FILE(GLOB Hardware ti/hardware/*.c)
 FILE(GLOB Commands debugger/commands/*.c)
 
-add_executable(test
+add_executable(tests
     core/cpu.c
     core/registers.c
     debugger/debugger.c
@@ -36,7 +36,7 @@ add_executable(z80e
 )
 
 TARGET_LINK_LIBRARIES(z80e readline)
-TARGET_LINK_LIBRARIES(test readline)
+TARGET_LINK_LIBRARIES(tests readline)
 
 include_directories(
     core/
