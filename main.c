@@ -213,6 +213,7 @@ int main(int argc, char **argv) {
     register_print_registers("print_registers", device->cpu);
     register_print_expression("expression");
     register_stack("stack");
+    register_print_mappings("mappings");
 
     if (context.debugger) {
         context.debugger = 2;
