@@ -42,8 +42,6 @@ void reload_mapping(memory_mapping_state_t *state) {
 }
 
 uint8_t read_device_status_port(void *device) {
-    memory_mapping_state_t *state = device;
-
     return 0; // Nothing to read yet
 }
 
