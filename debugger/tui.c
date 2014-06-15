@@ -14,6 +14,10 @@ int print_tui(struct debugger_state *a, const char *b, ...) {
 	return vprintf(b, list);
 }
 
+int vprint_tui(struct debugger_state *a, const char *b, va_list list) {
+	return vprintf(b, list);
+}
+
 char **tui_parse_commandline(const char *cmdline, int *argc) {
 	char *buffer[10];
 	int buffer_pos = 0;
@@ -86,7 +90,18 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 void tui_tick(asic_t *asic) {
 	while (1) {
 		char *result = readline(" z80e > ");
-		if (result && *result) {
+		if (result) {
+			int from_history = 0;
+
+			if (*result == 0) {
+				HIST_ENTRY *hist = history_get(where_history());
+				if (hist == 0) {
+					free(result);
+					continue;
+				}
+				result = hist->line;
+				from_history = 1;
+			}
 			if (strcmp(result, "exit") == 0) {
 				break;
 			}
@@ -97,16 +112,38 @@ void tui_tick(asic_t *asic) {
 			int argc = 0;
 			char **cmdline = tui_parse_commandline(result, &argc);
 
-			int status = find_best_command(cmdline[0], &command);
-			if (status == -1) {
-				printf("Error: Ambiguous command %s\n", result);
-			} else if (status == 0) {
-				printf("Error: Unknown command %s\n", result);
+			if (strcmp(cmdline[0], "set") == 0) {
+				if (argc != 2) {
+					printf("Invalid use of 'set'!\n");
+				} else {
+					if (strcmp(cmdline[1], "echo") == 0) {
+						gDebuggerState.echo = 1;
+					} else {
+						printf("Unknown variable '%s'!\n", cmdline[1]);
+					}
+				}
+			} else if (strcmp(cmdline[0], "unset") == 0) {
+				if (argc != 2) {
+					printf("Invalid use of 'unset'!\n");
+				} else {
+					if (strcmp(cmdline[1], "echo") == 0) {
+						gDebuggerState.echo = 0;
+					} else {
+						printf("Unknown variable '%s'!\n", cmdline[1]);
+					}
+				}
 			} else {
-				debugger_state_t state = { print_tui, command->state, asic };
-				int output = command->function(&state, argc, cmdline);
-				if (output != 0) {
-					printf("The command returned %d\n", output);
+				int status = find_best_command(cmdline[0], &command);
+				if (status == -1) {
+					printf("Error: Ambiguous command %s\n", result);
+				} else if (status == 0) {
+					printf("Error: Unknown command %s\n", result);
+				} else {
+					debugger_state_t state = { print_tui, vprint_tui, command->state, asic };
+					int output = command->function(&state, argc, cmdline);
+					if (output != 0) {
+						printf("The command returned %d\n", output);
+					}
 				}
 			}
 
@@ -117,7 +154,9 @@ void tui_tick(asic_t *asic) {
 			}
 
 			free(cmdline);
-			free(result);
+			if (!from_history) {
+				free(result);
+			}
 		} else if (result == NULL) {
 			break;
 		}
