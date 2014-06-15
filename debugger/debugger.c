@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+global_debugger_state_t gDebuggerState;
 debugger_list_t *gDebuggerList = 0;
 
 int debugger_list_commands(struct debugger_state *state, int argc, char **argv) {

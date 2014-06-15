@@ -1,6 +1,7 @@
 #ifndef DEBUGGER_H
 #define DEBUGGER_H
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "asic.h"
@@ -8,6 +9,12 @@
 struct debugger_state;
 
 typedef int (*debugger_function_t)(struct debugger_state *, int, char **);
+
+typedef struct {
+	int echo;
+} global_debugger_state_t;
+
+extern global_debugger_state_t gDebuggerState;
 
 typedef struct {
 	const char *name;
@@ -23,6 +30,7 @@ typedef struct {
 
 typedef struct debugger_state {
 	int (*print)(struct debugger_state *, const char *, ...);
+	int (*vprint)(struct debugger_state *, const char *, va_list);
 	void *state;
 	asic_t *asic;
 } debugger_state_t;
