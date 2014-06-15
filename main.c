@@ -1,5 +1,6 @@
 #include "asic.h"
 #include "debugger.h"
+#include "disassemble.h"
 #include "tui.h"
 #include "commands.h"
 
@@ -52,6 +53,76 @@ void setDevice(appContext_t *context, char *target) {
         printf("Incorrect usage. See z80e --help.\n");
         exit(1);
     }
+}
+
+struct run_disassemble_state {
+    struct disassemble_memory memory;
+    debugger_state_t *state;
+};
+
+uint8_t run_command_read_byte(struct disassemble_memory *state, uint16_t pointer) {
+    struct run_disassemble_state *dstate = (struct run_disassemble_state *)state;
+
+    return ti_read_byte(dstate->state->asic->mmu, pointer);
+}
+
+int run_command_write(struct disassemble_memory *state, const char *format, ...) {
+    struct run_disassemble_state *dstate = (struct run_disassemble_state *)state;
+
+    va_list list;
+    va_start(list, format);
+
+    return dstate->state->vprint(dstate->state, format, list);
+}
+
+int command_run(debugger_state_t *state, int argc, char **argv) {
+    context.stop = 0;
+    uint16_t instructions = -1;
+
+    struct run_disassemble_state dstate;
+    dstate.memory.read_byte = run_command_read_byte;
+    dstate.memory.current = state->asic->cpu->registers.PC;
+    dstate.state = state;
+
+    if ((argc == 2 && strcmp(argv[1], "--help") == 0) || argc > 2) {
+        state->print(state, "run [instructions] - run a specified number of instructions\n"
+		" If no number is specified, the emulator will run until interrupted (^C).\n");
+	return 0;
+    } else if(argc == 2) {
+        instructions = parse_expression(state, argv[1]);
+        context.debugger = 1;
+        for (; instructions > 0; instructions--) {
+            if (gDebuggerState.echo) {
+                state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
+                parse_instruction(&(dstate.memory), run_command_write);
+                state->print(state, "\n");
+            }
+            cpu_execute(context.device_asic->cpu, 1);
+        }
+        context.debugger = 2;
+        return 0;
+    }
+
+    context.debugger = 1;
+    while (1) {
+        if (gDebuggerState.echo) {
+            state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
+            parse_instruction(&(dstate.memory), run_command_write);
+            state->print(state, "\n");
+        }
+        cpu_execute(state->asic->cpu, 1);
+        if (context.stop) {
+            context.debugger = 2;
+            return 0;
+        }
+    }
+    context.debugger = 2;
+    return 0;
+}
+
+int command_step(debugger_state_t *state, int argc, char **argv) {
+    char *_argv[] = { "run", "1" };
+    return command_run(state, 2, _argv);
 }
 
 void print_help(void) {
@@ -116,43 +187,6 @@ void sigint_handler(int sig) {
     fflush(stdout);
 }
 
-int debugger_run_command(debugger_state_t *state, int argc, char **argv) {
-    context.stop = 0;
-    uint16_t instructions = -1;
-
-    if ((argc == 2 && strcmp(argv[1], "--help") == 0) || argc > 2) {
-        state->print(state, "run [instructions] - run a specified number of instructions\n"
-		" If no number is specified, the emulator will run until interrupted (^C).\n");
-	return 0;
-    } else if(argc == 2) {
-        instructions = parse_expression(state, argv[1]);
-        state->print(state, "Running for 0x%04X (%u) instructions:\n", instructions, instructions);
-        context.debugger = 1;
-        for (; instructions > 0; instructions--) {
-            cpu_execute(context.device_asic->cpu, 1);
-        }
-        context.debugger = 2;
-        return 0;
-    }
-
-    state->print(state, "Running indefinitely:\n");
-    context.debugger = 1;
-    while (1) {
-        cpu_execute(context.device_asic->cpu, 1);
-        if (context.stop) {
-            context.debugger = 2;
-            return 0;
-        }
-    }
-    context.debugger = 2;
-    return 0;
-}
-
-int debugger_step_command(debugger_state_t *state, int argc, char **argv) {
-    char *_argv[] = { "run", "1" };
-    return debugger_run_command(state, 2, _argv);
-}
-
 int main(int argc, char **argv) {
     context = create_context();
     signal(SIGINT, sigint_handler);
@@ -206,8 +240,8 @@ int main(int argc, char **argv) {
     }
 
     init_hooks();
-    register_command("run", debugger_run_command, NULL);
-    register_command("step", debugger_step_command, NULL);
+    register_command("run", command_run, NULL);
+    register_command("step", command_step, NULL);
     register_hexdump("hexdump", device->mmu);
     register_disassemble("disassemble", device->mmu);
     register_print_registers("print_registers", device->cpu);
