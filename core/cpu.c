@@ -856,10 +856,14 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
             } else {
                 if (cpu->INT_pending) {
                     cpu->INT_pending = 0;
+                    cpu->halted = 0;
                     handle_interrupt(&context);
                     goto exit_loop;
                 }
             }
+        }
+        if (cpu->halted) {
+            continue;
         }
 
         context.opcode = cpu_read_byte(cpu, cpu->registers.PC++);
