@@ -144,6 +144,9 @@ void init_mapping_ports(asic_t *asic) {
     memset(state, 0, sizeof(memory_mapping_state_t));
     state->asic = asic;
 
+    state->bank_a_flash = 1;
+    state->bank_b_flash = 1; // horrible, isn't it?
+
     z80iodevice_t device_status_port = { state, read_device_status_port, write_device_status_port };
     z80iodevice_t ram_paging_port = { state, read_ram_paging_port, write_ram_paging_port };
     z80iodevice_t bank_a_paging_port = { state, read_bank_a_paging_port, write_bank_a_paging_port };
@@ -157,6 +160,8 @@ void init_mapping_ports(asic_t *asic) {
 
     asic->cpu->devices[0x06] = bank_a_paging_port;
     asic->cpu->devices[0x07] = bank_b_paging_port;
+
+    reload_mapping(state);
 }
 
 void free_mapping_ports(asic_t *asic) {
