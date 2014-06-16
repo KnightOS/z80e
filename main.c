@@ -84,6 +84,8 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
     dstate.memory.current = state->asic->cpu->registers.PC;
     dstate.state = state;
 
+    int oldHalted = 0;
+
     if ((argc == 2 && strcmp(argv[1], "--help") == 0) || argc > 2) {
         state->print(state, "run [instructions] - run a specified number of instructions\n"
 		" If no number is specified, the emulator will run until interrupted (^C).\n");
@@ -93,10 +95,18 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
         context.debugger = 1;
         for (; instructions > 0; instructions--) {
             if (gDebuggerState.echo) {
-                state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
-                parse_instruction(&(dstate.memory), run_command_write);
-                state->print(state, "\n");
+                if (!state->asic->cpu->halted) {
+                    state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
+                    parse_instruction(&(dstate.memory), run_command_write);
+                    state->print(state, "\n");
+                }
+            } else {
+                if (state->asic->cpu->halted && !oldHalted) {
+                    state->print(state, "CPU is halted\n");
+                }
             }
+            oldHalted = state->asic->cpu->halted;
+
             cpu_execute(context.device_asic->cpu, 1);
         }
         context.debugger = 2;
@@ -106,10 +116,18 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
     context.debugger = 1;
     while (1) {
         if (gDebuggerState.echo) {
-            state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
-            parse_instruction(&(dstate.memory), run_command_write);
-            state->print(state, "\n");
+            if (!state->asic->cpu->halted) {
+                state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
+                parse_instruction(&(dstate.memory), run_command_write);
+                state->print(state, "\n");
+            }
+        } else {
+            if (state->asic->cpu->halted && !oldHalted) {
+                state->print(state, "CPU is halted\n");
+            }
         }
+        oldHalted = state->asic->cpu->halted;
+
         cpu_execute(state->asic->cpu, 1);
         if (context.stop) {
             context.debugger = 2;

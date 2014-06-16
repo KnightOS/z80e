@@ -863,7 +863,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
             }
         }
         if (cpu->halted) {
-            continue;
+            context.cycles += 4;
+            goto exit_loop;
         }
 
         context.opcode = cpu_read_byte(cpu, cpu->registers.PC++);
