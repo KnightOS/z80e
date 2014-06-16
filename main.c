@@ -97,6 +97,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
             if (gDebuggerState.echo) {
                 if (!state->asic->cpu->halted) {
                     state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
+                    dState.memory.current = state->asic->cpu->registers.PC;
                     parse_instruction(&(dstate.memory), run_command_write);
                     state->print(state, "\n");
                 }
@@ -118,6 +119,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
         if (gDebuggerState.echo) {
             if (!state->asic->cpu->halted) {
                 state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
+                dState.memory.current = state->asic->cpu->registers.PC;
                 parse_instruction(&(dstate.memory), run_command_write);
                 state->print(state, "\n");
             }
