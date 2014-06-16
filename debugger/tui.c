@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -99,7 +100,7 @@ void tui_tick(asic_t *asic) {
 					free(result);
 					continue;
 				}
-				result = hist->line;
+				*result = (char) *hist->line;
 				from_history = 1;
 			}
 			if (strcmp(result, "exit") == 0) {
