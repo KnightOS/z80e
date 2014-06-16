@@ -100,7 +100,7 @@ void tui_tick(asic_t *asic) {
 					free(result);
 					continue;
 				}
-				*result = (char) *hist->line;
+				result = (char *)hist->line;
 				from_history = 1;
 			}
 			if (strcmp(result, "exit") == 0) {
