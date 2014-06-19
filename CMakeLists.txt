@@ -6,6 +6,11 @@ add_definitions("-Wall")
 
 FILE(GLOB Hardware ti/hardware/*.c)
 FILE(GLOB Commands debugger/commands/*.c)
+IF(EMSCRIPTEN)
+    add_definitions("-DEMSCRIPTEN")
+    FILE(GLOB Shims shims/*.c)
+ELSE()
+ENDIF()
 
 add_executable(tests
     core/cpu.c
@@ -18,6 +23,7 @@ add_executable(tests
     ti/memory.c
     ${Hardware}
     ${Commands}
+    ${Shims}
     test.c
 )
 
@@ -32,11 +38,14 @@ add_executable(z80e
     ti/memory.c
     ${Hardware}
     ${Commands}
+    ${Shims}
     main.c
 )
 
-TARGET_LINK_LIBRARIES(z80e readline)
-TARGET_LINK_LIBRARIES(tests readline)
+IF(NOT EMSCRIPTEN)
+    TARGET_LINK_LIBRARIES(z80e readline)
+    TARGET_LINK_LIBRARIES(tests readline)
+ENDIF()
 
 include_directories(
     core/
@@ -44,6 +53,7 @@ include_directories(
     ti/
     ti/hardware/
     disassembler/
+    shims/
 )
 
 set(CMAKE_BUILD_TYPE Release)
