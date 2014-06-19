@@ -11,6 +11,7 @@ IF(EMSCRIPTEN)
     FILE(GLOB Shims shims/*.c)
     set(ExecutableSuffix .bc)
 ELSE()
+    set(SpecificFilesMain main.c)
 ENDIF()
 
 add_executable(tests${ExecutableSuffix}
