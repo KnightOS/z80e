@@ -1,1 +1,1 @@
--s 'EXPORTED_FUNCTIONS=["_cpu_init"]'
+-s 'EXPORTED_FUNCTIONS=["_cpu_init", "_cpu_free", "_cpu_execute", "_cpu_raise_interrupt"]'
