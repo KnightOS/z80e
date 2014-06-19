@@ -9,7 +9,6 @@
 #ifndef EMSCRIPTEN
 #include <readline/readline.h>
 #include <readline/history.h>
-#else
 
 int print_tui(struct debugger_state *a, const char *b, ...) {
 	va_list list;
@@ -20,6 +19,7 @@ int print_tui(struct debugger_state *a, const char *b, ...) {
 int vprint_tui(struct debugger_state *a, const char *b, va_list list) {
 	return vprintf(b, list);
 }
+#endif
 
 char **tui_parse_commandline(const char *cmdline, int *argc) {
 	char *buffer[10];
@@ -89,7 +89,6 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 	*argc = buffer_pos;
 	return result;
 }
-#endif
 
 #ifndef EMSCRIPTEN
 void tui_tick(asic_t *asic) {
