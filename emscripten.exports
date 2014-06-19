@@ -1,1 +1,1 @@
-['_cpu_init']
+-s EXPORTED_FUNCTIONS=[\"_cpu_init\"]
