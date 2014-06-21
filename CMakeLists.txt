@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 2.8.5)
 project(z80e C)
 set(CMAKE_C_FLAGS "-g -DENABLE_HOOKS -DENABLE_READ_BYTE_HOOK=1 -DENABLE_WRITE_BYTE_HOOK=1")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
-add_definitions("-Wall")
+add_definitions("-Wall -O3")
 
 FILE(GLOB Hardware ti/hardware/*.c)
 FILE(GLOB Commands debugger/commands/*.c)
 IF(EMSCRIPTEN)
-    add_definitions("-DEMSCRIPTEN")
+    add_definitions("-DEMSCRIPTEN -Wno-warn-absolute-paths")
     FILE(GLOB Shims shims/*.c)
     set(ExecutableSuffix .bc)
 ELSE()
@@ -44,7 +44,25 @@ add_executable(z80e${ExecutableSuffix}
     ${SpecificFilesMain}
 )
 
-IF(NOT EMSCRIPTEN)
+IF(EMSCRIPTEN)
+    add_custom_command(
+        TARGET z80e.bc
+        POST_BUILD
+        COMMAND ${CMAKE_C_COMPILER} -o z80e.js -O3 z80e.bc
+        WORKING_DIRECTORY bin
+        COMMENT "Finalizing Emscripten build..."
+        VERBATIM
+    )
+
+    add_custom_command(
+        TARGET tests.bc
+        POST_BUILD
+        COMMAND ${CMAKE_C_COMPILER} -o tests.js -O3 tests.bc
+        WORKING_DIRECTORY bin
+        COMMENT "Finalizing Emscripten build..."
+        VERBATIM
+    )
+ELSE()
     TARGET_LINK_LIBRARIES(z80e${ExecutableSuffix} readline)
     TARGET_LINK_LIBRARIES(tests${ExecutableSuffix} readline)
 ENDIF()
