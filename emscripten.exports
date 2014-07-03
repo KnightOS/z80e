@@ -1,0 +1,12 @@
+-s 'EXPORTED_FUNCTIONS=["_cpu_init", "_cpu_free", "_cpu_execute", "_cpu_raise_interrupt",
+	"_find_best_command", "_register_command",
+	"_init_hooks", "_deinit_hooks",
+	"_register_hook_read_memory", "_call_read_memory_hooks",
+	"_register_hook_write_memory", "_call_write_memory_hooks",
+	"_register_hook_read_register", "_call_read_register_hooks",
+	"_register_hook_write_register", "_call_write_register_hooks",
+	"_tui_parse_commandline", "_parse_instruction",
+	"_asic_init", "_asic_free",
+	"_ti_mmu_init", "_ti_mmu_free",
+	"_ti_read_byte", "_ti_write_byte",
+	"_mmu_force_write"]'

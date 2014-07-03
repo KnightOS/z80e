@@ -14,6 +14,7 @@ Browser:
 
     $ cmake -DCMAKE_TOOLCHAIN_FILE=/usr/lib/emscripten/cmake/Platform/Emscripten.cmake \
         -DCMAKE_BUILD_TYPE=Debug \
+        -DEMSCRIPTEN \
         -G "Unix Makefiles" \
         .
     $ make

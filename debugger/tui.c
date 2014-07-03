@@ -5,9 +5,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+
+#ifndef EMSCRIPTEN
 #include <readline/readline.h>
 #include <readline/history.h>
-
 
 int print_tui(struct debugger_state *a, const char *b, ...) {
 	va_list list;
@@ -18,6 +19,7 @@ int print_tui(struct debugger_state *a, const char *b, ...) {
 int vprint_tui(struct debugger_state *a, const char *b, va_list list) {
 	return vprintf(b, list);
 }
+#endif
 
 char **tui_parse_commandline(const char *cmdline, int *argc) {
 	char *buffer[10];
@@ -88,6 +90,7 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 	return result;
 }
 
+#ifndef EMSCRIPTEN
 void tui_tick(asic_t *asic) {
 	while (1) {
 		char *result = readline(" z80e > ");
@@ -163,3 +166,4 @@ void tui_tick(asic_t *asic) {
 		}
 	}
 }
+#endif
