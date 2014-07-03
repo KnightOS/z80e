@@ -7,32 +7,32 @@
 #include <stdlib.h>
 #include <string.h>
 
-void register_hexdump(const char *name, ti_mmu_t *mmu) {
-	register_command(name, command_hexdump, mmu);
+void register_hexdump(const char *name, int priority, ti_mmu_t *mmu) {
+	register_command(name, command_hexdump, mmu, priority);
 }
 
-void register_disassemble(const char *name, ti_mmu_t *mmu) {
-	register_command(name, command_disassemble, mmu);
+void register_disassemble(const char *name, int priority, ti_mmu_t *mmu) {
+	register_command(name, command_disassemble, mmu, priority);
 }
 
-void register_print_registers(const char *name, z80cpu_t *cpu) {
-	register_command(name, command_print_registers, cpu);
+void register_print_registers(const char *name, int priority, z80cpu_t *cpu) {
+	register_command(name, command_print_registers, cpu, priority);
 }
 
-void register_print_expression(const char *name) {
-	register_command(name, command_print_expression, NULL);
+void register_print_expression(const char *name, int priority) {
+	register_command(name, command_print_expression, NULL, priority);
 }
 
-void register_stack(const char *name) {
-	register_command(name, command_stack, NULL);
+void register_stack(const char *name, int priority) {
+	register_command(name, command_stack, NULL, priority);
 }
 
-void register_print_mappings(const char *name) {
-	register_command(name, command_print_mappings, NULL);
+void register_print_mappings(const char *name, int priority) {
+	register_command(name, command_print_mappings, NULL, priority);
 }
 
-void register_on_read(const char *name) {
-	register_command(name, command_on_read, NULL);
+void register_on_read(const char *name, int priority) {
+	register_command(name, command_on_read, NULL, priority);
 }
 
 uint16_t parse_operand(debugger_state_t *state, const char *start, const char **end) {

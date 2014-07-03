@@ -260,15 +260,15 @@ int main(int argc, char **argv) {
     }
 
     init_hooks();
-    register_command("run", command_run, NULL);
-    register_command("step", command_step, NULL);
-    register_hexdump("hexdump", device->mmu);
-    register_disassemble("disassemble", device->mmu);
-    register_print_registers("print_registers", device->cpu);
-    register_print_expression("expression");
-    register_stack("stack");
-    register_print_mappings("mappings");
-    register_on_read("on_read");
+    register_command("run", command_run, NULL, 0);
+    register_command("step", command_step, NULL, 1);
+    register_hexdump("hexdump", 0, device->mmu);
+    register_disassemble("disassemble", 0, device->mmu);
+    register_print_registers("print_registers", 0, device->cpu);
+    register_print_expression("expression", 0);
+    register_stack("stack", 0);
+    register_print_mappings("mappings", 0);
+    register_on_read("on_read", 0);
 
     if (context.debugger) {
         context.debugger = 2;

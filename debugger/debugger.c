@@ -1,5 +1,6 @@
 #include "debugger.h"
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -46,38 +47,58 @@ int find_best_command(const char *f_command, debugger_command_t ** pointer) {
 		return 0;
 	}
 
-	int command_length = strlen(f_command);
-
 	int i;
 	int max_match = 0;
 	int match_numbers = 0;
+	int command_length = strlen(f_command);
+	int highest_priority = INT_MIN;
+	int highest_priority_max = 0;
+
 	debugger_command_t *best_command = 0;
 
 	for (i = 0; i < gDebuggerList->count; i++) {
 		debugger_command_t *cmd = gDebuggerList->commands[i];
 		int match = compare_strings(f_command, cmd->name);
-		if (match > max_match && command_length == match) {
+
+		if (command_length > strlen(cmd->name)) {
+			continue; // ignore
+		} else if (match < max_match) {
+			continue;
+		} else if (match > max_match) {
 			max_match = match;
-			match_numbers = 1;
+			match_numbers = 0;
+			highest_priority = cmd->priority;
+			highest_priority_max = 0;
 			best_command = cmd;
-		} else if (match > 0 && match == max_match) {
+		} else if (match == max_match) {
 			match_numbers++;
+			if (cmd->priority > highest_priority) {
+				highest_priority = cmd->priority;
+				highest_priority_max = 0;
+				best_command = cmd;
+			} else if (cmd->priority == highest_priority) {
+				highest_priority_max++;
+			}
 		}
 	}
 
 	*pointer = best_command;
-	if (max_match && match_numbers == 1) {
+	if ((max_match && match_numbers == 0) || (max_match && highest_priority_max < 1)) {
 		return 1;
 	}
 
-	if (!max_match) {
+	if (max_match == 0) {
 		return 0;
 	}
 
-	return match_numbers > 1 ? -1 : 0;
+	if (match_numbers > 1 || highest_priority_max > 0) {
+		return -1;
+	}
+
+	return 0;
 }
 
-void register_command(const char *name, debugger_function_t function, void *state) {
+void register_command(const char *name, debugger_function_t function, void *state, int priority) {
 	if (gDebuggerList == 0) {
 		init_debugger();
 	}
@@ -86,6 +107,7 @@ void register_command(const char *name, debugger_function_t function, void *stat
 	command->name = name;
 	command->function = function;
 	command->state = state;
+	command->priority = priority;
 
 	if (gDebuggerList->count >= gDebuggerList->capacity) {
 		gDebuggerList->commands = realloc(gDebuggerList->commands,

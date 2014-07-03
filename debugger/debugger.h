@@ -19,6 +19,7 @@ extern global_debugger_state_t gDebuggerState;
 typedef struct {
 	const char *name;
 	debugger_function_t function;
+	int priority;
 	void *state;
 } debugger_command_t;
 
@@ -36,6 +37,6 @@ typedef struct debugger_state {
 } debugger_state_t;
 
 int find_best_command(const char *, debugger_command_t **);
-void register_command(const char *, debugger_function_t, void *);
+void register_command(const char *, debugger_function_t, void *, int);
 
 #endif
