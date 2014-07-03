@@ -236,7 +236,8 @@ int main(int argc, char **argv) {
     asic_t *device = asic_init(context.device);
     context.device_asic = device;
     if (context.rom_file == NULL) {
-        printf("Warning: No ROM file specified\n");
+        printf("Warning: No ROM file specified, starting debugger\n");
+        context.debugger = 1;
     } else {
         FILE *file = fopen(context.rom_file, "r");
         if (!file) {
