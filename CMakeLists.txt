@@ -48,7 +48,7 @@ IF(EMSCRIPTEN)
     add_custom_command(
         TARGET z80e.bc
         POST_BUILD
-        COMMAND ${CMAKE_C_COMPILER} -o z80e.js -O3 z80e.bc
+        COMMAND ${CMAKE_C_COMPILER} -o z80e.js -O3 z80e.bc @../emscripten.exports
         WORKING_DIRECTORY bin
         COMMENT "Finalizing Emscripten build..."
         VERBATIM
