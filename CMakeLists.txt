@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.5)
 project(z80e C)
 set(CMAKE_C_FLAGS "-g -DENABLE_HOOKS -DENABLE_READ_BYTE_HOOK=1 -DENABLE_WRITE_BYTE_HOOK=1")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
-add_definitions("-Wall -O3")
+add_definitions("-Wall")
 
 FILE(GLOB Hardware ti/hardware/*.c)
 FILE(GLOB Commands debugger/commands/*.c)
@@ -48,7 +48,7 @@ IF(EMSCRIPTEN)
     add_custom_command(
         TARGET z80e.bc
         POST_BUILD
-        COMMAND ${CMAKE_C_COMPILER} -o z80e.js -O3 z80e.bc @../emscripten.exports
+        COMMAND ${CMAKE_C_COMPILER} -o z80e.js z80e.bc @../emscripten.config
         WORKING_DIRECTORY bin
         COMMENT "Finalizing Emscripten build..."
         VERBATIM
