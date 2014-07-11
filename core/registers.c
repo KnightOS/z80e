@@ -82,4 +82,10 @@ void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newV
             r->flags.C = newValue < oldValue;
         }
     }
+    if (!(unaffected & FLAG_3)) {
+        r->flags._3 = newValue & 0x04 ? 1 : 0;
+    }
+    if (!(unaffected & FLAG_5)) {
+        r->flags._5 = newValue & 0x10 ? 1 : 0;
+    }
 }
