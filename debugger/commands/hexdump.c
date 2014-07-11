@@ -24,7 +24,7 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
         length = parse_expression(state, argv[2]);
     }
 
-    uint16_t i, total;
+    uint16_t i, total = 0;
 
     while (length > 0) {
         state->print(state, "0x%04X ", start);

@@ -7,7 +7,7 @@ hook_array_t *alloc_hook_array() {
 	hook_array_t *data = malloc(sizeof(hook_array_t));
 	data->capacity = 10;
 	data->used = 0;
-	data->array = malloc(sizeof(generic_function_pointer) * 10);
+	data->array = malloc(sizeof(hook_t) * 10);
 	return data;
 }
 
@@ -18,7 +18,7 @@ void hook_array_free(hook_array_t *arr) {
 
 void hook_array_resize(hook_array_t *data, int newcapacity) {
 	data->capacity = newcapacity;
-	data->array = realloc(data->array, sizeof(hook_t *) * newcapacity);
+	data->array = realloc(data->array, sizeof(hook_t) * newcapacity);
 }
 
 void hook_array_push(hook_array_t *data, generic_function_pointer func, void *state)
