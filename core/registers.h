@@ -25,22 +25,22 @@ typedef struct {
     union {
         uint16_t BC;
         struct {
-            uint8_t B;
             uint8_t C;
+            uint8_t B;
         };
     };
     union {
         uint16_t DE;
         struct {
-            uint8_t D;
             uint8_t E;
+            uint8_t D;
         };
     };
     union {
         uint16_t HL;
         struct {
-            uint8_t H;
             uint8_t L;
+            uint8_t H;
         };
     };
     uint16_t _AF, _BC, _DE, _HL;
@@ -48,15 +48,15 @@ typedef struct {
     union {
         uint16_t IX;
         struct {
-            uint8_t IXH;
             uint8_t IXL;
+            uint8_t IXH;
         };
     };
     union {
         uint16_t IY;
         struct {
-            uint8_t IYH;
             uint8_t IYL;
+            uint8_t IYH;
         };
     };
     uint8_t I, R;
