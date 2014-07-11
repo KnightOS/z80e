@@ -44,6 +44,21 @@ add_executable(z80e${ExecutableSuffix}
     ${SpecificFilesMain}
 )
 
+add_executable(zex${ExecutableSuffix}
+    core/cpu.c
+    core/registers.c
+    debugger/debugger.c
+    debugger/hooks.c
+    debugger/tui.c
+    disassembler/disassemble.c
+    ti/asic.c
+    ti/memory.c
+    ${Hardware}
+    ${Commands}
+    ${Shims}
+    tools/zex.c
+)
+
 IF(EMSCRIPTEN)
     add_custom_command(
         TARGET z80e.bc
@@ -62,9 +77,19 @@ IF(EMSCRIPTEN)
         COMMENT "Finalizing Emscripten build..."
         VERBATIM
     )
+
+    add_custom_command(
+        TARGET zex.bc
+        POST_BUILD
+        COMMAND ${CMAKE_C_COMPILER} -o zex.js -O3 zex.bc
+        WORKING_DIRECTORY bin
+        COMMENT "Finalizing Emscripten build..."
+        VERBATIM
+    )
 ELSE()
     TARGET_LINK_LIBRARIES(z80e${ExecutableSuffix} readline)
     TARGET_LINK_LIBRARIES(tests${ExecutableSuffix} readline)
+    TARGET_LINK_LIBRARIES(zex${ExecutableSuffix} readline)
 ENDIF()
 
 include_directories(
