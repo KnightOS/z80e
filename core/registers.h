@@ -87,11 +87,13 @@ typedef enum {
 void exAFAF(z80registers_t *r);
 void exDEHL(z80registers_t *r);
 void exx(z80registers_t *r);
-void updateParity(z80registers_t *r);
-void updateFlags(z80registers_t *r, uint16_t oldValue, uint16_t newValue);
-void updateFlags_subtraction(z80registers_t *r, uint16_t oldValue, uint16_t newValue);
-void updateFlags_parity(z80registers_t *r, uint16_t oldValue, uint16_t newValue);
-void updateFlags_except(z80registers_t *r, uint16_t oldValue, uint16_t newValue, z80flags unaffected);
-void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, int parity, z80flags unaffected);
+void updateParity(z80registers_t *r, uint16_t newValue);
+void updateFlags(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit);
+void updateFlags_subtraction(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit);
+void updateFlags_parity(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit);
+void updateFlags_except(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit, z80flags unaffected);
+void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, int parity, int carryBit, z80flags unaffected);
+
+void print_state(z80registers_t *);
 
 #endif

@@ -122,6 +122,8 @@ void tui_tick(asic_t *asic) {
 				} else {
 					if (strcmp(cmdline[1], "echo") == 0) {
 						gDebuggerState.echo = 1;
+					} else if (strcmp(cmdline[1], "echo_reg") == 0) {
+						gDebuggerState.echo_reg = 1;
 					} else {
 						printf("Unknown variable '%s'!\n", cmdline[1]);
 					}
@@ -132,6 +134,8 @@ void tui_tick(asic_t *asic) {
 				} else {
 					if (strcmp(cmdline[1], "echo") == 0) {
 						gDebuggerState.echo = 0;
+					} else if (strcmp(cmdline[1], "echo_reg") == 0) {
+						gDebuggerState.echo_reg = 0;
 					} else {
 						printf("Unknown variable '%s'!\n", cmdline[1]);
 					}
