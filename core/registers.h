@@ -6,7 +6,6 @@ typedef struct {
     union {
         uint16_t AF;
         struct {
-            uint8_t A;
             union {
                 uint8_t F;
                 struct {
@@ -20,6 +19,7 @@ typedef struct {
                     uint8_t C  : 1;
                 } flags;
             };
+            uint8_t A;
         };
     };
     union {
