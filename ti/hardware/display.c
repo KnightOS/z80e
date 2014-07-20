@@ -33,6 +33,13 @@ void setup_lcd_display(asic_t *asic) {
 	asic->cpu->devices[0x11].read_in = bw_lcd_data_read;
 	asic->cpu->devices[0x11].write_out = bw_lcd_data_write;
 }
+void unicode_to_utf8(char *b, uint32_t c) {
+	if (c<0x80) *b++=c;
+	else if (c<0x800) *b++=192+c/64, *b++=128+c%64;
+	else if (c-0xd800u<0x800) return;
+	else if (c<0x10000) *b++=224+c/4096, *b++=128+c/64%64, *b++=128+c%64;
+	else if (c<0x110000) *b++=240+c/262144, *b++=128+c/4096%64, *b++=128+c/64%64, *b++=128+c%64;
+}
 
 void bw_lcd_dump(ti_bw_lcd_t *lcd) {
 	printf("C: 0x%02X X: 0x%02X Y: 0x%02X Z: 0x%02X\n", lcd->contrast, lcd->X, lcd->Y, lcd->Z);
@@ -40,11 +47,30 @@ void bw_lcd_dump(ti_bw_lcd_t *lcd) {
 		lcd->word_length ? '8' : '6', lcd->display_on ? 'O' : ' ', lcd->op_amp1, lcd->op_amp2);
 	int cY;
 	int cX;
-	for (cX = 0; cX < 64; cX++) {
+	for (cX = 0; cX < 64; cX += 4) {
 		for (cY = 0; cY < 120; cY += 2) {
-			int a = bw_lcd_read_screen(lcd, cY, cX);
-			int b = bw_lcd_read_screen(lcd, cY + 1, cX);
-			printf("%c", a && b ? 'O' : a ? '<' : b ? '>' : ' ');
+			int a = bw_lcd_read_screen(lcd, cY + 0, cX + 0);
+			int b = bw_lcd_read_screen(lcd, cY + 0, cX + 1);
+			int c = bw_lcd_read_screen(lcd, cY + 0, cX + 2);
+			int d = bw_lcd_read_screen(lcd, cY + 1, cX + 0);
+			int e = bw_lcd_read_screen(lcd, cY + 1, cX + 1);
+			int f = bw_lcd_read_screen(lcd, cY + 1, cX + 2);
+			int g = bw_lcd_read_screen(lcd, cY + 0, cX + 3);
+			int h = bw_lcd_read_screen(lcd, cY + 1, cX + 3);
+			uint32_t byte_value = 0x2800;
+			byte_value += (
+				(a << 0) |
+				(b << 1) |
+				(c << 2) |
+				(d << 3) |
+				(e << 4) |
+				(f << 5) |
+				(g << 6) |
+				(h << 7));
+			char buff[5];
+			buff[0] = buff[1] = buff[2] = buff[3] = buff[4] = 0;
+			unicode_to_utf8(buff, byte_value);
+			printf("%s", buff);
 		}
 		printf("\n");
 	}
@@ -61,7 +87,7 @@ void bw_lcd_write_screen(ti_bw_lcd_t *lcd, int Y, int X, char val) {
 	int location = X * 64 + Y;
 	uint8_t *byte = &lcd->ram[location >> 3];
 	*byte &= ~(1 << (location % 8));
-	*byte |= ~(val << (location % 8));
+	*byte |= (val << (location % 8));
 }
 
 void bw_lcd_reset(ti_bw_lcd_t *lcd) {
