@@ -123,10 +123,10 @@ void write_bank_b_paging_port(void *device, uint8_t data) {
     int is_flash = 0;
 
     if (state->asic->device == TI83p) {
-        is_flash = data & (1 << 6);
+        is_flash = (data & (1 << 6)) == 0;
         data &= 0x1F; // 0b11111
     } else {
-        is_flash = data & (1 << 7);
+        is_flash = (data & (1 << 7)) == 0;
         data &= 0x3F; // 0b111111
     }
 
