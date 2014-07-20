@@ -70,10 +70,8 @@ uint8_t read_bank_a_paging_port(void *device) {
     uint8_t return_value = state->bank_a_page;
     if (!state->bank_a_flash) {
         if (state->asic->device == TI83p) {
-            return_value &= ~(1 << 6);
             return_value |= 1 << 6;
         } else {
-            return_value &= ~(1 << 7);
             return_value |= 1 << 7;
         }
     }
@@ -106,10 +104,8 @@ uint8_t read_bank_b_paging_port(void *device) {
     uint8_t return_value = state->bank_b_page;
     if (!state->bank_b_flash) {
         if (state->asic->device == TI83p) {
-            return_value &= ~(1 << 6);
             return_value |= 1 << 6;
         } else {
-            return_value &= ~(1 << 7);
             return_value |= 1 << 7;
         }
     }
