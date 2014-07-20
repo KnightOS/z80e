@@ -49,21 +49,15 @@ void updateFlags_except(z80registers_t *r, uint16_t oldValue, uint16_t newValue,
 }
 
 void updateParity(z80registers_t *r, uint16_t value) {
-    int c = 1;
-    int i = 0;
-    for (i = 0; i < 16; i++) {
-        c += (value & (1 << i)) != 0;
-    }
-
-    r->flags.PV = c % 2;
+    r->flags.PV = popcount(value) % 2 == 0;
 }
 
 void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, int parity, int carryBit, z80flags unaffected) {
     if (!(unaffected & FLAG_S)) {
         if (carryBit) {
-            r->flags.S = newValue & 0x8000 < 0;
+            r->flags.S = (newValue & 0x8000) != 0;
         } else {
-            r->flags.S = newValue & 0x80 < 0;
+            r->flags.S = (newValue & 0x80) != 0;
         }
     }
     if (!(unaffected & FLAG_Z)) {
@@ -126,7 +120,9 @@ void print_state(z80registers_t *r) {
     if (r->flags.S) printf("S ");
     if (r->flags.Z) printf("Z ");
     if (r->flags.H) printf("H ");
+    if (r->flags._3) printf("5 ");
     if (r->flags.PV) printf("P/V ");
+    if (r->flags._5) printf("3 ");
     if (r->flags.N) printf("N ");
     if (r->flags.C) printf("C ");
     if (r->F == 0) printf("None set");
