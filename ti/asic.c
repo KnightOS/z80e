@@ -1,6 +1,8 @@
 #include "asic.h"
 #include <stdint.h>
 #include <stdlib.h>
+
+#include "display.h"
 #include "memory.h"
 #include "memorymapping.h"
 #include "cpu.h"
@@ -12,6 +14,7 @@ void plug_devices(asic_t *asic) {
 
     asic->cpu->devices[0x01] = init_keyboard();
     asic->cpu->devices[0x02] = init_status(asic);
+    setup_lcd_display(asic);
 
     init_mapping_ports(asic);
 }

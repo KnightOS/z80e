@@ -1,0 +1,24 @@
+#ifndef TI_DISPLAY_H
+#define TI_DISPLAY_H
+
+#include "asic.h"
+
+void setup_lcd_display(asic_t *);
+
+typedef struct ti_bw_lcd ti_bw_lcd_t;
+
+uint8_t bw_lcd_read_screen(ti_bw_lcd_t *, int, int);
+void bw_lcd_write_screen(ti_bw_lcd_t *, int, int, char);
+
+void bw_lcd_reset(ti_bw_lcd_t *);
+
+uint8_t bw_lcd_status_read(void *);
+void bw_lcd_status_write(void *, uint8_t);
+
+uint8_t bw_lcd_data_read(void *);
+void bw_lcd_data_write(void *, uint8_t);
+
+void bw_lcd_advance_int_pointer(ti_bw_lcd_t *, int *, int *);
+void bw_lcd_advance_pointer(ti_bw_lcd_t *);
+
+#endif
