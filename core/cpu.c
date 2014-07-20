@@ -678,6 +678,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
             context->cycles += 12;
             new = cpu_read_byte(context->cpu, r->HL--);
             updateFlags_except(r, r->A, r->A - new, 0, FLAG_C);
+            r->flags.PV = !--r->BC;
             r->flags.N = 1;
             break;
         case 2: // IND
