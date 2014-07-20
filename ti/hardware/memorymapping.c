@@ -89,7 +89,7 @@ void write_bank_a_paging_port(void *device, uint8_t data) {
         data &= 0x1F; // 0b11111
     } else {
         is_flash = (data & (1 << 7)) == 0;
-        data &= 0x3F; // 0b111111
+        data &= 0x7F; // 0b111111
     }
 
     state->bank_a_flash = is_flash;
@@ -123,7 +123,7 @@ void write_bank_b_paging_port(void *device, uint8_t data) {
         data &= 0x1F; // 0b11111
     } else {
         is_flash = (data & (1 << 7)) == 0;
-        data &= 0x3F; // 0b111111
+        data &= 0x7F; // 0b111111
     }
 
     state->bank_b_flash = is_flash;
