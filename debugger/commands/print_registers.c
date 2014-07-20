@@ -26,6 +26,7 @@ int command_print_registers(struct debugger_state *state, int argc, char **argv)
         if (r.flags.C) state->print(state, "C ");
         if (r.F == 0) state->print(state, "None set");
         state->print(state, "\n");
+        if (cpu->halted) state->print(state, "CPU halted\n");
 
         return 0;
 }
