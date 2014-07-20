@@ -93,8 +93,8 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 #ifndef EMSCRIPTEN
 void tui_tick(asic_t *asic) {
 	while (1) {
-                char prompt_buffer[19];
-		snprintf(prompt_buffer, 19, "z80e [0x%04X] > ", asic->cpu->registers.PC);
+                char prompt_buffer[24];
+		snprintf(prompt_buffer, 24, "z80e [0x%04X] %s> ", asic->cpu->registers.PC, asic->cpu->halted ? "HALT " : "");
 		char *result = readline(prompt_buffer);
 		if (result) {
 			int from_history = 0;
