@@ -106,6 +106,11 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
                     state->print(state, "CPU is halted\n");
                 }
             }
+
+            if (gDebuggerState.echo_reg) {
+                print_state(&state->asic->cpu->registers);
+            }
+
             oldHalted = state->asic->cpu->halted;
 
             cpu_execute(context.device_asic->cpu, 1);
@@ -128,6 +133,11 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
                 state->print(state, "CPU is halted\n");
             }
         }
+
+        if (gDebuggerState.echo_reg) {
+            print_state(&state->asic->cpu->registers);
+        }
+
         oldHalted = state->asic->cpu->halted;
 
         cpu_execute(state->asic->cpu, 1);

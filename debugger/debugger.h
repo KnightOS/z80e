@@ -12,6 +12,7 @@ typedef int (*debugger_function_t)(struct debugger_state *, int, char **);
 
 typedef struct {
 	int echo;
+	int echo_reg;
 } global_debugger_state_t;
 
 extern global_debugger_state_t gDebuggerState;
