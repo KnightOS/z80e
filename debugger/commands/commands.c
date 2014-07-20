@@ -23,8 +23,8 @@ void register_print_expression(const char *name, int priority) {
 	register_command(name, command_print_expression, NULL, priority);
 }
 
-void register_stack(const char *name, int priority) {
-	register_command(name, command_stack, NULL, priority);
+void register_stack(const char *name, int priority, z80cpu_t *cpu) {
+	register_command(name, command_stack, cpu, priority);
 }
 
 void register_print_mappings(const char *name, int priority) {

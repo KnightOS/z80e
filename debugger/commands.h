@@ -17,7 +17,7 @@ void register_hexdump(const char *, int, ti_mmu_t *);
 void register_disassemble(const char *, int, ti_mmu_t *);
 void register_print_registers(const char *, int, z80cpu_t *);
 void register_print_expression(const char *, int);
-void register_stack(const char *, int);
+void register_stack(const char *, int, z80cpu_t *);
 void register_print_mappings(const char *, int);
 void register_on_read(const char *, int);
 void register_unhalt(const char *, int, z80cpu_t *);

@@ -8,7 +8,13 @@ int command_stack(struct debugger_state *state, int argc, char **argv) {
         return 0;
     }
 
-    char *_argv[] = {argv[0], "(SP)", argc > 1 ? argv[1] : "10"};
+	z80cpu_t *cpu = (z80cpu_t *)state->state;
+    uint16_t sp = cpu->registers.SP;
 
-    return command_hexdump(state, 3, _argv);
+    uint16_t i;
+    for (i = sp; i < sp + 20; i += 2) {
+        state->print(state, "0x%04X: 0x%04X\n", i, cpu_read_word(cpu, i));
+    }
+
+    return 0;
 }
