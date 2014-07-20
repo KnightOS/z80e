@@ -216,12 +216,13 @@ int test_CP_r() {
     flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 4);
     if (device->cpu->registers.A != 0 ||
-        device->cpu->registers.flags.S != 0 ||
+        device->cpu->registers.flags.S != 1 ||
         device->cpu->registers.flags.C != 1 ||
         device->cpu->registers.flags.PV != 1 ||
         device->cpu->registers.flags.N != 1 ||
         device->cpu->registers.flags.Z != 0 ||
         cycles != 0) {
+        print_state(&device->cpu->registers);
         asic_free(device);
         return 1;
     }
