@@ -39,6 +39,14 @@ void register_unhalt(const char *name, int priority, z80cpu_t *cpu) {
 	register_command(name, command_unhalt, cpu, priority);
 }
 
+void register_run(const char *name, int priority) {
+	register_command(name, command_run, NULL, priority);
+}
+
+void register_step(const char *name, int priority) {
+	register_command(name, command_step, NULL, priority);
+}
+
 uint16_t parse_operand(debugger_state_t *state, const char *start, const char **end) {
 	if (*start >= '0' && *start <= '9') {
 		return strtol(start, (char **)end, 0);
