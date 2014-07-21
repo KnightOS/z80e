@@ -91,8 +91,8 @@ IF(EMSCRIPTEN)
     )
 ELSE()
     TARGET_LINK_LIBRARIES(z80e${ExecutableSuffix} readline rt)
-    TARGET_LINK_LIBRARIES(tests${ExecutableSuffix} readline)
-    TARGET_LINK_LIBRARIES(zex${ExecutableSuffix} readline)
+    TARGET_LINK_LIBRARIES(tests${ExecutableSuffix} readline rt)
+    TARGET_LINK_LIBRARIES(zex${ExecutableSuffix} readline rt)
 ENDIF()
 
 include_directories(
