@@ -38,6 +38,7 @@ add_executable(z80e${ExecutableSuffix}
     disassembler/disassemble.c
     ti/asic.c
     ti/memory.c
+    runloop.c
     ${Hardware}
     ${Commands}
     ${Shims}
@@ -87,7 +88,7 @@ IF(EMSCRIPTEN)
         VERBATIM
     )
 ELSE()
-    TARGET_LINK_LIBRARIES(z80e${ExecutableSuffix} readline)
+    TARGET_LINK_LIBRARIES(z80e${ExecutableSuffix} readline rt)
     TARGET_LINK_LIBRARIES(tests${ExecutableSuffix} readline)
     TARGET_LINK_LIBRARIES(zex${ExecutableSuffix} readline)
 ENDIF()

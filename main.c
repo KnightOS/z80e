@@ -1,6 +1,7 @@
 #include "asic.h"
 #include "debugger.h"
 #include "disassemble.h"
+#include "runloop.h"
 #include "tui.h"
 #include "commands.h"
 
@@ -9,6 +10,7 @@
 #include <string.h>
 #include <strings.h>
 #include <signal.h>
+#include <time.h>
 
 #include "hooks.h"
 
@@ -21,6 +23,7 @@ typedef struct {
     int stop;
     int debugger;
     int no_rom_check;
+    runloop_state_t *runloop;
 } appContext_t;
 
 appContext_t context;
@@ -113,7 +116,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 
             oldHalted = state->asic->cpu->halted;
 
-            cpu_execute(context.device_asic->cpu, 1);
+            runloop_tick_cycles(context.runloop, 1);
         }
         context.debugger = 2;
         return 0;
@@ -140,7 +143,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 
         oldHalted = state->asic->cpu->halted;
 
-        cpu_execute(state->asic->cpu, 1);
+        runloop_tick_cycles(context.runloop, 1);
         if (context.stop) {
             context.debugger = 2;
             return 0;
@@ -282,6 +285,8 @@ int main(int argc, char **argv) {
     register_on_read("on_read", 0);
     register_unhalt("unhalt", 0, device->cpu);
 
+    context.runloop = runloop_init(device);
+
     if (context.debugger) {
         context.debugger = 2;
         tui_tick(device);
@@ -289,15 +294,14 @@ int main(int argc, char **argv) {
     } else {
         if (context.cycles == -1) { // Run indefinitely
             while (1) {
-                // TODO: Timings
-                cpu_execute(device->cpu, 1);
-
+                runloop_tick(context.runloop);
                 if (context.stop) {
                     break;
                 }
+                nanosleep((struct timespec[]){{0, (1.f / 60.f) * 1000000000}}, NULL);
             }
         } else {
-            cpu_execute(device->cpu, context.cycles);
+            runloop_tick_cycles(context.runloop, context.cycles);
         }
     }
 

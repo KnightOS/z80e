@@ -62,6 +62,7 @@ asic_t *asic_init(ti_device_type type) {
     device->cpu->write_byte = ti_write_byte;
     device->battery = BATTERIES_GOOD;
     device->device = type;
+    device->clock_rate = 6000000;
     plug_devices(device);
     asic_mirror_ports(device);
     return device;
