@@ -51,6 +51,14 @@ void register_on(const char *name, int priority) {
 	register_command(name, command_on, NULL, priority);
 }
 
+void register_in(const char *name, int priority) {
+	register_command(name, command_in, NULL, priority);
+}
+
+void register_out(const char *name, int priority) {
+	register_command(name, command_out, NULL, priority);
+}
+
 uint16_t parse_operand(debugger_state_t *state, const char *start, const char **end) {
 	if (*start >= '0' && *start <= '9') {
 		return strtol(start, (char **)end, 0);
