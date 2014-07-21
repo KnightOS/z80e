@@ -15,38 +15,26 @@ typedef struct {
 
 
 typedef struct {
-	int capacity;
-	int used;
+	uint16_t capacity;
+	uint16_t used;
 	hook_t *array;
 } hook_array_t;
-
-hook_array_t *read_memory_hooks;
-hook_array_t *write_memory_hooks;
-hook_array_t *read_register_hooks;
-hook_array_t *write_register_hooks;
 
 void init_hooks();
 void deinit_hooks();
 
 typedef struct {
 	uint16_t memory_location;
-	uint8_t read_byte;
+	uint8_t byte;
 	void *state;
-} read_memory_struct_t;
+} memory_hook_t;
+typedef int (*memory_hook)(ti_mmu_t *, memory_hook_t *);
 
-typedef int (*read_memory_hook)(ti_mmu_t *, read_memory_struct_t *);
-void register_hook_read_memory(read_memory_hook, void *);
-void call_read_memory_hooks(ti_mmu_t *, read_memory_struct_t *);
+uint32_t register_hook_memory_read(memory_hook, void *);
+void call_memory_read_hooks(ti_mmu_t *, memory_hook_t *);
 
-typedef struct {
-	uint16_t memory_location;
-	uint8_t write_byte;
-	void *state;
-} write_memory_struct_t;
-
-typedef int (*write_memory_hook)(ti_mmu_t *, write_memory_struct_t *);
-void register_hook_write_memory(write_memory_hook, void *);
-void call_write_memory_hooks(ti_mmu_t *, write_memory_struct_t *);
+uint32_t register_hook_memory_write(memory_hook, void *);
+void call_memory_write_hooks(ti_mmu_t *, memory_hook_t *);
 
 typedef struct register_hook_struct {
 	uint8_t register_id;
@@ -56,10 +44,10 @@ typedef struct register_hook_struct {
 
 typedef int (*register_hook)(z80cpu_t *, register_hook_struct_t *);
 
-void register_hook_read_register(register_hook, void *);
-void call_read_register_hooks(z80cpu_t *, register_hook_struct_t *);
+uint32_t register_hook_register_read(register_hook, void *);
+void call_register_read_hooks(z80cpu_t *, register_hook_struct_t *);
 
-void register_hook_write_register(register_hook, void *);
-void call_write_register_hooks(z80cpu_t *, register_hook_struct_t *);
+uint32_t register_hook_register_write(register_hook, void *);
+void call_register_write_hooks(z80cpu_t *, register_hook_struct_t *);
 
 #endif

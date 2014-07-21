@@ -182,7 +182,6 @@ int main(int argc, char **argv) {
     register_print_expression("expression", 0);
     register_stack("stack", 0, device->cpu);
     register_print_mappings("mappings", 0);
-    register_on_read("on_read", 0);
     register_unhalt("unhalt", 0, device->cpu);
 
     if (device->state->debugger) {

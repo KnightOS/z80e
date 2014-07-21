@@ -67,9 +67,9 @@ uint8_t ti_read_byte(void *memory, uint16_t address) {
     else
         byte = mmu->ram[mapped_address];
 #if defined(ENABLE_HOOKS) && ENABLE_READ_BYTE_HOOK
-    read_memory_struct_t hooks = { address, byte };
-    call_read_memory_hooks(mmu, &hooks);
-    return hooks.read_byte;
+    memory_hook_t hooks = { address, byte };
+    call_memory_read_hooks(mmu, &hooks);
+    return hooks.byte;
 #else
     return byte;
 #endif
@@ -83,9 +83,9 @@ void ti_write_byte(void *memory, uint16_t address, uint8_t value) {
     mapped_address += bank.page * 0x4000;
 
 #if defined(ENABLE_HOOKS) && ENABLE_WRITE_BYTE_HOOK
-    write_memory_struct_t hooks = { address, value };
-    call_write_memory_hooks(mmu, &hooks);
-    value = hooks.write_byte;
+    memory_hook_t hooks = { address, value };
+    call_memory_write_hooks(mmu, &hooks);
+    value = hooks.byte;
 #endif
 
     if (!bank.flash)

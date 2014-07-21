@@ -21,7 +21,7 @@ void hook_array_resize(hook_array_t *data, int newcapacity) {
 	data->array = realloc(data->array, sizeof(hook_t) * newcapacity);
 }
 
-void hook_array_push(hook_array_t *data, generic_function_pointer func, void *state)
+uint16_t hook_array_push(hook_array_t *data, generic_function_pointer func, void *state)
 {
 	if (data->used == data->capacity)
 		hook_array_resize(data, data->capacity + 10);
@@ -31,6 +31,7 @@ void hook_array_push(hook_array_t *data, generic_function_pointer func, void *st
 	hook.state = state;
 
 	data->array[data->used++] = hook;
+	return data->used - 1;
 }
 
 hook_array_t *read_memory_hooks = 0;
@@ -57,15 +58,15 @@ void deinit_hooks() {
 	write_register_hooks = 0;
 }
 
-void register_hook_read_memory(read_memory_hook hook, void *state) {
+uint32_t register_hook_memory_read(memory_hook hook, void *state) {
 	if (!read_memory_hooks) {
-		return;
+		return ~0;
 	}
 
-	hook_array_push(read_memory_hooks, (generic_function_pointer)hook, state);
+	return 0x00010000 | hook_array_push(read_memory_hooks, (generic_function_pointer)hook, state);
 }
 
-void call_read_memory_hooks(ti_mmu_t *asic, read_memory_struct_t *truct) {
+void call_memory_read_hooks(ti_mmu_t *asic, memory_hook_t *truct) {
 	if (!read_memory_hooks) {
 		return;
 	}
@@ -75,19 +76,19 @@ void call_read_memory_hooks(ti_mmu_t *asic, read_memory_struct_t *truct) {
 	for (i = 0; i < read_memory_hooks->used && result == 0; i++) {
 		hook_t hook = read_memory_hooks->array[i];
 		truct->state = hook.state;
-		result = ((read_memory_hook)hook.func)(asic, truct);
+		result = ((memory_hook)hook.func)(asic, truct);
 	}
 }
 
-void register_hook_write_memory(write_memory_hook hook, void *state) {
+uint32_t register_hook_memory_write(memory_hook hook, void *state) {
 	if (!write_memory_hooks) {
-		return;
+		return ~0;
 	}
 
-	hook_array_push(write_memory_hooks, (generic_function_pointer)hook, state);
+	return 0x00020000 | hook_array_push(write_memory_hooks, (generic_function_pointer)hook, state);
 }
 
-void call_write_memory_hooks(ti_mmu_t *asic, write_memory_struct_t *truct) {
+void call_memory_write_hooks(ti_mmu_t *asic, memory_hook_t *truct) {
 	if (!write_memory_hooks) {
 		return;
 	}
@@ -97,16 +98,16 @@ void call_write_memory_hooks(ti_mmu_t *asic, write_memory_struct_t *truct) {
 	for (i = 0; i < write_memory_hooks->used && result == 0; i++) {
 		hook_t hook = write_memory_hooks->array[i];
 		truct->state = hook.state;
-		result = ((write_memory_hook)hook.func)(asic, truct);
+		result = ((memory_hook)hook.func)(asic, truct);
 	}
 }
 
-void register_hook_read_register(register_hook hook, void *state) {
+uint32_t register_hook_register_read(register_hook hook, void *state) {
 	if (!read_register_hooks) {
-		return;
+		return ~0;
 	}
 
-	hook_array_push(read_register_hooks, (generic_function_pointer)hook, state);
+	return 0x00030000 | hook_array_push(read_register_hooks, (generic_function_pointer)hook, state);
 }
 
 void call_read_register_hooks(z80cpu_t *cpu, register_hook_struct_t *truct) {
@@ -123,15 +124,16 @@ void call_read_register_hooks(z80cpu_t *cpu, register_hook_struct_t *truct) {
 	}
 }
 
-void register_hook_write_register(register_hook hook, void *state) {
+uint32_t register_hook_register_write(register_hook hook, void *state) {
 	if (!write_register_hooks) {
-		return;
+		return ~0;
 	}
 
-	hook_array_push(write_register_hooks, (generic_function_pointer)hook, state);
+	return 0x00040000 | hook_array_push(write_register_hooks, (generic_function_pointer)hook, state);
 }
 
-void call_write_register_hooks(z80cpu_t *cpu, register_hook_struct_t *truct) {
+void call_register_write_hooks(z80cpu_t *cpu, register_hook_struct_t *truct) 
+{
 	if (!write_register_hooks) {
 		return;
 	}

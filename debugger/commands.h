@@ -10,7 +10,6 @@ int command_print_registers(struct debugger_state *state, int argc, char **argv)
 int command_print_expression(struct debugger_state *state, int argc, char **argv);
 int command_stack(struct debugger_state *state, int argc, char **argv);
 int command_print_mappings(struct debugger_state *state, int argc, char **argv);
-int command_on_read(struct debugger_state *state, int argc, char **argv);
 int command_unhalt(struct debugger_state *state, int argc, char **argv);
 int command_run(struct debugger_state *state, int argc, char **argv);
 int command_step(struct debugger_state *state, int argc, char **argv);
@@ -22,7 +21,6 @@ void register_print_registers(const char *, int, z80cpu_t *);
 void register_print_expression(const char *, int);
 void register_stack(const char *, int, z80cpu_t *);
 void register_print_mappings(const char *, int);
-void register_on_read(const char *, int);
 void register_unhalt(const char *, int, z80cpu_t *);
 void register_step(const char *, int);
 void register_run(const char *, int);

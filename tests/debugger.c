@@ -54,12 +54,12 @@ int test_debugger_find_command() {
 
 int hook_test_counter = 0;
 
-int hook(ti_mmu_t *a, read_memory_struct_t *b) {
+int hook(ti_mmu_t *a, memory_hook_t *b) {
 	hook_test_counter = 1;
 	return 1;
 }
 
-int hook2(ti_mmu_t *a, read_memory_struct_t *b) {
+int hook2(ti_mmu_t *a, memory_hook_t *b) {
 	hook_test_counter = 50;
 	return 0;
 }
@@ -67,28 +67,18 @@ int hook2(ti_mmu_t *a, read_memory_struct_t *b) {
 int test_debugger_hooks() {
 	init_hooks();
 
-	if (!read_memory_hooks) {
-		deinit_hooks();
+	register_hook_memory_read(&hook, NULL);
+	register_hook_memory_read(&hook2, NULL);
+
+	memory_hook_t t = {0, 0};
+	call_memory_read_hooks(0, &t);
+
+	if (hook_test_counter != 1) {
 		return 1;
 	}
 
-	register_hook_read_memory(&hook, NULL);
-	register_hook_read_memory(&hook2, NULL);
-
-	if (read_memory_hooks->used != 2) {
-		deinit_hooks();
-		return 2;
-	}
-
-	read_memory_struct_t t = {0, 0};
-	call_read_memory_hooks(0, &t);
-
-	if (hook_test_counter != 1) {
-		return 3;
-	}
-
 	deinit_hooks();
-	return read_memory_hooks ? 4 : 0;
+	return 0;
 }
 
 int test_debugger_tui_commandline() {

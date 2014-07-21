@@ -31,10 +31,6 @@ void register_print_mappings(const char *name, int priority) {
 	register_command(name, command_print_mappings, NULL, priority);
 }
 
-void register_on_read(const char *name, int priority) {
-	register_command(name, command_on_read, NULL, priority);
-}
-
 void register_unhalt(const char *name, int priority, z80cpu_t *cpu) {
 	register_command(name, command_unhalt, cpu, priority);
 }
