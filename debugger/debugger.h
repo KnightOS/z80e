@@ -35,6 +35,7 @@ typedef struct debugger_state {
 	int (*vprint)(struct debugger_state *, const char *, va_list);
 	void *state;
 	asic_t *asic;
+	struct debugger_state (*create_new_state)(struct debugger_state *, void *, const char *command_name);
 } debugger_state_t;
 
 int find_best_command(const char *, debugger_command_t **);

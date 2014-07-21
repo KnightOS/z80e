@@ -91,6 +91,11 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 }
 
 #ifndef EMSCRIPTEN
+struct debugger_state tui_new_state(struct debugger_state *state, void *d_state, const char *command_name) {
+	debugger_state_t stat = { print_tui, vprint_tui, d_state, state->asic, tui_new_state };
+	return stat;
+}
+
 void tui_tick(asic_t *asic) {
 	while (1) {
                 char prompt_buffer[24];
@@ -149,7 +154,7 @@ void tui_tick(asic_t *asic) {
 				} else if (status == 0) {
 					printf("Error: Unknown command %s\n", result);
 				} else {
-					debugger_state_t state = { print_tui, vprint_tui, command->state, asic };
+					debugger_state_t state = { print_tui, vprint_tui, command->state, asic, tui_new_state };
 					int output = command->function(&state, argc, cmdline);
 					if (output != 0) {
 						printf("The command returned %d\n", output);

@@ -173,6 +173,7 @@ int main(int argc, char **argv) {
     }
 
     init_hooks();
+    register_on("on", 0);
     register_run("run", 0);
     register_step("step", 0);
     register_stop("stop", 0);

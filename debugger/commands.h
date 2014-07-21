@@ -14,6 +14,7 @@ int command_unhalt(struct debugger_state *state, int argc, char **argv);
 int command_run(struct debugger_state *state, int argc, char **argv);
 int command_step(struct debugger_state *state, int argc, char **argv);
 int command_stop(struct debugger_state *state, int argc, char **argv);
+int command_on(struct debugger_state *state, int argc, char **argv);
 
 void register_hexdump(const char *, int, ti_mmu_t *);
 void register_disassemble(const char *, int, ti_mmu_t *);
@@ -25,6 +26,7 @@ void register_unhalt(const char *, int, z80cpu_t *);
 void register_step(const char *, int);
 void register_run(const char *, int);
 void register_stop(const char *, int);
+void register_on(const char *, int);
 
 uint16_t parse_expression(debugger_state_t *, const char *);
 #endif
