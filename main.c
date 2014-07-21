@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
     register_run("run", 0);
     register_step("step", 0);
     register_stop("stop", 0);
-    register_hexdump("hexdump", 0, device->mmu);
+    register_hexdump("dump", 0, device->mmu);
     register_disassemble("disassemble", 0, device->mmu);
     register_print_registers("print_registers", 0, device->cpu);
     register_print_expression("expression", 0);
