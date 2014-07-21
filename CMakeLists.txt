@@ -23,6 +23,7 @@ add_executable(tests${ExecutableSuffix}
     disassembler/disassemble.c
     ti/asic.c
     ti/memory.c
+    runloop.c
     ${Hardware}
     ${Commands}
     ${Shims}
@@ -54,6 +55,7 @@ add_executable(zex${ExecutableSuffix}
     disassembler/disassemble.c
     ti/asic.c
     ti/memory.c
+    runloop.c
     ${Hardware}
     ${Commands}
     ${Shims}
@@ -100,6 +102,7 @@ include_directories(
     ti/hardware/
     disassembler/
     shims/
+    .
 )
 
 set(CMAKE_BUILD_TYPE Release)

@@ -63,6 +63,11 @@ asic_t *asic_init(ti_device_type type) {
     device->battery = BATTERIES_GOOD;
     device->device = type;
     device->clock_rate = 6000000;
+    device->state = malloc(sizeof(ti_emulation_state_t));
+    device->state->stopped = 0;
+    device->state->debugger = 0;
+    device->state->runloop = runloop_init(device);
+
     plug_devices(device);
     asic_mirror_ports(device);
     return device;

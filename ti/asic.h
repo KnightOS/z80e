@@ -5,13 +5,15 @@
 #include "ti.h"
 #include <stdint.h>
 
+typedef struct asic asic_t;
+#include "runloop.h"
+
 typedef enum {
     BATTERIES_REMOVED,
     BATTERIES_LOW,
     BATTERIES_GOOD
 } battery_state;
 
-typedef struct asic asic_t;
 
 typedef void (*timer_tick)(asic_t *, void *);
 
@@ -24,8 +26,22 @@ struct cpu_timer {
     timer_tick on_tick;
 };
 
+typedef enum {
+    DEBUGGER_DISABLED,
+    DEBUGGER_ENABLED,
+    DEBUGGER_LONG_OPERATION,
+    DEBUGGER_LONG_OPERATION_INTERRUPTABLE
+} debugger_state;
+
+typedef struct {
+    int stopped: 1;
+    debugger_state debugger: 2;
+    runloop_state_t *runloop;
+} ti_emulation_state_t;
+
 struct asic {
     z80cpu_t* cpu;
+    ti_emulation_state_t *state;
     ti_device_type device;
     ti_mmu_t* mmu;
     battery_state battery;

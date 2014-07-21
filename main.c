@@ -20,10 +20,7 @@ typedef struct {
     char *rom_file;
     int cycles;
     int print_state;
-    int stop;
-    int debugger;
     int no_rom_check;
-    runloop_state_t *runloop;
 } appContext_t;
 
 appContext_t context;
@@ -34,7 +31,6 @@ appContext_t create_context(void) {
     context.rom_file = NULL;
     context.cycles = -1;
     context.print_state = 0;
-    context.stop = 0;
     context.no_rom_check = 0;
     return context;
 }
@@ -79,7 +75,7 @@ int run_command_write(struct disassemble_memory *state, const char *format, ...)
 }
 
 int command_run(debugger_state_t *state, int argc, char **argv) {
-    context.stop = 0;
+    state->asic->state->stopped = 0;
     uint16_t instructions = -1;
 
     struct run_disassemble_state dstate;
@@ -95,7 +91,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 	return 0;
     } else if(argc == 2) {
         instructions = parse_expression(state, argv[1]);
-        context.debugger = 1;
+        state->asic->state->	debugger = DEBUGGER_LONG_OPERATION;
         for (; instructions > 0; instructions--) {
             if (gDebuggerState.echo) {
                 if (!state->asic->cpu->halted) {
@@ -116,13 +112,13 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 
             oldHalted = state->asic->cpu->halted;
 
-            runloop_tick_cycles(context.runloop, 1);
+            runloop_tick_cycles(state->asic->state->runloop, 1);
         }
-        context.debugger = 2;
+        state->asic->state->debugger = DEBUGGER_ENABLED;
         return 0;
     }
 
-    context.debugger = 1;
+    state->asic->state->debugger = DEBUGGER_LONG_OPERATION_INTERRUPTABLE;;
     while (1) {
         if (gDebuggerState.echo) {
             if (!state->asic->cpu->halted) {
@@ -143,13 +139,13 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 
         oldHalted = state->asic->cpu->halted;
 
-        runloop_tick_cycles(context.runloop, 1);
-        if (context.stop) {
-            context.debugger = 2;
+        runloop_tick_cycles(state->asic->state->runloop, 1);
+        if (state->asic->state->stopped) {
+            state->asic->state->debugger = DEBUGGER_ENABLED;
             return 0;
         }
     }
-    context.debugger = 2;
+    state->asic->state->debugger = DEBUGGER_ENABLED;
     return 0;
 }
 
@@ -188,6 +184,8 @@ void handleFlag(appContext_t *context, char flag, int *i, char **argv) {
     }
 }
 
+debugger_state tmp_debug = 0;
+
 void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
     if (strcasecmp(flag, "device") == 0) {
         char *next = argv[*i++];
@@ -197,7 +195,7 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
     } else if (strcasecmp(flag, "no-rom-check") == 0) {
         context->no_rom_check = 1;
     } else if (strcasecmp(flag, "debug") == 0) {
-        context->debugger = 1;
+        tmp_debug = DEBUGGER_ENABLED;
     } else if (strcasecmp(flag, "help") == 0) {
         print_help();
         exit(0);
@@ -211,9 +209,9 @@ void sigint_handler(int sig) {
     signal(SIGINT, sigint_handler);
 
     printf("\n Caught interrupt, stopping emulation\n");
-    context.stop = 1;
+    context.device_asic->state->stopped = 1;
 
-    if (context.debugger > 1) {
+    if (context.device_asic->state->debugger == DEBUGGER_ENABLED) {
         exit(0);
     }
 
@@ -248,9 +246,10 @@ int main(int argc, char **argv) {
 
     asic_t *device = asic_init(context.device);
     context.device_asic = device;
+    device->state->debugger = tmp_debug;
     if (context.rom_file == NULL) {
         printf("Warning: No ROM file specified, starting debugger\n");
-        context.debugger = 1;
+        device->state->debugger = DEBUGGER_ENABLED;
     } else {
         FILE *file = fopen(context.rom_file, "r");
         if (!file) {
@@ -285,23 +284,19 @@ int main(int argc, char **argv) {
     register_on_read("on_read", 0);
     register_unhalt("unhalt", 0, device->cpu);
 
-    context.runloop = runloop_init(device);
-
-    if (context.debugger) {
-        context.debugger = 2;
+    if (device->state->debugger) {
         tui_tick(device);
-        context.debugger = 1;
     } else {
         if (context.cycles == -1) { // Run indefinitely
             while (1) {
-                runloop_tick(context.runloop);
-                if (context.stop) {
+                runloop_tick(device->state->runloop);
+                if (device->state->stopped) {
                     break;
                 }
                 nanosleep((struct timespec[]){{0, (1.f / 60.f) * 1000000000}}, NULL);
             }
         } else {
-            runloop_tick_cycles(context.runloop, context.cycles);
+            runloop_tick_cycles(device->state->runloop, context.cycles);
         }
     }
 
