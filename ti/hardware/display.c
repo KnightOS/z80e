@@ -162,7 +162,7 @@ void bw_lcd_status_write(void *device, uint8_t val) {
 	} else if (val & 0x20) { // 0b001XXXXX
 		lcd->Y = val & 0x1F;
 		printf("\tLCD: Set Y (horizontal!) to 0x%02X\n", lcd->Y);
-	} else if (val & 0x18) { // 0b00011***
+	} else if ((val & 0x18) == 0x18) { // 0b00011***
 		// test mode - not emulating yet
 	} else if (val & 0x10) { // 0b00010*XX
 		lcd->op_amp1 = val & 0x03;
