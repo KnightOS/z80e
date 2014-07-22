@@ -66,8 +66,8 @@ IF(EMSCRIPTEN)
     add_custom_command(
         TARGET z80e.bc
         POST_BUILD
-        COMMAND ${CMAKE_C_COMPILER} -o z80e.js z80e.bc @../emscripten.config
-        WORKING_DIRECTORY bin
+        COMMAND ${CMAKE_C_COMPILER} -o z80e.js z80e.bc @${CMAKE_CURRENT_SOURCE_DIR}/emscripten.config
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
         COMMENT "Finalizing Emscripten build..."
         VERBATIM
     )
@@ -75,8 +75,8 @@ IF(EMSCRIPTEN)
     add_custom_command(
         TARGET tests.bc
         POST_BUILD
-        COMMAND ${CMAKE_C_COMPILER} -o tests.js -O3 tests.bc
-        WORKING_DIRECTORY bin
+        COMMAND ${CMAKE_C_COMPILER} -o tests.js tests.bc
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
         COMMENT "Finalizing Emscripten build..."
         VERBATIM
     )
@@ -84,8 +84,8 @@ IF(EMSCRIPTEN)
     add_custom_command(
         TARGET zex.bc
         POST_BUILD
-        COMMAND ${CMAKE_C_COMPILER} -o zex.js -O3 zex.bc
-        WORKING_DIRECTORY bin
+        COMMAND ${CMAKE_C_COMPILER} -o zex.js zex.bc
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
         COMMENT "Finalizing Emscripten build..."
         VERBATIM
     )
