@@ -110,7 +110,7 @@ uint32_t register_hook_register_read(register_hook hook, void *state) {
 	return 0x00030000 | hook_array_push(read_register_hooks, (generic_function_pointer)hook, state);
 }
 
-void call_read_register_hooks(z80cpu_t *cpu, register_hook_struct_t *truct) {
+void call_register_read_hooks(z80cpu_t *cpu, register_hook_struct_t *truct) {
 	if (!read_register_hooks) {
 		return;
 	}

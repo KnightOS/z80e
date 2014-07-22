@@ -68,6 +68,7 @@ IF(EMSCRIPTEN)
         POST_BUILD
         COMMAND ${CMAKE_C_COMPILER} -o z80e.js z80e.bc @${CMAKE_CURRENT_SOURCE_DIR}/emscripten.config
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/emscripten.config
         COMMENT "Finalizing Emscripten build..."
         VERBATIM
     )
