@@ -9,12 +9,11 @@ FILE(GLOB Commands debugger/commands/*.c)
 IF(EMSCRIPTEN)
     add_definitions("-DEMSCRIPTEN -Wno-warn-absolute-paths")
     FILE(GLOB Shims shims/*.c)
-    set(ExecutableSuffix .bc)
 ELSE()
     set(SpecificFilesMain main.c)
 ENDIF()
 
-add_executable(tests${ExecutableSuffix}
+add_executable(tests
     core/cpu.c
     core/registers.c
     debugger/debugger.c
@@ -30,7 +29,7 @@ add_executable(tests${ExecutableSuffix}
     test.c
 )
 
-add_executable(z80e${ExecutableSuffix}
+add_executable(z80e
     core/cpu.c
     core/registers.c
     debugger/debugger.c
@@ -46,7 +45,7 @@ add_executable(z80e${ExecutableSuffix}
     ${SpecificFilesMain}
 )
 
-add_executable(zex${ExecutableSuffix}
+add_executable(zex
     core/cpu.c
     core/registers.c
     debugger/debugger.c
@@ -63,37 +62,11 @@ add_executable(zex${ExecutableSuffix}
 )
 
 IF(EMSCRIPTEN)
-    add_custom_command(
-        TARGET z80e.bc
-        POST_BUILD
-        COMMAND ${CMAKE_C_COMPILER} -o z80e.js z80e.bc @${CMAKE_CURRENT_SOURCE_DIR}/emscripten.config
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/emscripten.config
-        COMMENT "Finalizing Emscripten build..."
-        VERBATIM
-    )
-
-    add_custom_command(
-        TARGET tests.bc
-        POST_BUILD
-        COMMAND ${CMAKE_C_COMPILER} -o tests.js tests.bc
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
-        COMMENT "Finalizing Emscripten build..."
-        VERBATIM
-    )
-
-    add_custom_command(
-        TARGET zex.bc
-        POST_BUILD
-        COMMAND ${CMAKE_C_COMPILER} -o zex.js zex.bc
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
-        COMMENT "Finalizing Emscripten build..."
-        VERBATIM
-    )
+    SET_TARGET_PROPERTIES(z80e PROPERTIES LINK_FLAGS @${CMAKE_CURRENT_SOURCE_DIR}/emscripten.config)
 ELSE()
-    TARGET_LINK_LIBRARIES(z80e${ExecutableSuffix} readline rt)
-    TARGET_LINK_LIBRARIES(tests${ExecutableSuffix} readline rt)
-    TARGET_LINK_LIBRARIES(zex${ExecutableSuffix} readline rt)
+    TARGET_LINK_LIBRARIES(z80e readline rt)
+    TARGET_LINK_LIBRARIES(tests readline rt)
+    TARGET_LINK_LIBRARIES(zex readline rt)
 ENDIF()
 
 include_directories(
