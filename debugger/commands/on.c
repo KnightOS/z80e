@@ -1,6 +1,5 @@
 #include "commands.h"
 #include "debugger.h"
-#include "hooks.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -59,46 +58,6 @@ typedef struct {
 	char **argv;
 } on_state_t;
 
-int on_register_read(z80cpu_t *cpu, register_hook_struct_t *strcut) {
-	on_state_t *sta = (on_state_t *)strcut->state;
-	if (sta->look_for != strcut->register_id) {
-		return 0;
-	}
-
-	sta->command->function(&sta->deb_sta, sta->argc, sta->argv);
-	return 0;
-}
-
-int on_register_write(z80cpu_t *cpu, register_hook_struct_t *strcut) {
-	on_state_t *sta = (on_state_t *)strcut->state;
-	if (sta->look_for != strcut->register_id) {
-		return 0;
-	}
-
-	sta->command->function(&sta->deb_sta, sta->argc, sta->argv);
-	return 0;
-}
-
-int on_memory_read(ti_mmu_t *mmu, memory_hook_t *strcut) {
-	on_state_t *sta = (on_state_t *)strcut->state;
-	if (sta->look_for != strcut->memory_location) {
-		return 0;
-	}
-
-	sta->command->function(&sta->deb_sta, sta->argc, sta->argv);
-	return 0;
-}
-
-int on_memory_write(ti_mmu_t *mmu, memory_hook_t *strcut) {
-	on_state_t *sta = (on_state_t *)strcut->state;
-	if (sta->look_for != strcut->memory_location) {
-		return 0;
-	}
-
-	sta->command->function(&sta->deb_sta, sta->argc, sta->argv);
-	return 0;
-}
-
 int command_on(struct debugger_state *state, int argc, char **argv) {
 	if (argc < 5) {
 		printf("%s `type` `read|write` `value` `command` [command args]\n"
@@ -134,18 +93,8 @@ int command_on(struct debugger_state *state, int argc, char **argv) {
 
 	if (strncasecmp(argv[1], "register", 8) == 0) {
 		sta->look_for = register_from_string(argv[3]);
-		if (thing == READ) {
-			register_hook_register_read(on_register_read, sta);
-		} else if (thing == WRITE) {
-			register_hook_register_write(on_register_write, sta);
-		}
 	} else if (strncasecmp(argv[1], "memory", 6) == 0) {
 		sta->look_for = parse_expression(state, argv[3]);
-		if (thing == READ) {
-			register_hook_memory_read(on_memory_read, sta);
-		} else if (thing == WRITE) {
-			register_hook_memory_write(on_memory_write, sta);
-		}
 	}
 
 	return 0;

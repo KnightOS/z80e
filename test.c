@@ -2,7 +2,6 @@
 #include "cpu.h"
 #include "debugger.h"
 #include "disassemble.h"
-#include "hooks.h"
 #include "keyboard.h"
 #include "memorymapping.h"
 #include "status.h"
@@ -140,7 +139,6 @@ const test_t tests[] = {
     { NULL, "Debugger tests" },
     { test_debugger_register_command, "register_command()" },
     { test_debugger_find_command, "find_best_command()" },
-    { test_debugger_hooks, "Hooks" },
     { test_debugger_tui_commandline, "Text UI commandline parser" },
     { test_disassembler, "Disassembler" },
 };

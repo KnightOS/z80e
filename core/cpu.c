@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "registers.h"
 #include "cpu.h"
-#include "hooks.h"
 
 struct ExecutionContext {
     uint8_t cycles;
@@ -75,12 +74,6 @@ uint16_t cpu_read_register_word(z80cpu_t *cpu, registers reg_to_read) {
 		return_value = -1;
 	}
 
-#if defined(ENABLE_HOOKS) && ENABLE_READ_REGISTER_HOOK
-	register_hook_struct_t data = { reg_to_read, return_value };
-	call_read_register_hooks(cpu, &data);
-	return_value = data.contents;
-#endif
-
 	return return_value;
 }
 
@@ -132,22 +125,12 @@ uint8_t cpu_read_register_byte(z80cpu_t *cpu, registers reg_to_read) {
 	default:
 		return_value = -1;
 	}
-#if defined(ENABLE_HOOKS) && ENABLE_READ_REGISTER_HOOK
-	register_hook_struct_t data = { reg_to_read, return_value };
-	call_read_register_hooks(cpu, &data);
-	return_value = (uint8_t) data.contents;
-#endif
 
 	return return_value;
 }
 uint16_t cpu_write_register_word(z80cpu_t *cpu, registers reg_to_read, uint16_t value) {
 	uint16_t return_value = value;
 
-#if defined(ENABLE_HOOKS) && ENABLE_WRITE_REGISTER_HOOK
-	register_hook_struct_t data = { reg_to_read, return_value };
-	call_write_register_hooks(cpu, &data);
-	return_value = data.contents;
-#endif
 	switch(reg_to_read) {
 	case  AF:
 		cpu->registers.AF = return_value;
@@ -182,13 +165,6 @@ uint16_t cpu_write_register_word(z80cpu_t *cpu, registers reg_to_read, uint16_t 
 
 uint8_t cpu_write_register_byte(z80cpu_t *cpu, registers reg_to_read, uint8_t value) {
 	uint8_t return_value = value;
-
-#if defined(ENABLE_HOOKS) && ENABLE_WRITE_REGISTER_HOOK
-	register_hook_struct_t data = { reg_to_read, return_value };
-	call_write_register_hooks(cpu, &data);
-	return_value = (uint8_t) data.contents;
-#endif
-
 
 	switch(reg_to_read) {
 	case A:

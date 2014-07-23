@@ -52,35 +52,6 @@ int test_debugger_find_command() {
 	return 0;
 }
 
-int hook_test_counter = 0;
-
-int hook(ti_mmu_t *a, memory_hook_t *b) {
-	hook_test_counter = 1;
-	return 1;
-}
-
-int hook2(ti_mmu_t *a, memory_hook_t *b) {
-	hook_test_counter = 50;
-	return 0;
-}
-
-int test_debugger_hooks() {
-	init_hooks();
-
-	register_hook_memory_read(&hook, NULL);
-	register_hook_memory_read(&hook2, NULL);
-
-	memory_hook_t t = {0, 0};
-	call_memory_read_hooks(0, &t);
-
-	if (hook_test_counter != 1) {
-		return 1;
-	}
-
-	deinit_hooks();
-	return 0;
-}
-
 int test_debugger_tui_commandline() {
 	const char *test_data = "5 + 3 \"5 + 3\""; // 5 + 3 "5 + 3"
 

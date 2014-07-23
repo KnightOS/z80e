@@ -4,7 +4,6 @@
 
 #include "debugger.h"
 #include "disassemble.h"
-#include "hooks.h"
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -66,13 +65,8 @@ uint8_t ti_read_byte(void *memory, uint16_t address) {
         byte = mmu->flash[mapped_address];
     else
         byte = mmu->ram[mapped_address];
-#if defined(ENABLE_HOOKS) && ENABLE_READ_BYTE_HOOK
-    memory_hook_t hooks = { address, byte };
-    call_memory_read_hooks(mmu, &hooks);
-    return hooks.byte;
-#else
+
     return byte;
-#endif
 }
 
 void ti_write_byte(void *memory, uint16_t address, uint8_t value) {
@@ -81,12 +75,6 @@ void ti_write_byte(void *memory, uint16_t address, uint8_t value) {
     uint32_t mapped_address = address;
     mapped_address %= 0x4000;
     mapped_address += bank.page * 0x4000;
-
-#if defined(ENABLE_HOOKS) && ENABLE_WRITE_BYTE_HOOK
-    memory_hook_t hooks = { address, value };
-    call_memory_write_hooks(mmu, &hooks);
-    value = hooks.byte;
-#endif
 
     if (!bank.flash)
         mmu->ram[mapped_address] = value;

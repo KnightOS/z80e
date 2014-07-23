@@ -12,7 +12,6 @@
 #include <signal.h>
 #include <time.h>
 
-#include "hooks.h"
 
 typedef struct {
     ti_device_type device;
@@ -172,7 +171,6 @@ int main(int argc, char **argv) {
         fclose(file);
     }
 
-    init_hooks();
     register_in("in", 0);
     register_out("out", 0);
     register_on("on", 0);
