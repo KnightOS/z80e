@@ -62,6 +62,8 @@ int find_best_command(const char *f_command, debugger_command_t ** pointer) {
 
 		if (command_length > strlen(cmd->name)) {
 			continue; // ignore
+		} else if (strlen(f_command) != match && match < command_length) {
+			continue;
 		} else if (match < max_match) {
 			continue;
 		} else if (match > max_match) {
