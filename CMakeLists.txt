@@ -17,6 +17,7 @@ add_executable(tests
     core/registers.c
     debugger/debugger.c
     debugger/tui.c
+    debugger/hooks.c
     disassembler/disassemble.c
     ti/asic.c
     ti/memory.c
@@ -32,6 +33,7 @@ add_executable(z80e
     core/registers.c
     debugger/debugger.c
     debugger/tui.c
+    debugger/hooks.c
     disassembler/disassemble.c
     ti/asic.c
     ti/memory.c
@@ -47,6 +49,7 @@ add_executable(zex
     core/registers.c
     debugger/debugger.c
     debugger/tui.c
+    debugger/hooks.c
     disassembler/disassemble.c
     ti/asic.c
     ti/memory.c

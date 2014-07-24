@@ -75,13 +75,13 @@ typedef enum {
 } z80flags;
 
 typedef enum {
-        A, F, AF, _AF,
-        B, C, BC, _BC,
-        D, E, DE, _DE,
-        H, L, HL, _HL,
-        PC, SP, I, R,
-        IXH, IXL, IX,
-        IYH, IYL, IY,
+        A = (1 << 0), F = (1 << 1), AF = (1 << 2), _AF = (1 << 3),
+        B = (1 << 4), C = (1 << 5), BC = (1 << 6), _BC = (1 << 7),
+        D = (1 << 8), E = (1 << 9), DE = (1 << 10), _DE = (1 << 11),
+        H = (1 << 12), L = (1 << 13), HL = (1 << 14), _HL = (1 << 15),
+        PC = (1 << 16), SP = (1 << 17), I = (1 << 18), R = (1 << 19),
+        IXH = (1 << 20), IXL = (1 << 21), IX = (1 << 22),
+        IYH = (1 << 23), IYL = (1 << 24), IY = (1 << 25),
 } registers;
 
 void exAFAF(z80registers_t *r);

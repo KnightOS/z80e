@@ -74,11 +74,14 @@ uint16_t cpu_read_register_word(z80cpu_t *cpu, registers reg_to_read) {
 		return_value = -1;
 	}
 
+	return_value = hook_on_register_read(cpu->hook, reg_to_read, return_value);
+
 	return return_value;
 }
 
 uint8_t cpu_read_register_byte(z80cpu_t *cpu, registers reg_to_read) {
 	uint8_t return_value = 0;
+
 	switch(reg_to_read) {
 	case A:
 		return_value = cpu->registers.A;
@@ -126,10 +129,13 @@ uint8_t cpu_read_register_byte(z80cpu_t *cpu, registers reg_to_read) {
 		return_value = -1;
 	}
 
+	return_value = (uint8_t) hook_on_register_read(cpu->hook, reg_to_read, return_value);
+
 	return return_value;
 }
 uint16_t cpu_write_register_word(z80cpu_t *cpu, registers reg_to_read, uint16_t value) {
 	uint16_t return_value = value;
+	return_value = hook_on_register_write(cpu->hook, reg_to_read, value);
 
 	switch(reg_to_read) {
 	case  AF:
@@ -165,6 +171,7 @@ uint16_t cpu_write_register_word(z80cpu_t *cpu, registers reg_to_read, uint16_t 
 
 uint8_t cpu_write_register_byte(z80cpu_t *cpu, registers reg_to_read, uint8_t value) {
 	uint8_t return_value = value;
+	return_value = (uint8_t)hook_on_register_write(cpu->hook, reg_to_read, value);
 
 	switch(reg_to_read) {
 	case A:

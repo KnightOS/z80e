@@ -1,12 +1,15 @@
 #ifndef ASIC_H
 #define ASIC_H
-#include "cpu.h"
-#include "memory.h"
-#include "ti.h"
+
 #include <stdint.h>
 
 typedef struct asic asic_t;
+
+#include "cpu.h"
+#include "memory.h"
+#include "ti.h"
 #include "runloop.h"
+#include "hooks.h"
 
 typedef enum {
     BATTERIES_REMOVED,
@@ -49,6 +52,7 @@ struct asic {
     int clock_rate;
     z80_timer_t timers[ASIC_TIMER_MAX];
     int max_timer;
+    hook_info_t *hook;
 };
 
 asic_t* asic_init(ti_device_type);

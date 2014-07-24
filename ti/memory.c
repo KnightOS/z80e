@@ -66,6 +66,8 @@ uint8_t ti_read_byte(void *memory, uint16_t address) {
     else
         byte = mmu->ram[mapped_address];
 
+    byte = hook_on_memory_read(mmu->hook, address, byte);
+
     return byte;
 }
 
@@ -75,6 +77,8 @@ void ti_write_byte(void *memory, uint16_t address, uint8_t value) {
     uint32_t mapped_address = address;
     mapped_address %= 0x4000;
     mapped_address += bank.page * 0x4000;
+
+    value = hook_on_memory_write(mmu->hook, address, value);
 
     if (!bank.flash)
         mmu->ram[mapped_address] = value;
@@ -89,6 +93,9 @@ void mmu_force_write(void *memory, uint16_t address, uint8_t value) {
     uint32_t mapped_address = address;
     mapped_address %= 0x4000;
     mapped_address += bank.page * 0x4000;
+
+    value = hook_on_memory_write(mmu->hook, address, value);
+
     if (!bank.flash)
         mmu->ram[mapped_address] = value;
     else {

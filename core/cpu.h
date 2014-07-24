@@ -3,13 +3,17 @@
 #include <stdint.h>
 #include <registers.h>
 
+typedef struct z80cpu z80cpu_t;
+
+#include "hooks.h"
+
 typedef struct {
     void *device;
     uint8_t (*read_in)(void *);
     void (*write_out)(void *, uint8_t);
 } z80iodevice_t;
 
-typedef struct {
+struct z80cpu {
     z80iodevice_t devices[0x100];
     z80registers_t registers;
     struct {
@@ -26,7 +30,8 @@ typedef struct {
     void *memory;
     uint8_t (*read_byte)(void *, uint16_t);
     void (*write_byte)(void *, uint16_t, uint8_t);
-} z80cpu_t;
+    hook_info_t *hook;
+};
 
 
 uint8_t cpu_read_register_byte(z80cpu_t *, registers);
