@@ -11,28 +11,25 @@ typedef struct {
 
 uint8_t read_status(void *_status) {
     status_t *status = (status_t*)_status;
-    uint8_t value = 0;
+    uint8_t value = 0x00;
     if (status->asic->battery_remove_check) {
         if (status->asic->battery != BATTERIES_REMOVED) {
-            value |= 1;
+            value |= 0x01;
         }
     } else {
         if (status->asic->battery == BATTERIES_GOOD) {
-            value |= 1;
+            value |= 0x01;
         }
     }
     if (status->asic->mmu->flash_unlocked) {
-        value |= 4;
+        value |= 0x04;
     }
-    // Bits 3-6 unimplemented on the TI-83+ and TI-73 (link assist)
-    switch (status->asic->device) {
-    case TI73:
-    case TI83p:
-        value |= 128;
-        break;
-    default:
-        value |= 16;
-        break;
+    // Note: Bits 3-6 unimplemented on the TI-83+ and TI-73 (link assist)
+    if (status->asic->device != TI73 && status->asic->device != TI83p) {
+        value |= 0x80;
+    } 
+    if (status->asic->device == TI84p || status->asic->device == TI84pSE || status->asic->device == TI84pCSE) {
+        value |= 0x16;
     }
     return value;
 }
