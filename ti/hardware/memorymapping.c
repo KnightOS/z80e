@@ -49,6 +49,7 @@ void write_device_status_port(void *device, uint8_t data) {
     memory_mapping_state_t *state = device;
 
     state->map_mode = data & 1;
+    reload_mapping(state);
 }
 
 uint8_t read_ram_paging_port(void *device) {
