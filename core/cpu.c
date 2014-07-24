@@ -822,11 +822,15 @@ void handle_interrupt(struct ExecutionContext *context) {
         context->cycles += 13;
         push(cpu, r->PC);
         r->PC = 0x38;
+        cpu->IFF1 = 0;
+        cpu->IFF2 = 0;
         break;
     case 2:
         context->cycles += 19;
         push(cpu, r->PC);
         r->PC = r->I * 256 + cpu->bus;
+        cpu->IFF1 = 0;
+        cpu->IFF2 = 0;
         break;
     }
 }
