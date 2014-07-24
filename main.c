@@ -174,15 +174,15 @@ int main(int argc, char **argv) {
     register_in("in", 0);
     register_out("out", 0);
     register_on("on", 0);
-    register_break("break", 0);
-    register_run("run", 0);
-    register_step("step", 0);
+    register_break("break", 1);
+    register_run("run", 1);
+    register_step("step", 2);
     register_stop("stop", 0);
     register_hexdump("dump", 0, device->mmu);
     register_disassemble("disassemble", 1, device->mmu);
     register_print_registers("print_registers", 0, device->cpu);
     register_print_expression("expression", 0);
-    register_stack("stack", 0, device->cpu);
+    register_stack("stack", 1, device->cpu);
     register_print_mappings("mappings", 0);
     register_unhalt("unhalt", 0, device->cpu);
 
