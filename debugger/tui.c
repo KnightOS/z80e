@@ -99,7 +99,7 @@ struct debugger_state tui_new_state(struct debugger_state *state, void *d_state,
 void tui_tick(asic_t *asic) {
 	while (1) {
                 char prompt_buffer[29];
-		ti_mmu_bank_state_t *st = &asic->mmu->banks[asic->cpu->registers.PC / 0x1000];
+		ti_mmu_bank_state_t *st = &asic->mmu->banks[asic->cpu->registers.PC / 0x4000];
 		snprintf(prompt_buffer, 29, "z80e [%c:%02X:0x%04X] %s> ", st->flash ? 'F' : 'R', st->page, asic->cpu->registers.PC, asic->cpu->halted ? "HALT " : "");
 		char *result = readline(prompt_buffer);
 		if (result) {
