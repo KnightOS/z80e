@@ -82,6 +82,11 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 
     state->asic->state->debugger = DEBUGGER_LONG_OPERATION_INTERRUPTABLE;;
     while (1) {
+        hook_on_before_execution(state->asic->hook, state->asic->cpu->registers.PC);
+        if (state->asic->state->stopped) {
+            state->asic->state->stopped = 0;
+            break;
+        }
         if (gDebuggerState.echo) {
             if (!state->asic->cpu->halted) {
                 state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
@@ -102,6 +107,8 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
         oldHalted = state->asic->cpu->halted;
 
         runloop_tick_cycles(state->asic->state->runloop, 1);
+
+        hook_on_before_execution(state->asic->hook, state->asic->cpu->registers.PC);
         if (state->asic->state->stopped) {
             state->asic->state->debugger = DEBUGGER_ENABLED;
             return 0;
