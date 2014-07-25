@@ -11,6 +11,7 @@ Native (Linux):
     $ make
 
 Browser:
+
     $ emconfigure cmake .
     $ make
 
