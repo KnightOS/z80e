@@ -1,4 +1,4 @@
-#include "memory.h"
+#include "cpu.h"
 
 #include "commands.h"
 #include "debugger.h"
@@ -10,7 +10,7 @@
 
 struct mmu_disassemble_memory {
         struct disassemble_memory mem;
-        ti_mmu_t *mmu;
+        z80cpu_t *cpu;
         struct debugger_state *state;
 };
 
@@ -29,7 +29,7 @@ int disassemble_print(struct disassemble_memory *s, const char *format, ...) {
 
 uint8_t disassemble_read(struct disassemble_memory *s, uint16_t pointer) {
     struct mmu_disassemble_memory *m = (struct mmu_disassemble_memory *)s;
-    return ti_read_byte(m->mmu, pointer);
+    return m->cpu->read_byte(m->cpu->memory, pointer);
 }
 
 int command_disassemble(struct debugger_state *state, int argc, char **argv) {
@@ -39,7 +39,7 @@ int command_disassemble(struct debugger_state *state, int argc, char **argv) {
         return 0;
     }
 
-    ti_mmu_t *mmu = (ti_mmu_t *)state->state;
+    z80cpu_t *cpu = state->asic->cpu;
 
     uint16_t start = state->asic->cpu->registers.PC;
     uint16_t count = 10;
@@ -53,7 +53,7 @@ int command_disassemble(struct debugger_state *state, int argc, char **argv) {
 
     uint16_t i = 0;
 
-    struct mmu_disassemble_memory str = { { disassemble_read, start }, mmu, state };
+    struct mmu_disassemble_memory str = { { disassemble_read, start }, cpu, state };
 
     for (i = 0; i < count; i++) {
         state->print(state, "0x%04X: ", str.mem.current);

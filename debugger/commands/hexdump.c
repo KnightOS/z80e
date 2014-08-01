@@ -12,7 +12,7 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
         return 0;
     }
 
-    ti_mmu_t *mmu = state->asic->mmu;
+    z80cpu_t *cpu = state->asic->cpu;
 
     uint16_t start = state->asic->cpu->registers.PC;
     if (argc > 1) {
@@ -30,7 +30,7 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
         state->print(state, "0x%04X ", start);
 
         for (i = 0; i < 8 && length - i > 0; i++) {
-            state->print(state, "%02X ", ti_read_byte(mmu, start + i));
+            state->print(state, "%02X ", cpu->read_byte(cpu->memory, start + i));
         }
         start += i;
         length -= i;
@@ -39,7 +39,7 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
         state->print(state, " ");
 
         for (i = 0; i < 8 && length - i > 0; i++) {
-            state->print(state, "%02X ", ti_read_byte(mmu, start + i));
+            state->print(state, "%02X ", cpu->read_byte(cpu->memory, start + i));
         }
         start += i;
         length -= i;
@@ -47,7 +47,7 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
 
         state->print(state, "%*s|", (16 - total) * 3 + (i < 8 ? 1 : 0), " ");
         for (i = 0; i < total; i++) {
-            char c = ti_read_byte(mmu, start - 16 + i);
+            char c = cpu->read_byte(cpu->memory, start - 16 + i);
             if (isprint(c) && c != '\t') {
                 state->print(state, "%c", c);
             } else {

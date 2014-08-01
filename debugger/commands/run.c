@@ -14,7 +14,7 @@ struct run_disassemble_state {
 uint8_t run_command_read_byte(struct disassemble_memory *state, uint16_t pointer) {
     struct run_disassemble_state *dstate = (struct run_disassemble_state *)state;
 
-    return ti_read_byte(dstate->state->asic->mmu, pointer);
+    return dstate->state->asic->cpu->read_byte(dstate->state->asic->cpu->memory, pointer);
 }
 
 int run_command_write(struct disassemble_memory *state, const char *format, ...) {

@@ -219,7 +219,7 @@ uint16_t parse_expression(debugger_state_t *state, const char *string) {
 					state->print(state, "ERROR: Dereferencing failed!\n");
 				} else {
 					uint16_t memory = value_stack[value_stack_pos - 1];
-					value_stack[value_stack_pos - 1] = ti_read_byte(state->asic->mmu, memory);
+					value_stack[value_stack_pos - 1] = state->asic->cpu->read_byte(state->asic->cpu->memory, memory);
 				}
 			} else {
 				while (operator_stack_pos > 0) {
