@@ -15,14 +15,14 @@ void depress_key(z80iodevice_t keyboard, uint8_t keycode) {
     keyboard_state_t *state = (keyboard_state_t*)keyboard.device;
     uint8_t group = keycode >> 4;
     uint8_t mask = 1 << (keycode & 0xF);
-    state->groups[group] |= mask;
+    state->groups[group] &= ~mask;
 }
 
 void release_key(z80iodevice_t keyboard, uint8_t keycode) {
     keyboard_state_t *state = (keyboard_state_t*)keyboard.device;
     uint8_t group = keycode >> 4;
     uint8_t mask = 1 << (keycode & 0xF);
-    state->groups[group] &= ~mask;
+    state->groups[group] |= mask;
 }
 
 uint8_t read_keyboard(void *_state) {
@@ -36,12 +36,12 @@ uint8_t read_keyboard(void *_state) {
     uint8_t value = 0;
     int i;
     for (i = 7; i >= 0; i--) {
-        if (!(mask & 0x80)) {
-            value |= state->groups[i];
+        if (mask & 0x80) {
+            value |= ~state->groups[i];
         }
         mask <<= 1;
     }
-    return value;
+    return ~value;
 }
 
 void write_keyboard(void *_state, uint8_t value) {
@@ -54,7 +54,7 @@ void write_keyboard(void *_state, uint8_t value) {
         }
         return;
     }
-    state->group_mask |= value;
+    state->group_mask |= ~value;
 }
 
 z80iodevice_t init_keyboard() {
