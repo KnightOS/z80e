@@ -4,6 +4,7 @@
 #include "runloop.h"
 #include "tui.h"
 #include "commands.h"
+#include "log.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,6 +13,9 @@
 #include <signal.h>
 #include <time.h>
 
+#ifdef CURSES
+#include <curses.h>
+#endif
 
 typedef struct {
     ti_device_type device;
@@ -111,6 +115,9 @@ void sigint_handler(int sig) {
     context.device_asic->state->stopped = 1;
 
     if (context.device_asic->state->debugger == DEBUGGER_ENABLED) {
+        #ifdef CURSES
+            endwin();
+        #endif
         exit(0);
     }
 
@@ -186,6 +193,22 @@ int main(int argc, char **argv) {
     register_print_mappings("mappings", 0);
     register_unhalt("unhalt", 0, device->cpu);
 
+#ifdef CURSES
+    initscr();
+    cbreak();
+    noecho();
+    nonl();
+    intrflush(stdscr, FALSE);
+    keypad(stdscr, TRUE);
+    start_color();
+
+    int width, height;
+    getmaxyx(stdscr, height, width);
+    log_window = stdscr;
+#endif
+
+    log_message(L_INFO, "z80e", "Initialized!");
+
     if (device->state->debugger) {
         tui_tick(device);
     } else {
@@ -206,5 +229,8 @@ int main(int argc, char **argv) {
         print_state(&device->cpu->registers);
     }
     asic_free(device);
+    #ifdef CURSES
+        endwin();
+    #endif
     return 0;
 }

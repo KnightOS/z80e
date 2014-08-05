@@ -38,6 +38,7 @@ add_executable(z80e
     ti/asic.c
     ti/memory.c
     runloop.c
+    log/log.c
     ${Hardware}
     ${Commands}
     ${Shims}
@@ -76,6 +77,7 @@ include_directories(
     ti/hardware/
     disassembler/
     shims/
+    log/
     .
 )
 
