@@ -21,6 +21,7 @@ add_executable(tests
     disassembler/disassemble.c
     ti/asic.c
     ti/memory.c
+    log/log.c
     runloop.c
     ${Hardware}
     ${Commands}
@@ -55,6 +56,7 @@ add_executable(zex
     ti/asic.c
     ti/memory.c
     runloop.c
+    log/log.c
     ${Hardware}
     ${Commands}
     ${Shims}
