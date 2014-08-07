@@ -245,7 +245,7 @@ int main(int argc, char **argv) {
         #ifdef CURSES
         tui_state_t state = { device, debugger_window };
         #else
-        tui_state_t state = { device, debugger_window };
+        tui_state_t state = { device };
         #endif
 	tui_init(&state);
         tui_tick(&state);
