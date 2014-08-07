@@ -5,6 +5,7 @@
 #include "tui.h"
 #include "commands.h"
 #include "log.h"
+#include "display.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,6 +16,7 @@
 
 #ifdef CURSES
 #include <curses.h>
+#include <locale.h>
 #endif
 
 typedef struct {
@@ -111,7 +113,7 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
 void sigint_handler(int sig) {
     signal(SIGINT, sigint_handler);
 
-    printf("\n Caught interrupt, stopping emulation\n");
+    log_message(L_ERROR, "sigint", "Caught interrupt, stopping emulation");
     context.device_asic->state->stopped = 1;
 
     if (context.device_asic->state->debugger == DEBUGGER_ENABLED) {
@@ -151,10 +153,51 @@ int main(int argc, char **argv) {
     }
 
     asic_t *device = asic_init(context.device);
+
+#ifdef CURSES
+    setlocale(LC_ALL, "");
+    initscr();
+    cbreak();
+    noecho();
+    nonl();
+    timeout(0);
+    intrflush(stdscr, FALSE);
+    keypad(stdscr, TRUE);
+    start_color();
+    use_default_colors();
+
+    int width, height;
+    getmaxyx(stdscr, height, width);
+
+    int lcd_width = 60;
+    int lcd_height = 18;
+    int lcd_x = width / 2 - lcd_width / 2;
+    int lcd_y = 1;
+
+    WINDOW *lcd_window_border = newwin(lcd_height + 2, lcd_width + 2, lcd_y - 1, lcd_x - 1);
+    WINDOW *lcd_window = newwin(lcd_height, lcd_width, lcd_y, lcd_x);
+    box(lcd_window_border, 0, 0);
+    wrefresh(lcd_window_border);
+
+    bw_lcd_set_window(device->cpu->devices[0x10].device, lcd_window);
+
+    WINDOW *log_window_border = newwin(height - 2 - (lcd_height + 2), width / 2 - 2, 1 + lcd_height + 2, 1);
+    log_window = newwin(height - 4 - (lcd_height + 2), width / 2 - 4, 2 + (lcd_height + 2), 2);
+    box(log_window_border, 0, 0);
+    wrefresh(log_window_border);
+    scrollok(log_window, TRUE);
+
+    WINDOW *debugger_border = newwin(height - 2 - (lcd_height + 2), width / 2 - 1, 1 + lcd_height + 2, width / 2 - 1);
+    WINDOW *debugger_window = newwin(height - 4 - (lcd_height + 2), width / 2 - 3, lcd_height + 4, width / 2);
+    box(debugger_border, 0, 0);
+    wrefresh(debugger_border);
+    scrollok(debugger_window, TRUE);
+#endif
+
     context.device_asic = device;
     device->state->debugger = tmp_debug;
     if (context.rom_file == NULL) {
-        printf("Warning: No ROM file specified, starting debugger\n");
+        log_message(L_WARN, "main", "No ROM file specified, starting debugger");
         device->state->debugger = DEBUGGER_ENABLED;
     } else {
         FILE *file = fopen(context.rom_file, "r");
@@ -168,6 +211,9 @@ int main(int argc, char **argv) {
         length = ftell(file);
         fseek(file, 0L, SEEK_SET);
         if (!context.no_rom_check && length != device->mmu->settings->flash_pages * 0x4000) {
+            #ifdef CURSES
+                endwin();
+            #endif
             printf("Error: This file does not match the required ROM size of %d bytes, but it is %d bytes (use --no-rom-check to override).\n",
 		device->mmu->settings->flash_pages * 0x4000, length);
             fclose(file);
@@ -193,24 +239,16 @@ int main(int argc, char **argv) {
     register_print_mappings("mappings", 0);
     register_unhalt("unhalt", 0, device->cpu);
 
-#ifdef CURSES
-    initscr();
-    cbreak();
-    noecho();
-    nonl();
-    intrflush(stdscr, FALSE);
-    keypad(stdscr, TRUE);
-    start_color();
-
-    int width, height;
-    getmaxyx(stdscr, height, width);
-    log_window = stdscr;
-#endif
-
     log_message(L_INFO, "z80e", "Initialized!");
 
     if (device->state->debugger) {
-        tui_tick(device);
+        #ifdef CURSES
+        tui_state_t state = { device, debugger_window };
+        #else
+        tui_state_t state = { device, debugger_window };
+        #endif
+	tui_init(&state);
+        tui_tick(&state);
     } else {
         if (context.cycles == -1) { // Run indefinitely
             while (1) {
