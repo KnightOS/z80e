@@ -3,6 +3,20 @@
 A z80 emulator designed for debugging the [KnightOS kernel](https://github.com/KnightSoft/kernel). It emulates Texas Instruments calculators and is not recommended for general-purpose z80 debugging.
 It's not done yet.
 
+## Why z80e?
+
+Most TI emulators have some of a shared set of problems, which z80e hopes to avoid. z80e is...
+
+**Portable**. It runs on any sane POSIX system, plus Windows and in web browsers. It'll probably even run on a z80 calculator if you're clever enough.
+
+**Modular**. You can run z80e with a simple terminal interface, a curses debugger, a gtk application (planned), in a web browser (in-progress), etc
+
+**Powerful**. We've built a powerful GDB-like debugger, a curses-based debugger, a web debugger, and a gtk debugger (planned).
+
+**Clean**. If you know C (z80 assembly would help, too), you can understand and help improve the codebase.
+
+**Permissive**. MIT licensed and easy to distribute, modify, or do whatever with.
+
 ## Compiling
 
 Native (Linux):
