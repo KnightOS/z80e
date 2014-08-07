@@ -10,14 +10,24 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+
+
 int print_tui(struct debugger_state *a, const char *b, ...) {
 	va_list list;
 	va_start(list, b);
+#ifdef CURSES
+	return vwprintw(((tui_state_t *)a->interface_state)->debugger_window, b, list);
+#else
 	return vprintf(b, list);
+#endif
 }
 
 int vprint_tui(struct debugger_state *a, const char *b, va_list list) {
+#ifdef CURSES
+	return vwprintw(((tui_state_t *)a->interface_state)->debugger_window, b, list);
+#else
 	return vprintf(b, list);
+#endif
 }
 #endif
 
@@ -92,23 +102,46 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 
 #ifndef EMSCRIPTEN
 struct debugger_state tui_new_state(struct debugger_state *state, void *d_state, const char *command_name) {
-	debugger_state_t stat = { print_tui, vprint_tui, d_state, state->asic, tui_new_state };
+	debugger_state_t stat = { print_tui, vprint_tui, d_state, state->interface_state, state->asic, tui_new_state };
 	return stat;
 }
 
-void tui_tick(asic_t *asic) {
+tui_state_t *current_state;
+
+#ifdef CURSES
+#define dprint(...) wprintw(state->debugger_window, __VA_ARGS__)
+#else
+#define dprint(...) printf(__VA_ARGS__)
+#endif
+void tui_init(tui_state_t *notused) {
+}
+
+void tui_tick(tui_state_t *state) {
+	current_state = state;
+	asic_t *asic = state->asic;
 	while (1) {
                 char prompt_buffer[29];
 		ti_mmu_bank_state_t *st = &asic->mmu->banks[asic->cpu->registers.PC / 0x4000];
 		snprintf(prompt_buffer, 29, "z80e [%c:%02X:0x%04X] %s> ", st->flash ? 'F' : 'R', st->page, asic->cpu->registers.PC, asic->cpu->halted ? "HALT " : "");
-		char *result = readline(prompt_buffer);
-		if (result) {
+		#ifdef CURSES
+			char _result[256];
+			wprintw(state->debugger_window, "%s", prompt_buffer);
+			echo();
+			wgetnstr(state->debugger_window, _result, 256);
+			noecho();
+			char *result = _result;
+		#else
+			char *result = readline(prompt_buffer);
+		#endif
+		if (result && result[0] != 0) {
 			int from_history = 0;
 
 			if (*result == 0) {
 				HIST_ENTRY *hist = history_get(where_history());
 				if (hist == 0) {
-					free(result);
+					#ifndef CURSES
+						free(result);
+					#endif
 					continue;
 				}
 				result = (char *)hist->line;
@@ -126,39 +159,39 @@ void tui_tick(asic_t *asic) {
 
 			if (strcmp(cmdline[0], "set") == 0) {
 				if (argc != 2) {
-					printf("Invalid use of 'set'!\n");
+					dprint("Invalid use of 'set'!\n");
 				} else {
 					if (strcmp(cmdline[1], "echo") == 0) {
 						gDebuggerState.echo = 1;
 					} else if (strcmp(cmdline[1], "echo_reg") == 0) {
 						gDebuggerState.echo_reg = 1;
 					} else {
-						printf("Unknown variable '%s'!\n", cmdline[1]);
+						dprint("Unknown variable '%s'!\n", cmdline[1]);
 					}
 				}
 			} else if (strcmp(cmdline[0], "unset") == 0) {
 				if (argc != 2) {
-					printf("Invalid use of 'unset'!\n");
+					dprint("Invalid use of 'unset'!\n");
 				} else {
 					if (strcmp(cmdline[1], "echo") == 0) {
 						gDebuggerState.echo = 0;
 					} else if (strcmp(cmdline[1], "echo_reg") == 0) {
 						gDebuggerState.echo_reg = 0;
 					} else {
-						printf("Unknown variable '%s'!\n", cmdline[1]);
+						dprint("Unknown variable '%s'!\n", cmdline[1]);
 					}
 				}
 			} else {
 				int status = find_best_command(cmdline[0], &command);
 				if (status == -1) {
-					printf("Error: Ambiguous command %s\n", result);
+					dprint("Error: Ambiguous command %s\n", result);
 				} else if (status == 0) {
-					printf("Error: Unknown command %s\n", result);
+					dprint("Error: Unknown command %s\n", result);
 				} else {
-					debugger_state_t state = { print_tui, vprint_tui, command->state, asic, tui_new_state };
-					int output = command->function(&state, argc, cmdline);
+					debugger_state_t dstate = { print_tui, vprint_tui, command->state, state, asic, tui_new_state };
+					int output = command->function(&dstate, argc, cmdline);
 					if (output != 0) {
-						printf("The command returned %d\n", output);
+						dprint("The command returned %d\n", output);
 					}
 				}
 			}
@@ -171,7 +204,9 @@ void tui_tick(asic_t *asic) {
 
 			free(cmdline);
 			if (!from_history) {
-				free(result);
+				#ifndef CURSES
+					free(result);
+				#endif
 			}
 		} else if (result == NULL) {
 			break;
