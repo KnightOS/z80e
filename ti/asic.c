@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "display.h"
+#include "t6a04.h"
 #include "memory.h"
 #include "memorymapping.h"
 #include "cpu.h"

@@ -5,7 +5,7 @@
 #include "tui.h"
 #include "commands.h"
 #include "log.h"
-#include "display.h"
+#include "t6a04.h"
 
 #include <stdlib.h>
 #include <stdio.h>
