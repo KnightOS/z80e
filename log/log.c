@@ -33,7 +33,7 @@ void _log_message(loglevel_t level, const char *part, const char *file, int line
 
 		wprintw(log_window, "[%s - %s] ", loglevel_to_string(level), part);
 		vwprintw(log_window, format, format_list);
-		wprintw(log_window, " (function %s, line %d)\n", function, line);
+		wprintw(log_window, "\n");
 		wrefresh(log_window);
 	#else
 		printf("[%s - %s] ", loglevel_to_string(level), part);
