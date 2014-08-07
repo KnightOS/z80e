@@ -29,10 +29,6 @@ uint8_t read_keyboard(void *_state) {
     keyboard_state_t *state = (keyboard_state_t*)_state;
     uint8_t mask = state->group_mask;
 
-    if (mask == 0) {
-        return 0xFF;
-    }
-
     uint8_t value = 0;
     int i;
     for (i = 7; i >= 0; i--) {
@@ -48,10 +44,6 @@ void write_keyboard(void *_state, uint8_t value) {
     keyboard_state_t *state = (keyboard_state_t*)_state;
     if (value == 0xFF) {
         state->group_mask = 0;
-        int i;
-        for (i = 0; i < 8; i++) {
-            state->groups[i] = 0xFF;
-        }
         return;
     }
     state->group_mask |= ~value;
