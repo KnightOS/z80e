@@ -9,7 +9,7 @@ Most TI emulators have some of a shared set of problems, which z80e hopes to avo
 
 **Portable**. It runs on any sane POSIX system, plus Windows and in web browsers. It'll probably even run on a z80 calculator if you're clever enough.
 
-**Modular**. You can run z80e with a simple terminal interface, a curses debugger, a gtk application (planned), in a web browser (in-progress), etc
+**Flexible**. You can run z80e with a simple terminal interface, a curses debugger, a gtk application (planned), in a web browser (in-progress), etc
 
 **Powerful**. We've built a powerful GDB-like debugger, a curses-based debugger, a web debugger, and a gtk debugger (planned).
 
