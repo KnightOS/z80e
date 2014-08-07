@@ -4,6 +4,18 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "log.h"
+
+#ifdef CURSES
+#include <curses.h>
+#endif
+
+#ifdef CURSES
+#define lcd_print(...) wprintw(lcd->lcd_display, __VA_ARGS__)
+#else
+#define lcd_print(...) printf( __VA_ARGS__)
+#endif
+
 struct ti_bw_lcd {
 	uint8_t up: 1; // set=up, unset=down
 	uint8_t counter: 1; // set=Y, unset=X
@@ -17,7 +29,20 @@ struct ti_bw_lcd {
 	int Z; // which is which y is rendered at top
 	uint8_t contrast; // 0-63
 	uint8_t *ram; // [X * 64 + Y]
+
+#ifdef CURSES
+	WINDOW *lcd_display;
+#endif
 };
+
+#ifdef CURSES
+void bw_lcd_set_window(void *device, WINDOW *win) {
+	ti_bw_lcd_t *lcd = device;
+	lcd->lcd_display = win;
+	lcd_print("Enabled LCD window here");
+	wrefresh(win);
+}
+#endif
 
 void setup_lcd_display(asic_t *asic) {
 	ti_bw_lcd_t *lcd = malloc(sizeof(ti_bw_lcd_t));
@@ -53,13 +78,17 @@ void bw_lcd_dump(ti_bw_lcd_t *lcd) {
 	int cY;
 	int cX;
 
+	#ifdef CURSES
+	wmove(lcd->lcd_display, 0, 0);
+	#endif
+
 #define LCD_BRAILLE
 #ifndef LCD_BRAILLE
 	for (cX = 0; cX < 64; cX++) {
 		for (cY = 0; cY < 120; cY++) {
-			printf("%c", bw_lcd_read_screen(lcd, cY, cX) ? 'O' : ' ');
+			lcd_print("%c", bw_lcd_read_screen(lcd, cY, cX) ? 'O' : ' ');
 		}
-		printf("\n");
+		lcd_print("\n");
 	}
 #else
 	for (cX = 0; cX < 64; cX += 4) {
@@ -84,17 +113,22 @@ void bw_lcd_dump(ti_bw_lcd_t *lcd) {
 				(h << 7));
 			char buff[5] = {0};
 			unicode_to_utf8(buff, byte_value);
-			fputs(buff, stdout);
+			lcd_print("%s", buff);
 		}
-		printf("\n");
+#ifndef CURSES
+		lcd_print("\n");
+#endif
 	}
 #endif
 	bw_lcd_state_dump(lcd);
+#ifdef CURSES
+	wrefresh(lcd->lcd_display);
+#endif
 }
 
 void bw_lcd_state_dump(ti_bw_lcd_t *lcd) {
-	printf("C: 0x%02X X: 0x%02X Y: 0x%02X Z: 0x%02X\n", lcd->contrast, lcd->X, lcd->Y, lcd->Z);
-	printf("   %c%c%c%c  O1: 0x%01X 02: 0x%01X\n", lcd->up ? 'V' : '^', lcd->counter ? '-' : '|',
+	lcd_print("C: 0x%02X X: 0x%02X Y: 0x%02X Z: 0x%02X\n", lcd->contrast, lcd->X, lcd->Y, lcd->Z);
+	lcd_print("   %c%c%c%c  O1: 0x%01X 02: 0x%01X\n", lcd->up ? 'V' : '^', lcd->counter ? '-' : '|',
 		lcd->word_length ? '8' : '6', lcd->display_on ? 'O' : ' ', lcd->op_amp1, lcd->op_amp2);
 }
 
@@ -140,7 +174,7 @@ uint8_t bw_lcd_status_read(void *device) {
 void bw_lcd_status_write(void *device, uint8_t val) {
 	ti_bw_lcd_t *lcd = device;
 
-	printf("LCD: Wrote 0x%02X (0b%d%d%d%d%d%d%d%d) to status\n", val,
+	log_message(L_DEBUG, "lcd", "Wrote 0x%02X (0b%d%d%d%d%d%d%d%d) to status", val,
 		!!(val & (1 << 7)),
 		!!(val & (1 << 6)),
 		!!(val & (1 << 5)),
@@ -152,36 +186,37 @@ void bw_lcd_status_write(void *device, uint8_t val) {
 	);
 	if (val & 0xC0) { // 0b11XXXXXX
 		lcd->contrast = val & 0x3F;
-		printf("\tLCD: Set contrast to 0x%02X\n", lcd->contrast);
+		log_message(L_DEBUG, "lcd", "\tSet contrast to 0x%02X", lcd->contrast);
 	} else if (val & 0x80) { // 0b10XXXXXX
 		lcd->X = val & 0x3F;
-		printf("\tLCD: Set X (vertical!) to 0x%02X\n", lcd->X);
+		log_message(L_DEBUG, "lcd", "\tSet X (vertical!) to 0x%02X", lcd->X);
 	} else if (val & 0x40) { // 0b01XXXXXX
 		lcd->Z = val & 0x3F;
-		printf("\tLCD: Set Z (vertical scroll) to 0x%02X\n", lcd->Z);
+		log_message(L_DEBUG, "lcd", "\tSet Z (vertical scroll) to 0x%02X", lcd->Z);
 	} else if (val & 0x20) { // 0b001XXXXX
 		lcd->Y = val & 0x1F;
-		printf("\tLCD: Set Y (horizontal!) to 0x%02X\n", lcd->Y);
+		log_message(L_DEBUG, "lcd", "\tSet Y (horizontal!) to 0x%02X", lcd->Y);
 	} else if ((val & 0x18) == 0x18) { // 0b00011***
 		// test mode - not emulating yet
 	} else if (val & 0x10) { // 0b00010*XX
 		lcd->op_amp1 = val & 0x03;
-		printf("\tLCD: Set Op-Amp 1 to 0x%02X\n", lcd->op_amp1);
+		log_message(L_DEBUG, "lcd", "\tSet Op-Amp 1 to 0x%02X", lcd->op_amp1);
 	} else if (val & 0x08) { // 0b00001*XX
 		lcd->op_amp2 = val & 0x03;
-		printf("\tLCD: Set Op-Amp 2 to 0x%02X\n", lcd->op_amp2);
+		log_message(L_DEBUG, "lcd", "\tSet Op-Amp 2 to 0x%02X", lcd->op_amp2);
 	} else if (val & 0x04) { // 0b000001XX
 		lcd->counter = !!(val & 0x02);
 		lcd->up = !!(val & 0x01);
-		printf("\tLCD: Set counter to %s and Up/Down to %s\n",
+		log_message(L_DEBUG, "lcd", "\tSet counter to %s and Up/Down to %s",
 			lcd->counter ? "Y" : "X", lcd->up ? "Up" : "Down");
 	} else if (val & 0x02) { // 0b0000001X
 		lcd->display_on = !!(val & 0x01);
-		printf("\tLCD: Display turned %s\n", lcd->display_on ? "ON" : "OFF");
+		log_message(L_DEBUG, "lcd", "\tDisplay turned %s", lcd->display_on ? "ON" : "OFF");
 	} else { // 0b0000000X
 		lcd->word_length = !!(val & 0x01);
-		printf("\tLCD: Word Length set to %d\n", lcd->word_length ? 8 : 6);
+		log_message(L_DEBUG, "lcd", "\tWord Length set to %d", lcd->word_length ? 8 : 6);
 	}
+	bw_lcd_dump(lcd);
 }
 
 void bw_lcd_advance_int_pointer(ti_bw_lcd_t *lcd, int *Y, int *X) {
@@ -252,7 +287,7 @@ void bw_lcd_data_write(void *device, uint8_t val) {
 		cY--;
 	}
 
-	printf("LCD: Wrote %02X (0b%d%d%d%d%d%d%d%d) to %d (Y), %d (X)\n",
+	log_message(L_DEBUG, "lcd", "Wrote %02X (0b%d%d%d%d%d%d%d%d) to %d (Y), %d (X)",
 		val,
 		!!(val & (1 << 7)), !!(val & (1 << 6)),
 		!!(val & (1 << 5)), !!(val & (1 << 4)),

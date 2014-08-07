@@ -7,6 +7,11 @@ void setup_lcd_display(asic_t *);
 
 typedef struct ti_bw_lcd ti_bw_lcd_t;
 
+#ifdef CURSES
+#include <curses.h>
+void bw_lcd_set_window(void *device, WINDOW *win);
+#endif
+
 void bw_lcd_state_dump(ti_bw_lcd_t *lcd);
 void bw_lcd_dump(ti_bw_lcd_t *lcd);
 
