@@ -50,7 +50,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
                 state->asic->state->stopped = 0;
                 break;
             }
-            if (gDebuggerState.echo) {
+            if (state->debugger->flags.echo) {
                 if (!state->asic->cpu->halted) {
                     state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
                     dstate.memory.current = state->asic->cpu->registers.PC;
@@ -63,7 +63,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
                 }
             }
 
-            if (gDebuggerState.echo_reg) {
+            if (state->debugger->flags.echo_reg) {
                 print_state(&state->asic->cpu->registers);
             }
 
@@ -87,7 +87,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
             state->asic->state->stopped = 0;
             break;
         }
-        if (gDebuggerState.echo) {
+        if (state->debugger->flags.echo) {
             if (!state->asic->cpu->halted) {
                 state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
                 dstate.memory.current = state->asic->cpu->registers.PC;
@@ -100,7 +100,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
             }
         }
 
-        if (gDebuggerState.echo_reg) {
+        if (state->debugger->flags.echo_reg) {
             print_state(&state->asic->cpu->registers);
         }
 

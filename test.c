@@ -137,7 +137,7 @@ const test_t tests[] = {
     { test_memorymapping_83p, "port 0x04, 0x05, 0x06, 0x07 (mapping, TI-83+)" },
     { test_memorymapping_others, "port 0x04, 0x05, 0x06, 0x07 (mapping, Others)" },
     { NULL, "Debugger tests" },
-    { test_debugger_register_command, "register_command()" },
+    { test_debugger_init, "debugger_init()" },
     { test_debugger_find_command, "find_best_command()" },
     { test_debugger_tui_commandline, "Text UI commandline parser" },
     { test_disassembler, "Disassembler" },

@@ -102,7 +102,7 @@ char **tui_parse_commandline(const char *cmdline, int *argc) {
 
 #ifndef EMSCRIPTEN
 struct debugger_state tui_new_state(struct debugger_state *state, void *d_state, const char *command_name) {
-	debugger_state_t stat = { print_tui, vprint_tui, d_state, state->interface_state, state->asic, tui_new_state };
+	debugger_state_t stat = { print_tui, vprint_tui, d_state, state->interface_state, state->asic, state->debugger, tui_new_state };
 	return stat;
 }
 
@@ -118,7 +118,7 @@ void tui_init(tui_state_t *notused) {
 
 void tui_tick(tui_state_t *state) {
 	current_state = state;
-	asic_t *asic = state->asic;
+	asic_t *asic = state->debugger->asic;
 	while (1) {
                 char prompt_buffer[29];
 		ti_mmu_bank_state_t *st = &asic->mmu->banks[asic->cpu->registers.PC / 0x4000];
@@ -162,9 +162,9 @@ void tui_tick(tui_state_t *state) {
 					dprint("Invalid use of 'set'!\n");
 				} else {
 					if (strcmp(cmdline[1], "echo") == 0) {
-						gDebuggerState.echo = 1;
+						state->debugger->flags.echo = 1;
 					} else if (strcmp(cmdline[1], "echo_reg") == 0) {
-						gDebuggerState.echo_reg = 1;
+						state->debugger->flags.echo_reg = 1;
 					} else {
 						dprint("Unknown variable '%s'!\n", cmdline[1]);
 					}
@@ -174,21 +174,21 @@ void tui_tick(tui_state_t *state) {
 					dprint("Invalid use of 'unset'!\n");
 				} else {
 					if (strcmp(cmdline[1], "echo") == 0) {
-						gDebuggerState.echo = 0;
+						state->debugger->flags.echo = 0;
 					} else if (strcmp(cmdline[1], "echo_reg") == 0) {
-						gDebuggerState.echo_reg = 0;
+						state->debugger->flags.echo_reg = 0;
 					} else {
 						dprint("Unknown variable '%s'!\n", cmdline[1]);
 					}
 				}
 			} else {
-				int status = find_best_command(cmdline[0], &command);
+				int status = find_best_command(state->debugger, cmdline[0], &command);
 				if (status == -1) {
 					dprint("Error: Ambiguous command %s\n", result);
 				} else if (status == 0) {
 					dprint("Error: Unknown command %s\n", result);
 				} else {
-					debugger_state_t dstate = { print_tui, vprint_tui, command->state, state, asic, tui_new_state };
+					debugger_state_t dstate = { print_tui, vprint_tui, command->state, state, asic, state->debugger, tui_new_state };
 					int output = command->function(&dstate, argc, cmdline);
 					if (output != 0) {
 						dprint("The command returned %d\n", output);

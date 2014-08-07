@@ -81,7 +81,7 @@ int command_on(struct debugger_state *state, int argc, char **argv) {
 	char **new_argv = malloc(sizeof(char *) * argc - 3);
 	int new_argc = argc - 4;
 	on_state_t *sta = malloc(sizeof(on_state_t));
-	find_best_command(argv[4], &sta->command);
+	find_best_command(state->debugger, argv[4], &sta->command);
 	sta->deb_sta = state->create_new_state(state, sta->command->state, argv[4]);
 	sta->argc = new_argc;
 	sta->argv = new_argv;

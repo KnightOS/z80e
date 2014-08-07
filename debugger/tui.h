@@ -2,13 +2,14 @@
 #define DEBUGGER_TUI_H
 
 #include "asic.h"
+#include "debugger.h"
 
 #ifdef CURSES
 #include <curses.h>
 #endif
 
 typedef struct {
-	asic_t *asic;
+	debugger_t *debugger;
 #ifdef CURSES
 	WINDOW *debugger_window;
 #endif

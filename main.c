@@ -224,28 +224,29 @@ int main(int argc, char **argv) {
         fclose(file);
     }
 
-    register_in("in", 0);
-    register_out("out", 0);
-    register_on("on", 0);
-    register_break("break", 1);
-    register_run("run", 1);
-    register_step("step", 2);
-    register_stop("stop", 0);
-    register_hexdump("dump", 0, device->mmu);
-    register_disassemble("disassemble", 1, device->mmu);
-    register_print_registers("print_registers", 0, device->cpu);
-    register_print_expression("expression", 0);
-    register_stack("stack", 1, device->cpu);
-    register_print_mappings("mappings", 0);
-    register_unhalt("unhalt", 0, device->cpu);
+    debugger_t *debugger = init_debugger(device);
+    register_in(debugger, "in", 0);
+    register_out(debugger, "out", 0);
+    register_on(debugger, "on", 0);
+    register_break(debugger, "break", 1);
+    register_run(debugger, "run", 1);
+    register_step(debugger, "step", 2);
+    register_stop(debugger, "stop", 0);
+    register_hexdump(debugger, "dump", 0, device->mmu);
+    register_disassemble(debugger, "disassemble", 1, device->mmu);
+    register_print_registers(debugger, "print_registers", 0, device->cpu);
+    register_print_expression(debugger, "expression", 0);
+    register_stack(debugger, "stack", 1, device->cpu);
+    register_print_mappings(debugger, "mappings", 0);
+    register_unhalt(debugger, "unhalt", 0, device->cpu);
 
     log_message(L_INFO, "z80e", "Initialized!");
 
     if (device->state->debugger) {
         #ifdef CURSES
-        tui_state_t state = { device, debugger_window };
+        tui_state_t state = { debugger, debugger_window };
         #else
-        tui_state_t state = { device };
+        tui_state_t state = { debugger };
         #endif
 	tui_init(&state);
         tui_tick(&state);

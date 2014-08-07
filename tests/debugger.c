@@ -13,39 +13,51 @@ int debugger_alwaysfail(debugger_state_t *state, int argc, char **argv) {
 	return 0;
 }
 
-int test_debugger_register_command() {
-	register_command("alwaysok", debugger_alwaysok, NULL, 0);
-	register_command("alwaysfail", debugger_alwaysfail, NULL, 0);
-	debugger_initialized = 1;
+int test_debugger_init() {
+	asic_t uninit;
+	debugger_t *debugger = init_debugger(&uninit);
 
+	if (debugger->asic != &uninit) {
+		free_debugger(debugger);
+		return 1;
+	}
+
+	register_command(debugger, "alwaysok", debugger_alwaysok, NULL, 0);
+	register_command(debugger, "alwaysfail", debugger_alwaysfail, NULL, 0);
+
+	if (debugger->commands.count != 3) { // alwaysok, alwaysfail, and the built-in list_commands
+		free_debugger(debugger);
+		return 2;
+	}
+
+	free_debugger(debugger);
 	return 0;
 }
 
 int test_debugger_find_command() {
-	if (!debugger_initialized) {
-		test_debugger_register_command();
-	}
+	asic_t uninit;
+	debugger_t *debugger = init_debugger(&uninit);
+	register_command(debugger, "alwaysok", debugger_alwaysok, NULL, 0);
+	register_command(debugger, "alwaysfail", debugger_alwaysfail, NULL, 0);
 
 	debugger_command_t *command;
-	int result = find_best_command("always", &command);
+	int result = find_best_command(debugger, "always", &command);
 	if (result != -1) {
-		printf("Got wrong command: got %p (%s)\n", command, command->name);
 		return 1;
 	}
 
-	result = find_best_command("alwaysok", &command);
+	result = find_best_command(debugger, "alwaysok", &command);
 	if (!result || command->function != debugger_alwaysok) {
 		return 2;
 	}
 
-	result = find_best_command("alwaysfail", &command);
+	result = find_best_command(debugger, "alwaysfail", &command);
 	if (!result || command->function != debugger_alwaysfail) {
 		return 3;
 	}
 
-	result = find_best_command("alwaysdontexist", &command);
+	result = find_best_command(debugger, "alwaysdontexist", &command);
 	if (result != 0) {
-		printf("Got %d and %p (%s)\n", result, command, command != 0 ? command->name : "(null)");
 		return 4;
 	}
 

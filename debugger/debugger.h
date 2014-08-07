@@ -6,16 +6,9 @@
 
 #include "asic.h"
 
-struct debugger_state;
-
-typedef int (*debugger_function_t)(struct debugger_state *, int, char **);
-
-typedef struct {
-	int echo;
-	int echo_reg;
-} global_debugger_state_t;
-
-extern global_debugger_state_t gDebuggerState;
+typedef struct debugger_state debugger_state_t;
+typedef struct debugger debugger_t;
+typedef int (*debugger_function_t)(debugger_state_t *, int, char **);
 
 typedef struct {
 	const char *name;
@@ -30,16 +23,30 @@ typedef struct {
 	debugger_command_t **commands;
 } debugger_list_t;
 
-typedef struct debugger_state {
-	int (*print)(struct debugger_state *, const char *, ...);
-	int (*vprint)(struct debugger_state *, const char *, va_list);
+struct debugger_state {
+	int (*print)(debugger_state_t *, const char *, ...);
+	int (*vprint)(debugger_state_t *, const char *, va_list);
 	void *state;
 	void *interface_state;
 	asic_t *asic;
-	struct debugger_state (*create_new_state)(struct debugger_state *, void *, const char *command_name);
-} debugger_state_t;
+	debugger_t *debugger;
+	struct debugger_state (*create_new_state)(debugger_state_t *, void *, const char *command_name);
+};
 
-int find_best_command(const char *, debugger_command_t **);
-void register_command(const char *, debugger_function_t, void *, int);
+struct debugger {
+	struct {
+		int echo : 1;
+		int echo_reg : 1;
+	} flags;
+
+	debugger_list_t commands;
+	asic_t *asic;
+};
+
+debugger_t *init_debugger(asic_t *);
+void free_debugger(debugger_t *);
+
+int find_best_command(debugger_t *, const char *, debugger_command_t **);
+void register_command(debugger_t *, const char *, debugger_function_t, void *, int);
 
 #endif
