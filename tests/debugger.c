@@ -64,11 +64,11 @@ int test_debugger_find_command() {
 	return 0;
 }
 
-int test_debugger_tui_commandline() {
+int test_debugger_commandline() {
 	const char *test_data = "5 + 3 \"5 + 3\""; // 5 + 3 "5 + 3"
 
 	int argc = 0;
-	char **result = tui_parse_commandline(test_data, &argc);
+	char **result = debugger_parse_commandline(test_data, &argc);
 
 	if (argc != 4) {
 		return 1;

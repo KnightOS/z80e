@@ -15,8 +15,6 @@ typedef struct {
 #endif
 } tui_state_t;
 
-char **tui_parse_commandline(const char *, int *);
-
 #ifndef EMSCRIPTEN
 void tui_init(tui_state_t *state);
 void tui_tick(tui_state_t *state);

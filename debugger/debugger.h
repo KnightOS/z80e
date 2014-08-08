@@ -49,4 +49,7 @@ void free_debugger(debugger_t *);
 int find_best_command(debugger_t *, const char *, debugger_command_t **);
 void register_command(debugger_t *, const char *, debugger_function_t, void *, int);
 
+char **debugger_parse_commandline(const char *, int *);
+int debugger_exec(debugger_state_t *, const char *);
+
 #endif

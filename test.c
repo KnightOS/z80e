@@ -139,7 +139,7 @@ const test_t tests[] = {
     { NULL, "Debugger tests" },
     { test_debugger_init, "debugger_init()" },
     { test_debugger_find_command, "find_best_command()" },
-    { test_debugger_tui_commandline, "Text UI commandline parser" },
+    { test_debugger_commandline, "Commandline parser" },
     { test_disassembler, "Disassembler" },
 };
 
