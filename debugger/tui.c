@@ -1,5 +1,6 @@
 #include "tui.h"
 #include "debugger.h"
+#include "disassemble.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,13 +48,42 @@ tui_state_t *current_state;
 void tui_init(tui_state_t *notused) {
 }
 
+struct tui_disasm {
+	ti_mmu_t *mmu;
+	char *string_pointer;
+};
+
+uint8_t tui_disassemble_read(struct disassemble_memory *state, uint16_t mem) {
+	struct tui_disasm *disasm = state->extra_data;
+	return ti_read_byte(disasm->mmu, mem);
+}
+
+int tui_disassemble_write(struct disassemble_memory *state, const char *format, ...) {
+	struct tui_disasm *disasm = state->extra_data;
+	va_list list;
+	va_start(list, format);
+	int count = vsprintf(disasm->string_pointer, format, list);
+	disasm->string_pointer += count;
+	return count;
+}
+
 void tui_tick(tui_state_t *state) {
 	current_state = state;
 	asic_t *asic = state->debugger->asic;
+	struct tui_disasm disasm_custom = { asic->mmu, 0 };
+	struct disassemble_memory disasm = { tui_disassemble_read, 0, &disasm_custom };
 	while (1) {
-                char prompt_buffer[29];
+                char prompt_buffer[80];
+		char *current_pointer = prompt_buffer;
 		ti_mmu_bank_state_t *st = &asic->mmu->banks[asic->cpu->registers.PC / 0x4000];
-		snprintf(prompt_buffer, 29, "z80e [%c:%02X:0x%04X] %s> ", st->flash ? 'F' : 'R', st->page, asic->cpu->registers.PC, asic->cpu->halted ? "HALT " : "");
+		current_pointer += sprintf(prompt_buffer, "z80e [%c:%02X:0x%04X ", st->flash ? 'F' : 'R', st->page, asic->cpu->registers.PC);
+
+		disasm_custom.string_pointer = current_pointer;
+		disasm.current = asic->cpu->registers.PC;
+		parse_instruction(&disasm, tui_disassemble_write);
+		current_pointer = disasm_custom.string_pointer;
+
+		sprintf(current_pointer, "] %s> ", asic->cpu->halted ? "HALT " : "");
 		#ifdef CURSES
 			char _result[256];
 			wprintw(state->debugger_window, "%s", prompt_buffer);
