@@ -64,7 +64,7 @@ void register_break(debugger_t *debugger, const char *name, int priority) {
 }
 
 void register_step_over(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_break, NULL, priority);
+	register_command(debugger, name, command_step_over, NULL, priority);
 }
 
 uint16_t parse_operand(debugger_state_t *state, const char *start, const char **end) {
