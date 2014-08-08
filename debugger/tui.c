@@ -64,7 +64,7 @@ void tui_tick(tui_state_t *state) {
 		#else
 			char *result = readline(prompt_buffer);
 		#endif
-		if (result && result[0] != 0) {
+		if (result) {
 			int from_history = 0;
 
 			if (*result == 0) {
