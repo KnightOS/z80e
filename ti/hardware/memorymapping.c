@@ -46,6 +46,7 @@ void reload_mapping(memory_mapping_state_t *state) {
        banks[1].flash ? 'F' : 'R', banks[1].page,
        banks[2].flash ? 'F' : 'R', banks[2].page,
        banks[3].flash ? 'F' : 'R', banks[3].page);
+    log_message(L_DEBUG, "memorymapping", "PC = 0x%04X", state->asic->cpu->registers.PC)
 }
 
 uint8_t read_device_status_port(void *device) {
