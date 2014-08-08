@@ -18,6 +18,7 @@ int command_on(debugger_state_t *state, int argc, char **argv);
 int command_in(debugger_state_t *state, int argc, char **argv);
 int command_out(debugger_state_t *state, int argc, char **argv);
 int command_break(debugger_state_t *state, int argc, char **argv);
+int command_step_over(debugger_state_t *state, int argc, char **argv);
 
 void register_hexdump(debugger_t *, const char *, int, ti_mmu_t *);
 void register_disassemble(debugger_t *, const char *, int, ti_mmu_t *);
@@ -33,6 +34,7 @@ void register_on(debugger_t *, const char *, int);
 void register_in(debugger_t *, const char *, int);
 void register_out(debugger_t *, const char *, int);
 void register_break(debugger_t *, const char *, int);
+void register_step_over(debugger_t *, const char *, int);
 
 uint16_t parse_expression(debugger_state_t *, const char *);
 #endif

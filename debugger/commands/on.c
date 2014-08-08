@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "debugger.h"
+#include "disassemble.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -73,7 +74,7 @@ int command_on(struct debugger_state *state, int argc, char **argv) {
 	if (strncasecmp(argv[2], "read", 4) == 0) {
 		thing = READ;
 	}
-	
+
 	if (strncasecmp(argv[2], "write", 4) == 0) {
 		thing = WRITE;
 	}
@@ -124,6 +125,32 @@ int command_break(struct debugger_state *state, int argc, char **argv) {
 
 	struct break_data *data = malloc(sizeof(struct break_data));
 	data->address = address;
+	data->asic = state->asic;
+
+	hook_add_before_execution(state->asic->hook, data, (hook_execution_callback)break_callback);
+	return 0;
+}
+
+uint8_t step_over_read_byte(struct disassemble_memory *dmem, uint16_t mem) {
+	return ti_read_byte(dmem->extra_data, mem);
+}
+
+int step_over_disasm_write(struct disassemble_memory *mem, const char *thing, ...) {
+	return 0; // nothing will be written here
+}
+
+int command_step_over(struct debugger_state *state, int argc, char **argv) {
+	if (argc != 1) {
+		state->print(state, "%s - set a breakpoint for the instruction after the current one\n", argv[0]);
+		return 0;
+	}
+
+	struct disassemble_memory mem = { step_over_read_byte, state->asic->cpu->registers.PC, state->asic->mmu };
+
+	uint16_t size = parse_instruction(&mem, step_over_disasm_write);
+
+	struct break_data *data = malloc(sizeof(struct break_data));
+	data->address = state->asic->cpu->registers.PC + size;
 	data->asic = state->asic;
 
 	hook_add_before_execution(state->asic->hook, data, (hook_execution_callback)break_callback);

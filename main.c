@@ -239,6 +239,7 @@ int main(int argc, char **argv) {
     register_stack(debugger, "stack", 1, device->cpu);
     register_print_mappings(debugger, "mappings", 0);
     register_unhalt(debugger, "unhalt", 0, device->cpu);
+    register_step_over(debugger, "step_over", 0);
 
     log_message(L_INFO, "z80e", "Initialized!");
 
