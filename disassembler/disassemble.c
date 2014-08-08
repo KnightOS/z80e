@@ -262,7 +262,9 @@ void parse_bli(int y, int z, struct context *context) {
     }
 }
 
-void parse_instruction(struct disassemble_memory *memory, write_pointer write_p) {
+uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer write_p) {
+	uint16_t start_mem = memory->current;
+
 	struct context context;
 
         context.prefix = 0;
@@ -668,7 +670,7 @@ void parse_instruction(struct disassemble_memory *memory, write_pointer write_p)
                             // Handled before
                             break;
                         }
-                        break; 
+                        break;
                     }
                     break;
                 case 6: // alu[y] n
@@ -686,4 +688,5 @@ void parse_instruction(struct disassemble_memory *memory, write_pointer write_p)
 	if (context.prefix && context.second_prefix) {
 		memory->current++;
 	}
+	return memory->current - start_mem;
 }

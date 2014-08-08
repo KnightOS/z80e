@@ -11,6 +11,6 @@ struct disassemble_memory {
 
 typedef int (*write_pointer)(struct disassemble_memory *, const char *, ...);
 
-void parse_instruction(struct disassemble_memory *, write_pointer);
+uint16_t parse_instruction(struct disassemble_memory *, write_pointer);
 
 #endif
