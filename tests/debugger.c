@@ -21,11 +21,12 @@ int test_debugger_init() {
 		free_debugger(debugger);
 		return 1;
 	}
+	int orig_count = debugger->commands.count;
 
 	register_command(debugger, "alwaysok", debugger_alwaysok, NULL, 0);
 	register_command(debugger, "alwaysfail", debugger_alwaysfail, NULL, 0);
 
-	if (debugger->commands.count != 3) { // alwaysok, alwaysfail, and the built-in list_commands
+	if (debugger->commands.count - orig_count != 2) {
 		free_debugger(debugger);
 		return 2;
 	}
