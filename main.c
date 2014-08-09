@@ -225,7 +225,6 @@ int main(int argc, char **argv) {
     }
 
     debugger_t *debugger = init_debugger(device);
-    log_message(L_INFO, "z80e", "Initialized!");
 
     if (device->state->debugger) {
         #ifdef CURSES
