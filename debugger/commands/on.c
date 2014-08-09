@@ -15,8 +15,8 @@ enum {
 };
 
 enum {
-	READ,
-	WRITE
+	READ = (1 << 0),
+	WRITE = (1 << 1)
 };
 int register_from_string(char *string) {
 	#define REGISTER(num, len, print) \
@@ -50,54 +50,85 @@ int register_from_string(char *string) {
 	REGISTER(IYL, 3, "IYL");
 	REGISTER(IY, 2, "IY");
 
-	return 0;
+	return -1;
 }
 
 typedef struct {
 	int look_for;
-	struct debugger_state deb_sta;
-	debugger_command_t *command;
-	int argc;
-	char **argv;
+	debugger_state_t *deb_sta;
+	char *exec_string;
 } on_state_t;
+
+uint16_t command_on_register_hook(void *state, registers reg, uint16_t value) {
+	on_state_t *data = state;
+	debugger_exec(data->deb_sta, data->exec_string);
+	return value;
+}
+
+uint8_t command_on_memory_hook(void *state, uint16_t location, uint8_t value) {
+	on_state_t *data = state;
+	debugger_exec(data->deb_sta, data->exec_string);
+	return value;
+}
 
 int command_on(struct debugger_state *state, int argc, char **argv) {
 	if (argc < 5) {
-		printf("%s `type` `read|write` `value` `command` [command args]\n"
+		printf("%s `type` `read|write` `value` `command`\n"
 			" Run a command on a specific case\n"
-			" The type can be memory / register / execute\n"
-			" The value can be ALL, a register, or an expression\n",
+			" The type can be memory / register\n"
+			" The value can be a register, or an expression\n",
 			argv[0]);
+		return 0;
 	}
 
 	int thing = 0;
-
-	if (strncasecmp(argv[2], "read", 4) == 0) {
+	if (*argv[2] == 'r') {
 		thing = READ;
 	}
 
-	if (strncasecmp(argv[2], "write", 4) == 0) {
+	if (*argv[2] == 'w') {
 		thing = WRITE;
 	}
 
-	char **new_argv = malloc(sizeof(char *) * argc - 3);
-	int new_argc = argc - 4;
-	on_state_t *sta = malloc(sizeof(on_state_t));
-	find_best_command(state->debugger, argv[4], &sta->command);
-	sta->deb_sta = state->create_new_state(state, sta->command->state, argv[4]);
-	sta->argc = new_argc;
-	sta->argv = new_argv;
-	int i = 0;
-	for (i = 0; i < new_argc; i++) {
-		int size = strlen(argv[4 + i]) + 1;
-		new_argv[i] = malloc(size);
-		memcpy(new_argv[i], argv[4 + i], size);
+	if (strncasecmp(argv[2], "rw", 2) == 0) {
+		thing = READ | WRITE;
 	}
+
+	if (thing == 0) {
+		state->print(state, "ERROR: First argument must be read, write, or rw\n");
+		return 1;
+	}
+
+	on_state_t *sta = malloc(sizeof(on_state_t));
+	sta->deb_sta = state->create_new_state(state, argv[4]);
+	sta->exec_string = malloc(strlen(argv[4]) + 1);
+	strcpy(sta->exec_string, argv[4]);
 
 	if (strncasecmp(argv[1], "register", 8) == 0) {
 		sta->look_for = register_from_string(argv[3]);
+		if (sta->look_for == -1) {
+			state->print(state, "ERROR: Invalid register!\n");
+			free(sta);
+			return 1;
+		}
+		if (thing & READ) {
+			hook_add_register_read(state->asic->hook, sta->look_for, sta, command_on_register_hook);
+		}
+		if (thing & WRITE) {
+			hook_add_register_write(state->asic->hook, sta->look_for, sta, command_on_register_hook);
+		}
 	} else if (strncasecmp(argv[1], "memory", 6) == 0) {
 		sta->look_for = parse_expression(state, argv[3]);
+		if (thing & READ) {
+			hook_add_memory_read(state->asic->hook, sta->look_for, sta->look_for, sta, command_on_memory_hook);
+		}
+		if (thing & WRITE) {
+			hook_add_memory_write(state->asic->hook, sta->look_for, sta->look_for, sta, command_on_memory_hook);
+		}
+	} else {
+		free(sta);
+		state->print(state, "ERROR: Second argument must be memory or register!\n");
+		return 1;
 	}
 
 	return 0;
