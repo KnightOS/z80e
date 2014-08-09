@@ -105,6 +105,8 @@ int command_on(struct debugger_state *state, int argc, char **argv) {
 struct break_data {
 	uint16_t address;
 	asic_t *asic;
+	int hook_id;
+	int count;
 };
 
 void break_callback(struct break_data *data, uint16_t address) {
@@ -113,21 +115,30 @@ void break_callback(struct break_data *data, uint16_t address) {
 	}
 
 	data->asic->state->stopped = 1;
+
+	if (data->count != -1 && !(--data->count)) {
+		hook_remove_before_execution(data->asic->hook, data->hook_id);
+	}
 }
 
 int command_break(struct debugger_state *state, int argc, char **argv) {
-	if (argc != 2) {
-		state->print(state, "%s `address` - break at address\n", argv[0]);
+	if (argc != 2 && argc != 3) {
+		state->print(state, "%s `address` [count] - break at address\n", argv[0]);
 		return 0;
 	}
 
 	uint16_t address = parse_expression(state, argv[1]);
 
+	int count = -1;
+	if (argc == 3) {
+		count = parse_expression(state, argv[2]);
+	}
+
 	struct break_data *data = malloc(sizeof(struct break_data));
 	data->address = address;
 	data->asic = state->asic;
-
-	hook_add_before_execution(state->asic->hook, data, (hook_execution_callback)break_callback);
+	data->count = count;
+	data->hook_id = hook_add_before_execution(state->asic->hook, data, (hook_execution_callback)break_callback);
 	return 0;
 }
 
@@ -152,7 +163,10 @@ int command_step_over(struct debugger_state *state, int argc, char **argv) {
 	struct break_data *data = malloc(sizeof(struct break_data));
 	data->address = state->asic->cpu->registers.PC + size;
 	data->asic = state->asic;
+	data->count = 1;
+	data->hook_id = hook_add_before_execution(state->asic->hook, data, (hook_execution_callback)break_callback);
 
-	hook_add_before_execution(state->asic->hook, data, (hook_execution_callback)break_callback);
-	return 0;
+
+	char *_argv[] = { "run" };
+	return command_run(state, 1, _argv);
 }
