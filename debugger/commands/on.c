@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "debugger.h"
 #include "disassemble.h"
+#include "log.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -114,6 +115,7 @@ void break_callback(struct break_data *data, uint16_t address) {
 		return;
 	}
 
+	log_message(L_DEBUG, "break", "Breakpoint hit at 0x%04X", address);
 	data->asic->state->stopped = 1;
 
 	if (data->count != -1 && !(--data->count)) {
