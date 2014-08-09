@@ -30,7 +30,8 @@ struct debugger_state {
 	void *interface_state;
 	asic_t *asic;
 	debugger_t *debugger;
-	struct debugger_state (*create_new_state)(debugger_state_t *, void *, const char *command_name);
+	debugger_state_t *(*create_new_state)(debugger_state_t *, const char *command_name);
+	void (*close_window)(debugger_state_t *);
 };
 
 struct debugger {

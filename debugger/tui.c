@@ -33,8 +33,20 @@ int vprint_tui(struct debugger_state *a, const char *b, va_list list) {
 #endif
 
 #ifndef EMSCRIPTEN
-struct debugger_state tui_new_state(struct debugger_state *state, void *d_state, const char *command_name) {
-	debugger_state_t stat = { print_tui, vprint_tui, d_state, state->interface_state, state->asic, state->debugger, tui_new_state };
+void tui_close_window(struct debugger_state *state) {
+	free(state);
+}
+
+debugger_state_t *tui_new_state(struct debugger_state *state, const char *title) {
+	debugger_state_t *stat = calloc(sizeof(debugger_state_t), 1);
+	stat->print = print_tui;
+	stat->vprint = vprint_tui;
+	stat->state = 0;
+	stat->interface_state = state->interface_state;
+	stat->asic = state->asic;
+	stat->debugger = state->debugger;
+	stat->create_new_state = tui_new_state;
+	stat->close_window = tui_close_window;
 	return stat;
 }
 
@@ -149,8 +161,11 @@ void tui_tick(tui_state_t *state) {
 				} else if (status == 0) {
 					dprint("Error: Unknown command %s\n", result);
 				} else {
-					debugger_state_t dstate = { print_tui, vprint_tui, command->state, state, asic, state->debugger, tui_new_state };
-					int output = command->function(&dstate, argc, cmdline);
+					debugger_state_t dstate = { print_tui, vprint_tui, command->state, state, asic, state->debugger, tui_new_state, tui_close_window };
+					debugger_state_t *used_state = tui_new_state(&dstate, cmdline[0]);
+					used_state->state = command->state;
+					int output = command->function(used_state, argc, cmdline);
+					tui_close_window(used_state);
 					if (output != 0) {
 						dprint("The command returned %d\n", output);
 					}
