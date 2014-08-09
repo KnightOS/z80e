@@ -240,6 +240,7 @@ int main(int argc, char **argv) {
     register_print_mappings(debugger, "mappings", 0);
     register_unhalt(debugger, "unhalt", 0, device->cpu);
     register_step_over(debugger, "step_over", 0);
+    register_step_over(debugger, "so", 0);
 
     log_message(L_INFO, "z80e", "Initialized!");
 
