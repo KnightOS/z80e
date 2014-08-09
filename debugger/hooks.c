@@ -147,8 +147,16 @@ int hook_add_to_memory_array(hook_memory_array_t *hook, uint16_t address_start, 
 	return x;
 }
 
+void hook_remove_memory_read(hook_info_t *info, int index) {
+	info->on_memory_read->callbacks[index].flags &= ~IN_USE;
+}
+
 int hook_add_memory_read(hook_info_t *info, uint16_t address_start, uint16_t address_end, void *data, hook_memory_callback callback) {
 	return hook_add_to_memory_array(info->on_memory_read, address_start, address_end, data, callback);
+}
+
+void hook_remove_memory_write(hook_info_t *info, int index) {
+	info->on_memory_write->callbacks[index].flags &= ~IN_USE;
 }
 
 int hook_add_memory_write(hook_info_t *info, uint16_t address_start, uint16_t address_end, void *data, hook_memory_callback callback) {
@@ -206,8 +214,16 @@ int hook_add_to_register_array(hook_register_array_t *hook, registers flags, voi
 	return x;
 }
 
+void hook_remove_register_read(hook_info_t *info, int index) {
+	info->on_register_read->callbacks[index].flags &= ~IN_USE;
+}
+
 int hook_add_register_read(hook_info_t *info, registers flags, void *data, hook_register_callback callback) {
 	return hook_add_to_register_array(info->on_register_read, flags, data, callback);
+}
+
+void hook_remove_register_write(hook_info_t *info, int index) {
+	info->on_register_write->callbacks[index].flags &= ~IN_USE;
 }
 
 int hook_add_register_write(hook_info_t *info, registers flags, void *data, hook_register_callback callback) {
@@ -262,8 +278,16 @@ int hook_add_to_execution_array(hook_execution_array_t *hook, void *data, hook_e
 	return x;
 }
 
+void hook_remove_before_execution(hook_info_t *info, int index) {
+	info->on_before_execution->callbacks[index].flags &= ~IN_USE;
+}
+
 int hook_add_before_execution(hook_info_t *info, void *data, hook_execution_callback callback) {
 	return hook_add_to_execution_array(info->on_before_execution, data, callback);
+}
+
+void hook_remove_after_execution(hook_info_t *info, int index) {
+	info->on_after_execution->callbacks[index].flags &= ~IN_USE;
 }
 
 int hook_add_after_execution(hook_info_t *info, void *data, hook_execution_callback callback) {
