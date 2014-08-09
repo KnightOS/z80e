@@ -1,19 +1,25 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "hooks.h"
 #include "cpu.h"
 #include "memory.h"
+
+enum hook_flags {
+	IN_USE = (1 << 0),
+	ONE_TIME = (1 << 1),
+};
 
 typedef struct {
 	void *data;
 	hook_memory_callback callback;
 	uint16_t range_start;
 	uint16_t range_end;
+	int flags;
 } memory_hook_callback_t;
 
 typedef struct {
-	int used;
 	int capacity;
 	memory_hook_callback_t *callbacks;
 } hook_memory_array_t;
@@ -21,11 +27,11 @@ typedef struct {
 typedef struct {
 	void *data;
 	hook_register_callback callback;
-	registers flags;
+	registers registers;
+	int flags;
 } register_hook_callback_t;
 
 typedef struct {
-	int used;
 	int capacity;
 	register_hook_callback_t *callbacks;
 } hook_register_array_t;
@@ -33,10 +39,10 @@ typedef struct {
 typedef struct {
 	void *data;
 	hook_execution_callback callback;
+	int flags;
 } execution_hook_callback_t;
 
 typedef struct {
-	int used;
 	int capacity;
 	execution_hook_callback_t *callbacks;
 } hook_execution_array_t;
@@ -64,43 +70,37 @@ hook_info_t *create_hook_set(asic_t *asic) {
 	info->mmu->hook = info;
 
 	info->on_memory_read = malloc(sizeof(hook_memory_array_t));
-	info->on_memory_read->used = 0;
 	info->on_memory_read->capacity = 10;
-	info->on_memory_read->callbacks = malloc(sizeof(memory_hook_callback_t) * 10);
+	info->on_memory_read->callbacks = calloc(10, sizeof(memory_hook_callback_t));
 
 	info->on_memory_write = malloc(sizeof(hook_memory_array_t));
-	info->on_memory_write->used = 0;
 	info->on_memory_write->capacity = 10;
-	info->on_memory_write->callbacks = malloc(sizeof(memory_hook_callback_t) * 10);
+	info->on_memory_write->callbacks = calloc(10, sizeof(memory_hook_callback_t));
 
 	info->on_register_read = malloc(sizeof(hook_register_array_t));
-	info->on_register_read->used = 0;
 	info->on_register_read->capacity = 10;
-	info->on_register_read->callbacks = malloc(sizeof(register_hook_callback_t) * 10);
+	info->on_register_read->callbacks = calloc(10, sizeof(register_hook_callback_t));
 
 	info->on_register_write = malloc(sizeof(hook_register_array_t));
-	info->on_register_write->used = 0;
 	info->on_register_write->capacity = 10;
-	info->on_register_write->callbacks = malloc(sizeof(register_hook_callback_t) * 10);
+	info->on_register_write->callbacks = calloc(10, sizeof(register_hook_callback_t));
 
 	info->on_before_execution = malloc(sizeof(hook_execution_array_t));
-	info->on_before_execution->used = 0;
 	info->on_before_execution->capacity = 10;
-	info->on_before_execution->callbacks = malloc(sizeof(execution_hook_callback_t) * 10);
+	info->on_before_execution->callbacks = calloc(10, sizeof(execution_hook_callback_t));
 
 	info->on_after_execution = malloc(sizeof(hook_execution_array_t));
-	info->on_after_execution->used = 0;
 	info->on_after_execution->capacity = 10;
-	info->on_after_execution->callbacks = malloc(sizeof(execution_hook_callback_t) * 10);
+	info->on_after_execution->callbacks = calloc(10, sizeof(execution_hook_callback_t));
 
 	return info;
 }
 
 uint8_t hook_on_memory_read(hook_info_t *info, uint16_t address, uint8_t value) {
 	int i = 0;
-	for (i = 0; i < info->on_memory_read->used; i++) {
+	for (i = 0; i < info->on_memory_read->capacity; i++) {
 		memory_hook_callback_t *cb = &info->on_memory_read->callbacks[i];
-		if (address >= cb->range_start && address <= cb->range_end) {
+		if (cb->flags & IN_USE && address >= cb->range_start && address <= cb->range_end) {
 			value = cb->callback(cb->data, address, value);
 		}
 	}
@@ -109,130 +109,165 @@ uint8_t hook_on_memory_read(hook_info_t *info, uint16_t address, uint8_t value) 
 
 uint8_t hook_on_memory_write(hook_info_t *info, uint16_t address, uint8_t value) {
 	int i = 0;
-	for (i = 0; i < info->on_memory_write->used; i++) {
+	for (i = 0; i < info->on_memory_write->capacity; i++) {
 		memory_hook_callback_t *cb = &info->on_memory_write->callbacks[i];
-		if (address >= cb->range_start && address <= cb->range_end) {
+		if (cb->flags & IN_USE && address >= cb->range_start && address <= cb->range_end) {
 			value = cb->callback(cb->data, address, value);
 		}
 	}
 	return value;
 }
 
-int hook_add_memory_read(hook_info_t *info, uint16_t address_start, uint16_t address_end, void *data, hook_memory_callback callback) {
-	if (info->on_memory_read->used == info->on_memory_read->capacity) {
-		info->on_memory_read->capacity += 10;
-		info->on_memory_read->callbacks = realloc(info->on_memory_read->callbacks, sizeof(memory_hook_callback_t) * info->on_memory_read->capacity);
+int hook_add_to_memory_array(hook_memory_array_t *hook, uint16_t address_start, uint16_t address_end, void *data, hook_memory_callback callback) {
+	int x = 0;
+
+	for (; x < hook->capacity; x++) {
+		if (!(hook->callbacks[x].flags & IN_USE)) {
+			break;
+		}
+
+		if (x == hook->capacity - 1) {
+			hook->capacity += 10;
+			void *n = realloc(hook->callbacks, sizeof(memory_hook_callback_t) * hook->capacity);
+			if (n == NULL) {
+				return -1;
+			}
+
+			hook->callbacks = n;
+			memset(n, 0, sizeof(memory_hook_callback_t) * 10);
+		}
 	}
-	info->on_memory_read->used++;
-	memory_hook_callback_t *cb = &info->on_memory_read->callbacks[info->on_memory_read->used - 1];
+	memory_hook_callback_t *cb = &hook->callbacks[x];
+
 	cb->data = data;
 	cb->range_start = address_start;
 	cb->range_end = address_end;
 	cb->callback = callback;
-	return info->on_memory_read->used - 1;
+	cb->flags = IN_USE;
+
+	return x;
+}
+
+int hook_add_memory_read(hook_info_t *info, uint16_t address_start, uint16_t address_end, void *data, hook_memory_callback callback) {
+	return hook_add_to_memory_array(info->on_memory_read, address_start, address_end, data, callback);
 }
 
 int hook_add_memory_write(hook_info_t *info, uint16_t address_start, uint16_t address_end, void *data, hook_memory_callback callback) {
-	if (info->on_memory_write->used == info->on_memory_write->capacity) {
-		info->on_memory_write->capacity += 10;
-		info->on_memory_write->callbacks = realloc(info->on_memory_write->callbacks, sizeof(memory_hook_callback_t) * info->on_memory_write->capacity);
-	}
-	info->on_memory_write->used++;
-	memory_hook_callback_t *cb = &info->on_memory_write->callbacks[info->on_memory_write->used - 1];
-	cb->data = data;
-	cb->range_start = address_start;
-	cb->range_end = address_end;
-	cb->callback = callback;
-	return info->on_memory_write->used - 1;
+	return hook_add_to_memory_array(info->on_memory_write, address_start, address_end, data, callback);
 }
 
-uint16_t hook_on_register_read(hook_info_t *info, registers flags, uint16_t value) 
-{
+uint16_t hook_on_register_read(hook_info_t *info, registers flags, uint16_t value) {
 	int i = 0;
-	for (i = 0; i < info->on_register_read->used; i++) {
+	for (i = 0; i < info->on_register_read->capacity; i++) {
 		register_hook_callback_t *cb = &info->on_register_read->callbacks[i];
-		if (cb->flags & flags) {
+		if (cb->flags & IN_USE && cb->registers & flags) {
 			value = cb->callback(cb->data, flags, value);
 		}
 	}
 	return value;
 }
 
-uint16_t hook_on_register_write(hook_info_t *info, registers flags, uint16_t value) 
-{
+uint16_t hook_on_register_write(hook_info_t *info, registers flags, uint16_t value) {
 	int i = 0;
-	for (i = 0; i < info->on_register_write->used; i++) {
+	for (i = 0; i < info->on_register_write->capacity; i++) {
 		register_hook_callback_t *cb = &info->on_register_write->callbacks[i];
-		if (cb->flags & flags) {
+		if (cb->flags & IN_USE && cb->registers & flags) {
 			value = cb->callback(cb->data, flags, value);
 		}
 	}
 	return value;
+}
+
+int hook_add_to_register_array(hook_register_array_t *hook, registers flags, void *data, hook_register_callback callback) {
+	int x = 0;
+
+	for (; x < hook->capacity; x++) {
+		if (!(hook->callbacks[x].flags & IN_USE)) {
+			break;
+		}
+
+		if (x == hook->capacity - 1) {
+			hook->capacity += 10;
+			void *n = realloc(hook->callbacks, sizeof(register_hook_callback_t) * hook->capacity);
+			if (n == NULL) {
+				return -1;
+			}
+
+			hook->callbacks = n;
+			memset(n, 0, sizeof(register_hook_callback_t) * 10);
+		}
+	}
+	register_hook_callback_t *cb = &hook->callbacks[x];
+
+	cb->data = data;
+	cb->callback = callback;
+	cb->registers = flags;
+	cb->flags = IN_USE;
+
+	return x;
 }
 
 int hook_add_register_read(hook_info_t *info, registers flags, void *data, hook_register_callback callback) {
-	if (info->on_register_read->used == info->on_register_read->capacity) {
-		info->on_register_read->capacity += 10;
-		info->on_register_read->callbacks = realloc(info->on_register_read->callbacks, sizeof(register_hook_callback_t) * info->on_register_read->capacity);
-	}
-	info->on_register_read->used++;
-	register_hook_callback_t *cb = &info->on_register_read->callbacks[info->on_register_read->used - 1];
-	cb->data = data;
-	cb->callback = callback;
-	cb->flags = flags;
-	return info->on_register_read->used - 1;
+	return hook_add_to_register_array(info->on_register_read, flags, data, callback);
 }
 
 int hook_add_register_write(hook_info_t *info, registers flags, void *data, hook_register_callback callback) {
-	if (info->on_register_write->used == info->on_register_write->capacity) {
-		info->on_register_write->capacity += 10;
-		info->on_register_write->callbacks = realloc(info->on_register_write->callbacks, sizeof(register_hook_callback_t) * info->on_register_write->capacity);
-	}
-	info->on_register_write->used++;
-	register_hook_callback_t *cb = &info->on_register_write->callbacks[info->on_register_write->used - 1];
-	cb->data = data;
-	cb->callback = callback;
-	cb->flags = flags;
-	return info->on_register_write->used - 1;
+	return hook_add_to_register_array(info->on_register_write, flags, data, callback);
 }
 
 void hook_on_before_execution(hook_info_t *info, uint16_t address) {
 	int i = 0;
-	for (i = 0; i < info->on_before_execution->used; i++) {
+	for (i = 0; i < info->on_before_execution->capacity; i++) {
 		execution_hook_callback_t *cb = &info->on_before_execution->callbacks[i];
-		cb->callback(cb->data, address);
+		if (cb->flags & IN_USE) {
+			cb->callback(cb->data, address);
+		}
 	}
 }
 
 void hook_on_after_execution(hook_info_t *info, uint16_t address) {
 	int i = 0;
-	for (i = 0; i < info->on_after_execution->used; i++) {
+	for (i = 0; i < info->on_after_execution->capacity; i++) {
 		execution_hook_callback_t *cb = &info->on_after_execution->callbacks[i];
-		cb->callback(cb->data, address);
+		if (cb->flags & IN_USE) {
+			cb->callback(cb->data, address);
+		}
 	}
+}
+
+int hook_add_to_execution_array(hook_execution_array_t *hook, void *data, hook_execution_callback callback) {
+	int x = 0;
+
+	for (; x < hook->capacity; x++) {
+		if (!(hook->callbacks[x].flags & IN_USE)) {
+			break;
+		}
+
+		if (x == hook->capacity - 1) {
+			hook->capacity += 10;
+			void *n = realloc(hook->callbacks, sizeof(execution_hook_callback_t) * hook->capacity);
+			if (n == NULL) {
+				return -1;
+			}
+
+			hook->callbacks = n;
+			memset(n, 0, sizeof(execution_hook_callback_t) * 10);
+		}
+	}
+	execution_hook_callback_t *cb = &hook->callbacks[x];
+
+	cb->data = data;
+	cb->callback = callback;
+	cb->flags = IN_USE;
+
+	return x;
 }
 
 int hook_add_before_execution(hook_info_t *info, void *data, hook_execution_callback callback) {
-	if (info->on_before_execution->used == info->on_before_execution->capacity) {
-		info->on_before_execution->capacity += 10;
-		info->on_before_execution->callbacks = realloc(info->on_before_execution->callbacks, sizeof(execution_hook_callback_t) * info->on_before_execution->capacity);
-	}
-	info->on_before_execution->used++;
-	execution_hook_callback_t *cb = &info->on_before_execution->callbacks[info->on_before_execution->used - 1];
-	cb->data = data;
-	cb->callback = callback;
-	return info->on_before_execution->used - 1;
+	return hook_add_to_execution_array(info->on_before_execution, data, callback);
 }
 
 int hook_add_after_execution(hook_info_t *info, void *data, hook_execution_callback callback) {
-	if (info->on_after_execution->used == info->on_after_execution->capacity) {
-		info->on_after_execution->capacity += 10;
-		info->on_after_execution->callbacks = realloc(info->on_after_execution->callbacks, sizeof(execution_hook_callback_t) * info->on_after_execution->capacity);
-	}
-	info->on_after_execution->used++;
-	execution_hook_callback_t *cb = &info->on_after_execution->callbacks[info->on_after_execution->used - 1];
-	cb->data = data;
-	cb->callback = callback;
-	return info->on_after_execution->used - 1;
+	return hook_add_to_execution_array(info->on_after_execution, data, callback);
 }
 
