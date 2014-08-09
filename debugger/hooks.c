@@ -8,7 +8,6 @@
 
 enum hook_flags {
 	IN_USE = (1 << 0),
-	ONE_TIME = (1 << 1),
 };
 
 typedef struct {
