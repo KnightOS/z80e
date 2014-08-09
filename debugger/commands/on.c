@@ -139,6 +139,7 @@ struct break_data {
 	asic_t *asic;
 	int hook_id;
 	int count;
+	int log;
 };
 
 void break_callback(struct break_data *data, uint16_t address) {
@@ -146,7 +147,10 @@ void break_callback(struct break_data *data, uint16_t address) {
 		return;
 	}
 
-	log_message(L_DEBUG, "break", "Breakpoint hit at 0x%04X", address);
+	if (data->log) {
+		log_message(L_DEBUG, "break", "Breakpoint hit at 0x%04X", address);
+	}
+
 	data->asic->state->stopped = 1;
 
 	if (data->count != -1 && !(--data->count)) {
@@ -171,16 +175,30 @@ int command_break(struct debugger_state *state, int argc, char **argv) {
 	data->address = address;
 	data->asic = state->asic;
 	data->count = count;
+	data->log = 1;
 	data->hook_id = hook_add_before_execution(state->asic->hook, data, (hook_execution_callback)break_callback);
 	return 0;
 }
 
+typedef struct {
+	ti_mmu_t *mmu;
+	debugger_state_t *state;
+} command_step_over_dism_extra_t;
+
 uint8_t step_over_read_byte(struct disassemble_memory *dmem, uint16_t mem) {
-	return ti_read_byte(dmem->extra_data, mem);
+	command_step_over_dism_extra_t *extra = dmem->extra_data;
+	return ti_read_byte(extra->mmu, mem);
 }
 
 int step_over_disasm_write(struct disassemble_memory *mem, const char *thing, ...) {
-	return 0; // nothing will be written here
+	command_step_over_dism_extra_t *extra = mem->extra_data;
+	if (extra->state->debugger->flags.echo) {
+		va_list list;
+		va_start(list, thing);
+		return extra->state->vprint(extra->state, thing, list);
+	} else {
+		return 0;
+	}
 }
 
 int command_step_over(struct debugger_state *state, int argc, char **argv) {
@@ -188,18 +206,29 @@ int command_step_over(struct debugger_state *state, int argc, char **argv) {
 		state->print(state, "%s - set a breakpoint for the instruction after the current one\n", argv[0]);
 		return 0;
 	}
+	command_step_over_dism_extra_t extra = { state->asic->mmu, state };
+	struct disassemble_memory mem = { step_over_read_byte, state->asic->cpu->registers.PC, &extra };
 
-	struct disassemble_memory mem = { step_over_read_byte, state->asic->cpu->registers.PC, state->asic->mmu };
-
+	if (state->debugger->flags.echo) {
+		state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
+	}
 	uint16_t size = parse_instruction(&mem, step_over_disasm_write);
+	if (state->debugger->flags.echo) {
+		state->print(state, "\n");
+	}
 
 	struct break_data *data = malloc(sizeof(struct break_data));
 	data->address = state->asic->cpu->registers.PC + size;
 	data->asic = state->asic;
 	data->count = 1;
-	data->hook_id = hook_add_before_execution(state->asic->hook, data, (hook_execution_callback)break_callback);
-
+	data->log = 0;
+	data->hook_id = hook_add_before_execution(state->asic->hook, data, (hook_execution_callback) break_callback);
 
 	char *_argv[] = { "run" };
-	return command_run(state, 1, _argv);
+	int orig_echo = state->debugger->flags.echo;
+	state->debugger->flags.echo = 0;
+
+	int val = command_run(state, 1, _argv);
+	state->debugger->flags.echo = orig_echo;
+	return val;
 }
