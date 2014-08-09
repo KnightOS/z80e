@@ -133,7 +133,7 @@ int hook_add_to_memory_array(hook_memory_array_t *hook, uint16_t address_start, 
 			}
 
 			hook->callbacks = n;
-			memset(n, 0, sizeof(memory_hook_callback_t) * 10);
+			memset(n + sizeof(memory_hook_callback_t) * (hook->capacity - 10), 0, sizeof(memory_hook_callback_t) * 10);
 		}
 	}
 	memory_hook_callback_t *cb = &hook->callbacks[x];
@@ -201,7 +201,7 @@ int hook_add_to_register_array(hook_register_array_t *hook, registers flags, voi
 			}
 
 			hook->callbacks = n;
-			memset(n, 0, sizeof(register_hook_callback_t) * 10);
+			memset(n + sizeof(register_hook_callback_t) * (hook->capacity - 10), 0, sizeof(memory_hook_callback_t) * 10);
 		}
 	}
 	register_hook_callback_t *cb = &hook->callbacks[x];
