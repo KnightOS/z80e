@@ -65,6 +65,7 @@ int command_source(debugger_state_t *state, int argc, char **argv) {
 	FILE *rc = fopen(argv[1], "r");
 	char filebuffer[256];
 	while(fgets(filebuffer, 256, rc)) {
+		filebuffer[strlen(filebuffer) - 1] = 0; // drop the \n at the end
 		if (filebuffer[0] == '#' || filebuffer[0] == 0) {
 			continue;
 		}
