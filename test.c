@@ -2,6 +2,7 @@
 #include "cpu.h"
 #include "debugger.h"
 #include "disassemble.h"
+#include "log.h"
 #include "keyboard.h"
 #include "memorymapping.h"
 #include "status.h"
@@ -144,6 +145,7 @@ const test_t tests[] = {
 };
 
 int main(int argc, char **argv) {
+    logging_level = L_WARN;
     int passed = 0, failed = 0;
     int i;
     const int min_width = 50;

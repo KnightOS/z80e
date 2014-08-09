@@ -7,6 +7,8 @@
 WINDOW *log_window = 0;
 #endif
 
+int logging_level = -1;
+
 const char *loglevel_to_string(loglevel_t level) {
 	switch (level) {
 	case L_DEBUG:
@@ -23,9 +25,12 @@ const char *loglevel_to_string(loglevel_t level) {
 }
 
 void _log_message(loglevel_t level, const char *part, const char *file, int line, const char *function, const char *format, ...) {
+	if (level < logging_level) {
+		return;
+	}
+
 	va_list format_list;
 	va_start(format_list, format);
-
 	#ifdef CURSES
 		if (log_window == 0) {
 			log_window = stdscr;
