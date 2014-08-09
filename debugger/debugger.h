@@ -43,6 +43,7 @@ struct debugger {
 	debugger_list_t commands;
 	asic_t *asic;
 };
+int debugger_source_rc(debugger_state_t *, const char *rc_name);
 
 debugger_t *init_debugger(asic_t *);
 void free_debugger(debugger_t *);

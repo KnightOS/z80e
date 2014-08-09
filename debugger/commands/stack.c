@@ -8,7 +8,7 @@ int command_stack(struct debugger_state *state, int argc, char **argv) {
         return 0;
     }
 
-	z80cpu_t *cpu = (z80cpu_t *)state->state;
+    z80cpu_t *cpu = state->asic->cpu;
     uint16_t sp = cpu->registers.SP;
 
     uint16_t i;

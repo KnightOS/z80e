@@ -1,6 +1,7 @@
 #include "tui.h"
 #include "debugger.h"
 #include "disassemble.h"
+#include "log.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -57,7 +58,12 @@ tui_state_t *current_state;
 #else
 #define dprint(...) printf(__VA_ARGS__)
 #endif
-void tui_init(tui_state_t *notused) {
+void tui_init(tui_state_t *state) {
+	debugger_state_t dstate = { print_tui, vprint_tui, 0, state, state->debugger->asic, state->debugger, tui_new_state, tui_close_window };
+	debugger_state_t *used_state = tui_new_state(&dstate, "Sourcing z80erc...");
+	log_message(L_DEBUG, "TUI", "Running commands in z80erc...");
+	debugger_source_rc(used_state, "z80erc");
+	tui_close_window(used_state);
 }
 
 struct tui_disasm {
@@ -125,60 +131,17 @@ void tui_tick(tui_state_t *state) {
 			}
 
 			add_history(result);
-			debugger_command_t *command = 0;
 
-			int argc = 0;
-			char **cmdline = debugger_parse_commandline(result, &argc);
+			debugger_state_t dstate = { print_tui, vprint_tui, 0, state, asic, state->debugger, tui_new_state, tui_close_window };
+			debugger_state_t *used_state = tui_new_state(&dstate, result);
 
-			if (strcmp(cmdline[0], "set") == 0) {
-				if (argc != 2) {
-					dprint("Invalid use of 'set'!\n");
-				} else {
-					if (strcmp(cmdline[1], "echo") == 0) {
-						state->debugger->flags.echo = 1;
-					} else if (strcmp(cmdline[1], "echo_reg") == 0) {
-						state->debugger->flags.echo_reg = 1;
-					} else {
-						dprint("Unknown variable '%s'!\n", cmdline[1]);
-					}
-				}
-			} else if (strcmp(cmdline[0], "unset") == 0) {
-				if (argc != 2) {
-					dprint("Invalid use of 'unset'!\n");
-				} else {
-					if (strcmp(cmdline[1], "echo") == 0) {
-						state->debugger->flags.echo = 0;
-					} else if (strcmp(cmdline[1], "echo_reg") == 0) {
-						state->debugger->flags.echo_reg = 0;
-					} else {
-						dprint("Unknown variable '%s'!\n", cmdline[1]);
-					}
-				}
-			} else {
-				int status = find_best_command(state->debugger, cmdline[0], &command);
-				if (status == -1) {
-					dprint("Error: Ambiguous command %s\n", result);
-				} else if (status == 0) {
-					dprint("Error: Unknown command %s\n", result);
-				} else {
-					debugger_state_t dstate = { print_tui, vprint_tui, command->state, state, asic, state->debugger, tui_new_state, tui_close_window };
-					debugger_state_t *used_state = tui_new_state(&dstate, cmdline[0]);
-					used_state->state = command->state;
-					int output = command->function(used_state, argc, cmdline);
-					tui_close_window(used_state);
-					if (output != 0) {
-						dprint("The command returned %d\n", output);
-					}
-				}
+			int retval = debugger_exec(used_state, result);
+			if (retval > 0) {
+				dprint("The command returned %d\n", retval);
 			}
 
-			char **tmp = cmdline;
-			while (*tmp != 0) {
-				free(*tmp);
-				tmp++;
-			}
+			tui_close_window(used_state);
 
-			free(cmdline);
 			if (!from_history) {
 				#ifndef CURSES
 					free(result);

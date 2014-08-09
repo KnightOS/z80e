@@ -1,4 +1,6 @@
+#include "commands.h"
 #include "debugger.h"
+#include "log.h"
 
 #include <limits.h>
 #include <stdlib.h>
@@ -18,17 +20,125 @@ int debugger_list_commands(debugger_state_t *state, int argc, char **argv) {
 	return 0;
 }
 
-debugger_command_t list_command = {
-	"list_commands", debugger_list_commands
+int command_set(debugger_state_t *state, int argc, char **argv) {
+	if (argc != 2) {
+		state->print(state, "%s `val` - set a setting\n", argv[0]);
+		return 0;
+	}
+
+	if (strcmp(argv[1], "echo") == 0) {
+		state->debugger->flags.echo = 1;
+	} else if (strcmp(argv[1], "echo_reg") == 0) {
+		state->debugger->flags.echo_reg = 1;
+	} else {
+		state->print(state, "Unknown variable '%s'!\n", argv[1]);
+		return 1;
+	}
+
+	return 0;
+}
+
+int command_unset(debugger_state_t *state, int argc, char **argv) {
+	if (argc != 2) {
+		state->print(state, "%s `val` - unset a setting\n", argv[0]);
+		return 0;
+	}
+
+	if (strcmp(argv[1], "echo") == 0) {
+		state->debugger->flags.echo = 0;
+	} else if (strcmp(argv[1], "echo_reg") == 0) {
+		state->debugger->flags.echo_reg = 0;
+	} else {
+		state->print(state, "Unknown variable '%s'!\n", argv[1]);
+		return 1;
+	}
+
+	return 0;
+}
+
+int command_source(debugger_state_t *state, int argc, char **argv) {
+	if (argc != 2) {
+		state->print(state, "%s `file` - read a file and run its commands\n", argv[0]);
+		return 0;
+	}
+
+	FILE *rc = fopen(argv[1], "r");
+	char filebuffer[256];
+	while(fgets(filebuffer, 256, rc)) {
+		if (filebuffer[0] == '#') {
+			continue;
+		}
+
+		if (debugger_exec(state, filebuffer) < 0) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int debugger_source_rc(debugger_state_t *state, const char *rc_name) {
+	char *env = getenv("XDG_CONFIG_HOME");
+	char *realloced;
+	int strsize = 0;
+	if (!env) {
+		env = getenv("HOME");
+		int hsize = strlen(env);
+		realloced = malloc(hsize + 9);
+		strcpy(realloced, env);
+		strcpy(realloced + hsize, "/.config");
+		strsize = hsize + 8;
+	} else {
+		strsize = strlen(env);
+		realloced = malloc(strsize + 1);
+		strcpy(realloced, env);
+	}
+
+	realloced = realloc(realloced, strsize + strlen(rc_name) + 2);
+	strcpy(realloced + strsize, "/");
+	strcpy(realloced + strsize + 1, rc_name);
+
+	char *argv[] = { "source", realloced };
+
+	int ret = command_source(state, 2, argv);
+
+	free(realloced);
+	return ret;
+}
+
+debugger_command_t default_commands[] = {
+	{ "list_commands", debugger_list_commands },
+	{ "source", command_source },
+	{ "in", command_in, 0 },
+	{ "out", command_out, 0 },
+	{ "break", command_break, 1 },
+	{ "run", command_run, 1 },
+	{ "step", command_step, 2 },
+	{ "stop", command_stop, 0 },
+	{ "dump", command_hexdump, 0 },
+	{ "disassemble", command_disassemble, 1 },
+	{ "registers", command_print_registers, 0 },
+	{ "expression", command_print_expression, 0 },
+	{ "stack", command_stack, 1 },
+	{ "mappings", command_print_mappings, 0 },
+	{ "unhalt", command_unhalt, 0 },
+	{ "step_over", command_step_over, 0 },
+	{ "so", command_step_over, 0 },
+	{ "set", command_set, 0 },
+	{ "unset", command_unset, 0 },
 };
+
+int default_command_count = sizeof(default_commands) / sizeof(debugger_command_t);
 
 debugger_t *init_debugger(asic_t *asic) {
 	debugger_t *debugger = calloc(1, sizeof(debugger_t));
 
-	debugger->commands.count = 1;
-	debugger->commands.capacity = 10;
-	debugger->commands.commands = malloc(sizeof(debugger_command_t *) * 10);
-	debugger->commands.commands[0] = &list_command;
+	debugger->commands.count = default_command_count;
+	debugger->commands.capacity = default_command_count + 10;
+	debugger->commands.commands = calloc(sizeof(debugger_command_t *), debugger->commands.capacity);
+	int i = 0;
+	for (i = 0; i < default_command_count; i++) {
+		debugger->commands.commands[i] = &default_commands[i];
+	}
 
 	debugger->asic = asic;
 
