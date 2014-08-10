@@ -7,66 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-void register_hexdump(debugger_t *debugger, const char *name, int priority, ti_mmu_t *mmu) {
-	register_command(debugger, name, command_hexdump, mmu, priority);
-}
-
-void register_disassemble(debugger_t *debugger, const char *name, int priority, ti_mmu_t *mmu) {
-	register_command(debugger, name, command_disassemble, mmu, priority);
-}
-
-void register_print_registers(debugger_t *debugger, const char *name, int priority, z80cpu_t *cpu) {
-	register_command(debugger, name, command_print_registers, cpu, priority);
-}
-
-void register_print_expression(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_print_expression, NULL, priority);
-}
-
-void register_stack(debugger_t *debugger, const char *name, int priority, z80cpu_t *cpu) {
-	register_command(debugger, name, command_stack, cpu, priority);
-}
-
-void register_print_mappings(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_print_mappings, NULL, priority);
-}
-
-void register_unhalt(debugger_t *debugger, const char *name, int priority, z80cpu_t *cpu) {
-	register_command(debugger, name, command_unhalt, cpu, priority);
-}
-
-void register_run(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_run, NULL, priority);
-}
-
-void register_step(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_step, NULL, priority);
-}
-
-void register_stop(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_stop, NULL, priority);
-}
-
-void register_on(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_on, NULL, priority);
-}
-
-void register_in(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_in, NULL, priority);
-}
-
-void register_out(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_out, NULL, priority);
-}
-
-void register_break(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_break, NULL, priority);
-}
-
-void register_step_over(debugger_t *debugger, const char *name, int priority) {
-	register_command(debugger, name, command_step_over, NULL, priority);
-}
-
 uint16_t parse_operand(debugger_state_t *state, const char *start, const char **end) {
 	if (*start >= '0' && *start <= '9') {
 		return strtol(start, (char **)end, 0);

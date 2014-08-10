@@ -131,6 +131,7 @@ debugger_command_t default_commands[] = {
 	{ "step", command_step, 2 },
 	{ "stop", command_stop, 0 },
 	{ "dump", command_hexdump, 0 },
+	{ "bdump", command_backwards_hexdump, 0 },
 	{ "disassemble", command_disassemble, 1 },
 	{ "registers", command_print_registers, 0 },
 	{ "expression", command_print_expression, 0 },
