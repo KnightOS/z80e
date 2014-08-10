@@ -24,6 +24,8 @@ Native (Linux):
     $ cmake .
     $ make
 
+Compiling on Windows with cygwin requires ncurses and GNU readline.
+
 Browser:
 
     $ emconfigure cmake .
