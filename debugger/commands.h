@@ -5,6 +5,7 @@
 #include "memory.h"
 
 int command_hexdump(debugger_state_t *state, int argc, char **argv);
+int command_backwards_hexdump(debugger_state_t *state, int argc, char **argv);
 int command_disassemble(debugger_state_t *state, int argc, char **argv);
 int command_print_registers(debugger_state_t *state, int argc, char **argv);
 int command_print_expression(debugger_state_t *state, int argc, char **argv);
