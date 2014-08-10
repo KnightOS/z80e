@@ -37,12 +37,10 @@ void _log_message(loglevel_t level, const char *part, const char *file, int line
 			log_window = stdscr;
 		}
 
-		wprintw(log_window, "[%s - %s] ", loglevel_to_string(level), part);
 		vwprintw(log_window, format, format_list);
 		wprintw(log_window, "\n");
 		wrefresh(log_window);
 	#else
-		printf("[%s - %s] ", loglevel_to_string(level), part);
 		vprintf(format, format_list);
 		printf("\n");
 	#endif
