@@ -8,10 +8,10 @@ extern WINDOW *log_window;
 #endif
 
 typedef enum {
-	L_DEBUG,
-	L_INFO,
-	L_WARN,
-	L_ERROR,
+	L_ERROR = 0,
+	L_WARN = 1,
+	L_INFO = 2,
+	L_DEBUG = 3,
 } loglevel_t;
 
 #define log_message(level, part, ...) \
