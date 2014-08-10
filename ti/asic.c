@@ -27,11 +27,13 @@ void asic_mirror_ports(asic_t *asic) {
     int i;
 
     switch (asic->device) {
-    case TI83p: 
+    case TI83p:
         for (i = 0x08; i < 0x10; i++) {
             asic->cpu->devices[i] = asic->cpu->devices[i & 0x07];
             asic->cpu->devices[i].write_out = asic_null_write;
         }
+        asic->cpu->devices[0x12] = asic->cpu->devices[0x10];
+        asic->cpu->devices[0x13] = asic->cpu->devices[0x11];
 
         for (i = 0x14; i < 0x100; i++) {
             asic->cpu->devices[i] = asic->cpu->devices[i & 0x07];
