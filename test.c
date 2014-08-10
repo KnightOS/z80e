@@ -84,6 +84,7 @@ const test_t tests[] = {
     { test_PUSH_rp2, "PUSH rp2" },
     { test_CALL_nn, "CALL nn" },
     { test_alu_n, "alu[y] n" },
+    { test_IX_IY, "LD (IX,IY), A / LD A, (IX,IY)" },
     { test_JP_IX__JP_IY, "JP IX / JP IY" },
     { test_ADD_IX_rp, "ADD IX, rp" },
     { test_prefix_reset, "prefix reset" },
@@ -144,8 +145,38 @@ const test_t tests[] = {
     { test_disassembler, "Disassembler" },
 };
 
-int main(int argc, char **argv) {
-    logging_level = L_WARN;
+int run_one(char *test) {
+    const int min_width = 50;
+    int i;
+    for (i = 0; i < sizeof(tests) / sizeof(test_t); i++) {
+        if (strcmp(test, tests[i].name) == 0) {
+            if (tests[i].execute == NULL) {
+                    int length = (min_width + 9) - strlen(tests[i].name);
+                    while (length--) putchar('.');
+                    printf("%s....\n", tests[i].name);
+                    continue;
+            }
+            printf("Testing %s ", tests[i].name);
+            int length = min_width - strlen(tests[i].name);
+            while (length--) printf(".");
+            int result = tests[i].execute();
+            if (result > 0) {
+                printf("FAIL %d\n", result);
+                return result;
+            } else if (result == -1) {
+                // Silent test
+                return 0;
+            } else {
+                printf("PASS\n");
+                return 0;
+            }
+        }
+    }
+    fprintf(stderr, "Error: \"%s\" not found.\n", test);
+    return 1;
+}
+
+int run_all() {
     int passed = 0, failed = 0;
     int i;
     const int min_width = 50;
@@ -172,6 +203,15 @@ int main(int argc, char **argv) {
     }
     printf("%d passed, %d failed\n", passed, failed);
     return failed;
+}
+
+int main(int argc, char **argv) {
+    logging_level = L_WARN;
+    if (argc == 2) {
+        return run_one(argv[1]);
+    } else {
+        return run_all();
+    }
 }
 
 void flash(asic_t *device, const uint8_t *data, size_t length) {

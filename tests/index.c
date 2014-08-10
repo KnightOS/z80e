@@ -1,3 +1,55 @@
+int test_IX_IY() {
+    asic_t *device = asic_init(TI83p);
+    uint8_t test_1[] = { 0xDD, 0x77, 0x00 }; // LD (IX + 0), A
+    device->cpu->registers.IX = 0xC000;
+    device->cpu->registers.A = 0x30;
+    flash(device, test_1, sizeof(test_1));
+    cpu_execute(device->cpu, 19);
+    if (cpu_read_byte(device->cpu, 0xC000) != 0x30) {
+        asic_free(device);
+        return 1;
+    }
+    asic_free(device);
+
+    device = asic_init(TI83p);
+    uint8_t test_2[] = { 0xDD, 0x7E, 0x00 }; // LD A, (IX + 0)
+    device->cpu->registers.IX = 0xC000;
+    cpu_write_byte(device->cpu, 0xC000, 0x30);
+    flash(device, test_2, sizeof(test_2));
+    cpu_execute(device->cpu, 19);
+    if (device->cpu->registers.A != 0x30) {
+        asic_free(device);
+        return 2;
+    }
+    asic_free(device);
+
+    device = asic_init(TI83p);
+    uint8_t test_3[] = { 0xFD, 0x77, 0x00 }; // LD (IY + 0), A
+    device->cpu->registers.IY = 0xC000;
+    device->cpu->registers.A = 0x30;
+    flash(device, test_3, sizeof(test_3));
+    cpu_execute(device->cpu, 19);
+    if (cpu_read_byte(device->cpu, 0xC000) != 0x30) {
+        asic_free(device);
+        return 3;
+    }
+    asic_free(device);
+
+    device = asic_init(TI83p);
+    uint8_t test_4[] = { 0xFD, 0x7E, 0x00 }; // LD A, (IY + 0)
+    device->cpu->registers.IY = 0xC000;
+    cpu_write_byte(device->cpu, 0xC000, 0x30);
+    flash(device, test_4, sizeof(test_4));
+    cpu_execute(device->cpu, 19);
+    if (device->cpu->registers.A != 0x30) {
+        asic_free(device);
+        return 4;
+    }
+    asic_free(device);
+
+    return 0;
+}
+
 int test_JP_IX__JP_IY() {
     asic_t *device = asic_init(TI83p);
     uint8_t test[] = { 0xDD, 0xE9 }; // JP (IX)
