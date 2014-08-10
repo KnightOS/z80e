@@ -400,11 +400,11 @@ uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
         if (context->cpu->prefix == 0xDD) {
             context->cycles += 4;
             d = context->d(context);
-            cpu_write_byte(context->cpu, context->cpu->registers.IY + d, value);
+            cpu_write_byte(context->cpu, context->cpu->registers.IX + d, value);
         } else if (context->cpu->prefix == 0xFD) {
             context->cycles += 4;
             d = context->d(context);
-            cpu_write_byte(context->cpu, context->cpu->registers.IX + d, value);
+            cpu_write_byte(context->cpu, context->cpu->registers.IY + d, value);
         } else {
             cpu_write_byte(context->cpu, context->cpu->registers.HL, value);
         }
