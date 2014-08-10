@@ -14,10 +14,7 @@ typedef enum {
 	L_DEBUG = 3,
 } loglevel_t;
 
-#define log_message(level, part, ...) \
-	_log_message(level, part, __FILE__, __LINE__, __func__, __VA_ARGS__)
-
 extern int logging_level;
-void _log_message(loglevel_t, const char *, const char *, int, const char *, const char *, ...);
+void log_message(loglevel_t, const char *, const char *, ...);
 
 #endif

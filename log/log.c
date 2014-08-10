@@ -25,7 +25,7 @@ const char *loglevel_to_string(loglevel_t level) {
 	}
 }
 
-void _log_message(loglevel_t level, const char *part, const char *file, int line, const char *function, const char *format, ...) {
+void log_message(loglevel_t level, const char *part, const char *format, ...) {
 	if (level > logging_level) {
 		return;
 	}
