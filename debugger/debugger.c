@@ -122,8 +122,8 @@ int debugger_source_rc(debugger_state_t *state, const char *rc_name) {
 }
 
 debugger_command_t default_commands[] = {
-	{ "list_commands", debugger_list_commands },
-	{ "source", command_source },
+	{ "list_commands", debugger_list_commands, 0 },
+	{ "source", command_source, 0 },
 	{ "in", command_in, 0 },
 	{ "out", command_out, 0 },
 	{ "break", command_break, 1 },
@@ -138,7 +138,7 @@ debugger_command_t default_commands[] = {
 	{ "mappings", command_print_mappings, 0 },
 	{ "unhalt", command_unhalt, 0 },
 	{ "step_over", command_step_over, 0 },
-	{ "so", command_step_over, 0 },
+	{ "so", command_step_over, 1 },
 	{ "set", command_set, 0 },
 	{ "unset", command_unset, 0 },
 };
