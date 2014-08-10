@@ -5,6 +5,8 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 int debugger_list_commands(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 1) {
@@ -63,6 +65,10 @@ int command_source(debugger_state_t *state, int argc, char **argv) {
 	}
 
 	FILE *rc = fopen(argv[1], "r");
+	if (rc == 0) {
+		state->print(state, "File couldn't be read: '%s'\n", strerror(errno));
+		return 1;
+	}
 	char filebuffer[256];
 	while(fgets(filebuffer, 256, rc)) {
 		filebuffer[strlen(filebuffer) - 1] = 0; // drop the \n at the end
@@ -97,6 +103,15 @@ int debugger_source_rc(debugger_state_t *state, const char *rc_name) {
 	realloced = realloc(realloced, strsize + strlen(rc_name) + 2);
 	strcpy(realloced + strsize, "/");
 	strcpy(realloced + strsize + 1, rc_name);
+
+	struct stat stat_buf;
+	if (stat(realloced, &stat_buf) == -1) {
+		if (errno != ENOENT) {
+			state->print(state, "Couldn't read %s: '%s'\n", rc_name, strerror(errno));
+		}
+		free(realloced);
+		return 0;
+	}
 
 	char *argv[] = { "source", realloced };
 
