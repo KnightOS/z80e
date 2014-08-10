@@ -40,13 +40,6 @@ void reload_mapping(memory_mapping_state_t *state) {
         banks[3].flash = state->bank_b_flash;
         break;
     }
-    log_message(L_DEBUG, "memorymapping", "Reloaded mapping: "
-       "%c:%02X, %c:%02X, %c:%02X, %c:%02X",
-       banks[0].flash ? 'F' : 'R', banks[0].page,
-       banks[1].flash ? 'F' : 'R', banks[1].page,
-       banks[2].flash ? 'F' : 'R', banks[2].page,
-       banks[3].flash ? 'F' : 'R', banks[3].page);
-    log_message(L_DEBUG, "memorymapping", "PC = 0x%04X", state->asic->cpu->registers.PC);
 }
 
 uint8_t read_device_status_port(void *device) {
@@ -57,7 +50,7 @@ void write_device_status_port(void *device, uint8_t data) {
     memory_mapping_state_t *state = device;
 
     state->map_mode = data & 1;
-    log_message(L_DEBUG, "memorymapping", "Set mapping mode to %d (got %02X)", state->map_mode, data);
+    log_message(L_DEBUG, "memorymapping", "Set mapping mode to %d (at 0x%04X)", state->map_mode, state->asic->cpu->registers.PC);
     reload_mapping(state);
 }
 
@@ -71,7 +64,7 @@ void write_ram_paging_port(void *device, uint8_t data) {
     memory_mapping_state_t *state = device;
 
     state->ram_bank_page = data & 0x7; // 0b111
-    log_message(L_DEBUG, "memorymapping", "Set ram banking page to %d (got %02X)", state->ram_bank_page, data);
+    log_message(L_DEBUG, "memorymapping", "Set ram banking page to %d (at 0x%04X)", state->ram_bank_page, state->asic->cpu->registers.PC);
     reload_mapping(state);
 }
 
@@ -106,7 +99,7 @@ void write_bank_a_paging_port(void *device, uint8_t data) {
     state->bank_a_flash = is_flash;
     state->bank_a_page = data;
 
-    log_message(L_DEBUG, "memorymapping", "Set bank a page to %c:%02X (got %02X)", state->bank_a_flash ? 'F' : 'R',  state->bank_a_page, data);
+    log_message(L_DEBUG, "memorymapping", "Set bank A page to %c:%02X (at 0x%04X)", state->bank_a_flash ? 'F' : 'R',  state->bank_a_page, state->asic->cpu->registers.PC);
     reload_mapping(state);
 }
 
@@ -141,7 +134,7 @@ void write_bank_b_paging_port(void *device, uint8_t data) {
     state->bank_b_flash = is_flash;
     state->bank_b_page = data;
 
-    log_message(L_DEBUG, "memorymapping", "Set bank b page to %c:%02X (got %02X)", state->bank_b_flash ? 'F' : 'R',  state->bank_b_page, data);
+    log_message(L_DEBUG, "memorymapping", "Set bank B page to %c:%02X (at 0x%04X)", state->bank_b_flash ? 'F' : 'R',  state->bank_b_page, state->asic->cpu->registers.PC);
     reload_mapping(state);
 }
 
