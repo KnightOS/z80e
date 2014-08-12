@@ -1,14 +1,13 @@
 cmake_minimum_required(VERSION 2.6)
-project (libz80e)
+project (z80e_objects)
 
 FILE(GLOB Hardware src/ti/hardware/*.c)
 FILE(GLOB Commands src/debugger/commands/*.c)
 
-add_library(z80e SHARED
+add_library(z80e_objects OBJECT
     src/core/cpu.c
     src/core/registers.c
     src/debugger/debugger.c
-    src/debugger/tui.c
     src/debugger/hooks.c
     src/disassembler/disassemble.c
     src/ti/asic.c
@@ -19,10 +18,10 @@ add_library(z80e SHARED
     ${Commands}
 )
 
-target_include_directories(z80e SYSTEM PRIVATE
+target_include_directories(z80e_objects SYSTEM PRIVATE
     include/
 )
 
-target_include_directories(z80e PRIVATE
+target_include_directories(z80e_objects PRIVATE
     include/z80e
 )
