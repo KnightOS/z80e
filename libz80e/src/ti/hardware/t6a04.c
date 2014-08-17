@@ -16,23 +16,6 @@
 #define lcd_print(...) printf( __VA_ARGS__)
 #endif
 
-struct ti_bw_lcd {
-	uint8_t up: 1; // set=up, unset=down
-	uint8_t counter: 1; // set=Y, unset=X
-	uint8_t word_length: 1; // set=8, unset=6
-	uint8_t display_on: 1; // set=on, unset=off
-	uint8_t op_amp1: 2; // 0-3
-	uint8_t op_amp2: 2; // 0-3
-
-	int X; // which is up-down
-	int Y; // which is left-right
-	int Z; // which is which y is rendered at top
-	uint8_t contrast; // 0-63
-	uint8_t *ram; // [X * 64 + Y]
-
-	hook_info_t *hook;
-};
-
 void setup_lcd_display(asic_t *asic, hook_info_t *hook) {
 	ti_bw_lcd_t *lcd = malloc(sizeof(ti_bw_lcd_t));
 

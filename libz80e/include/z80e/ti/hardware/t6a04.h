@@ -6,12 +6,24 @@ typedef struct ti_bw_lcd ti_bw_lcd_t;
 #include <z80e/ti/asic.h>
 #include <z80e/debugger/hooks.h>
 
-void setup_lcd_display(asic_t *, hook_info_t *);
+struct ti_bw_lcd {
+	uint8_t up: 1; // set=up, unset=down
+	uint8_t counter: 1; // set=Y, unset=X
+	uint8_t word_length: 1; // set=8, unset=6
+	uint8_t display_on: 1; // set=on, unset=off
+	uint8_t op_amp1: 2; // 0-3
+	uint8_t op_amp2: 2; // 0-3
 
-#ifdef CURSES
-#include <curses.h>
-void bw_lcd_set_window(void *device, WINDOW *win);
-#endif
+	int X; // which is up-down
+	int Y; // which is left-right
+	int Z; // which is which y is rendered at top
+	uint8_t contrast; // 0-63
+	uint8_t *ram; // [X * 64 + Y]
+
+	hook_info_t *hook;
+};
+
+void setup_lcd_display(asic_t *, hook_info_t *);
 
 void bw_lcd_state_dump(ti_bw_lcd_t *lcd);
 void bw_lcd_dump(ti_bw_lcd_t *lcd);
