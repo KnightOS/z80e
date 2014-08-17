@@ -46,6 +46,17 @@ typedef struct {
 	execution_hook_callback_t *callbacks;
 } hook_execution_array_t;
 
+typedef struct {
+	void *data;
+	hook_lcd_update_callback callback;
+	int flags;
+} lcd_update_callback_t;
+
+typedef struct {
+	int capacity;
+	lcd_update_callback_t *callbacks;
+} hook_lcd_update_array_t;
+
 struct hook_info {
 	z80cpu_t *cpu;
 	ti_mmu_t *mmu;
@@ -58,6 +69,8 @@ struct hook_info {
 
 	hook_execution_array_t *on_before_execution;
 	hook_execution_array_t *on_after_execution;
+
+	hook_lcd_update_array_t *on_lcd_update;
 };
 
 hook_info_t *create_hook_set(asic_t *asic) {
@@ -91,6 +104,10 @@ hook_info_t *create_hook_set(asic_t *asic) {
 	info->on_after_execution = malloc(sizeof(hook_execution_array_t));
 	info->on_after_execution->capacity = 10;
 	info->on_after_execution->callbacks = calloc(10, sizeof(execution_hook_callback_t));
+
+	info->on_lcd_update = malloc(sizeof(hook_lcd_update_array_t));
+	info->on_lcd_update->capacity = 10;
+	info->on_lcd_update->callbacks = calloc(10, sizeof(lcd_update_callback_t));
 
 	return info;
 }
@@ -294,3 +311,45 @@ int hook_add_after_execution(hook_info_t *info, void *data, hook_execution_callb
 	return hook_add_to_execution_array(info->on_after_execution, data, callback);
 }
 
+void hook_on_lcd_update(hook_info_t *info, ti_bw_lcd_t *lcd) {
+	int i = 0;
+	for (i = 0; i < info->on_lcd_update->capacity; i++) {
+		lcd_update_callback_t *cb = &info->on_lcd_update->callbacks[i];
+		if (cb->flags & IN_USE) {
+			cb->callback(cb->data, lcd);
+		}
+	}
+}
+
+void hook_remove_lcd_update(hook_info_t *info, int index) {
+	info->on_lcd_update->callbacks[index].flags &= ~IN_USE;
+}
+
+int hook_add_lcd_update(hook_info_t *info, void *data, hook_lcd_update_callback callback) {
+	hook_lcd_update_array_t *hook = info->on_lcd_update;
+	int x = 0;
+
+	for (; x < hook->capacity; x++) {
+		if (!(hook->callbacks[x].flags & IN_USE)) {
+			break;
+		}
+
+		if (x == hook->capacity - 1) {
+			hook->capacity += 10;
+			void *n = realloc(hook->callbacks, sizeof(lcd_update_callback_t) * hook->capacity);
+			if (n == NULL) {
+				return -1;
+			}
+
+			hook->callbacks = n;
+			memset(n + sizeof(lcd_update_callback_t) * (hook->capacity - 10), 0, sizeof(lcd_update_callback_t) * 10);
+		}
+	}
+	lcd_update_callback_t *cb = &hook->callbacks[x];
+
+	cb->data = data;
+	cb->callback = callback;
+	cb->flags = IN_USE;
+
+	return x;
+}

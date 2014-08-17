@@ -7,6 +7,7 @@ typedef struct hook_info hook_info_t;
 
 #include <z80e/ti/asic.h>
 #include <z80e/core/registers.h>
+#include <z80e/ti/hardware/t6a04.h>
 
 hook_info_t *create_hook_set(asic_t *asic);
 
@@ -45,5 +46,14 @@ void hook_remove_before_execution(hook_info_t *, int);
 int hook_add_before_execution(hook_info_t *, void *data, hook_execution_callback);
 void hook_remove_after_execution(hook_info_t *, int);
 int hook_add_after_execution(hook_info_t *, void *data, hook_execution_callback);
+
+// LCD hook
+
+void hook_on_lcd_update(hook_info_t *, ti_bw_lcd_t *);
+
+typedef void (*hook_lcd_update_callback)(void *data, ti_bw_lcd_t *lcd);
+
+void hook_remove_lcd_update(hook_info_t *, int);
+int hook_add_lcd_update(hook_info_t *, void *data, hook_lcd_update_callback);
 
 #endif

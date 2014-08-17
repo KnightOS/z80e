@@ -1,11 +1,12 @@
 #ifndef TI_DISPLAY_H
 #define TI_DISPLAY_H
 
-#include <z80e/ti/asic.h>
-
-void setup_lcd_display(asic_t *);
-
 typedef struct ti_bw_lcd ti_bw_lcd_t;
+
+#include <z80e/ti/asic.h>
+#include <z80e/debugger/hooks.h>
+
+void setup_lcd_display(asic_t *, hook_info_t *);
 
 #ifdef CURSES
 #include <curses.h>
