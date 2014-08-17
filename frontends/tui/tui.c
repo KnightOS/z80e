@@ -1,7 +1,7 @@
-#include "debugger/tui.h"
-#include "debugger/debugger.h"
-#include "disassembler/disassemble.h"
-#include "log/log.h"
+#include "tui.h"
+#include <z80e/debugger/debugger.h>
+#include <z80e/disassembler/disassemble.h>
+#include <z80e/log/log.h>
 
 #include <stdlib.h>
 #include <stdio.h>

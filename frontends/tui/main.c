@@ -1,11 +1,11 @@
-#include "asic.h"
-#include "debugger.h"
-#include "disassemble.h"
-#include "runloop.h"
+#include <z80e/ti/asic.h>
+#include <z80e/debugger/debugger.h>
+#include <z80e/disassembler/disassemble.h>
+#include <z80e/runloop/runloop.h>
 #include "tui.h"
-#include "commands.h"
-#include "log.h"
-#include "t6a04.h"
+#include <z80e/debugger/commands.h>
+#include <z80e/log/log.h>
+#include <z80e/ti/hardware/t6a04.h>
 
 #include <stdlib.h>
 #include <stdio.h>

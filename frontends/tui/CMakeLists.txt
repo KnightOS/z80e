@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 2.6)
-project (tests)
+project (tui)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
 
-add_executable(tests
-    test.c
+add_executable(tui
+    main.c
+    tui.c
     $<TARGET_OBJECTS:z80e_objects>
 )
-target_include_directories(tests SYSTEM PRIVATE
+target_include_directories(tui SYSTEM PRIVATE
     ../../libz80e/include
 )
+
+TARGET_LINK_LIBRARIES(tui readline)
