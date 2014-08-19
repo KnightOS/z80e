@@ -2,7 +2,7 @@ language: c
 script:
     - cmake .
     - make
-    - ./bin/tests
+    - ./frontends/test/bin/tests
 notifications:
     email:
         - sir@cmpwn.com
