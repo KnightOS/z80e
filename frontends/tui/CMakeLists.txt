@@ -8,8 +8,9 @@ add_executable(tui
     tui.c
     $<TARGET_OBJECTS:z80e_objects>
 )
-target_include_directories(tui SYSTEM PRIVATE
-    ../../libz80e/include
+
+set_target_properties(tui PROPERTIES APPEND_STRING PROPERTY
+    COMPILE_FLAGS " ${CMAKE_INCLUDE_SYSTEM_FLAG_CXX} ${CMAKE_CURRENT_SOURCE_DIR}/../../libz80e/include"
 )
 
 TARGET_LINK_LIBRARIES(tui readline)

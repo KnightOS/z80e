@@ -7,6 +7,6 @@ add_executable(tests
     test.c
     $<TARGET_OBJECTS:z80e_objects>
 )
-target_include_directories(tests SYSTEM PRIVATE
-    ../../libz80e/include
+set_target_properties(tests PROPERTIES APPEND_STRING PROPERTY
+    COMPILE_FLAGS " ${CMAKE_INCLUDE_SYSTEM_FLAG_CXX} ${CMAKE_CURRENT_SOURCE_DIR}/../../libz80e/include"
 )

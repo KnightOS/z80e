@@ -18,10 +18,8 @@ add_library(z80e_objects OBJECT
     ${Commands}
 )
 
-target_include_directories(z80e_objects SYSTEM PRIVATE
-    include/
-)
+set_target_properties(z80e_objects PROPERTIES APPEND_STRING PROPERTY
+    COMPILE_FLAGS " ${CMAKE_INCLUDE_SYSTEM_FLAG_CXX} ${CMAKE_CURRENT_SOURCE_DIR}/include/")
 
-target_include_directories(z80e_objects PRIVATE
-    include/z80e
-)
+set_target_properties(z80e_objects PROPERTIES APPEND_STRING PROPERTY
+    INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include/z80e")
