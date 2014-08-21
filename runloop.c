@@ -5,10 +5,6 @@
 #include <time.h>
 #include <limits.h>
 
-typedef struct {
-	int cycles_until_tick;
-} timer_info_t;
-
 long long get_time_nsec() {
 	struct timespec sp;
 	clock_gettime(CLOCK_MONOTONIC, &sp);
@@ -16,32 +12,34 @@ long long get_time_nsec() {
 	return sp.tv_sec * 1000000000 + sp.tv_nsec;
 }
 
-struct runloop_state {
-	asic_t *asic;
-	long long last_end;
-	int spare_cycles;
-	timer_info_t timers_info[ASIC_TIMER_MAX];
-};
-
 typedef struct {
 	int index;
 	int after_cycle;
 } timer_tick_t;
+
+struct runloop_state {
+	asic_t *asic;
+	long long last_end;
+	int spare_cycles;
+	timer_tick_t *ticks;
+	int max_tick_count;
+};
 
 runloop_state_t *runloop_init(asic_t *asic) {
 	runloop_state_t *state = malloc(sizeof(runloop_state_t));
 
 	state->asic = asic;
 	state->last_end = get_time_nsec();
-
 	int i;
-	for (i = 0; i < ASIC_TIMER_MAX; i++) {
-		timer_info_t *info = &state->timers_info[i];
-		z80_timer_t *timer = &state->asic->timers[i];
-		if (timer->frequency > 0) {
-			info->cycles_until_tick = asic->clock_rate / timer->frequency;
+	for (i = 0; i < asic->timers->max_timers; i++) {
+		z80_hardware_timer_t *timer = &asic->timers->timers[i];
+		if (timer->flags & TIMER_IN_USE) {
+			timer->cycles_until_tick = asic->clock_rate / timer->frequency;
 		}
 	}
+
+	state->ticks = malloc(sizeof(timer_tick_t) * 40);
+	state->max_tick_count = 40;
 
 	return state;
 }
@@ -55,38 +53,42 @@ int runloop_compare(const void *first, const void *second) {
 
 void runloop_tick_cycles(runloop_state_t *state, int cycles) {
 	int total_cycles = 0;
-
-	timer_tick_t ticks[ASIC_TIMER_MAX * 4]; // 4 ticks per cycle will be enough, I hope
-	int current_tick = 0;
-
 	int cycles_until_next_tick = cycles;
-
+	int current_tick = 0;
 	int i;
-	for (i = 0; i < state->asic->max_timer; i++) {
-		z80_timer_t *timer = &state->asic->timers[i];
-		timer_info_t *info = &state->timers_info[i];
+	for (i = 0; i < state->asic->timers->max_timers; i++) {
+		z80_hardware_timer_t *timer = &state->asic->timers->timers[i];
+
+		if (!(timer->flags & TIMER_IN_USE)) {
+			continue;
+		}
 
 		int tot_cycles = cycles;
-
-		if (info->cycles_until_tick < tot_cycles) {
+		if (timer->cycles_until_tick < tot_cycles) {
 			retry:
-			ticks[current_tick].index = i;
-			ticks[current_tick].after_cycle = info->cycles_until_tick + (cycles - tot_cycles);
-			tot_cycles -= info->cycles_until_tick;
-			info->cycles_until_tick = state->asic->clock_rate / timer->frequency;
+			state->ticks[current_tick].index = i;
+			state->ticks[current_tick].after_cycle = timer->cycles_until_tick + (cycles - tot_cycles);
+			tot_cycles -= timer->cycles_until_tick;
+			timer->cycles_until_tick = state->asic->clock_rate / timer->frequency;
 			current_tick++;
-			if (info->cycles_until_tick <= tot_cycles) {
+
+			if (current_tick == state->max_tick_count) {
+				state->max_tick_count += 10;
+				state->ticks = realloc(state->ticks, sizeof(timer_tick_t) * state->max_tick_count);
+			}
+
+			if (timer->cycles_until_tick <= tot_cycles) {
 				goto retry;
 			}
 		} else {
-			info->cycles_until_tick -= tot_cycles;
+			timer->cycles_until_tick -= tot_cycles;
 		}
 	}
 
-	qsort(ticks, current_tick, sizeof(timer_tick_t), runloop_compare);
+	qsort(state->ticks, current_tick, sizeof(timer_tick_t), runloop_compare);
 
 	if (current_tick > 0) {
-		cycles_until_next_tick = ticks[0].after_cycle;
+		cycles_until_next_tick = state->ticks[0].after_cycle;
 	}
 
 	int tick_i = 0;
@@ -96,12 +98,13 @@ void runloop_tick_cycles(runloop_state_t *state, int cycles) {
 		total_cycles += ran;
 		cycles -= ran;
 
-		if (total_cycles >= ticks[tick_i].after_cycle) {
+		if (total_cycles >= state->ticks[tick_i].after_cycle) {
 			tick_i++;
 			if (tick_i <= current_tick) {
-				int index = ticks[tick_i - 1].index;
-				state->asic->timers[index].on_tick(state->asic, state->asic->timers[index].timer_data);
-				cycles_until_next_tick = ticks[tick_i].after_cycle - total_cycles;
+				int index = state->ticks[tick_i - 1].index;
+				z80_hardware_timer_t *timer = &state->asic->timers->timers[index];
+				timer->on_tick(state->asic, timer->data);
+				cycles_until_next_tick = state->ticks[tick_i].after_cycle - total_cycles;
 			} else {
 				cycles_until_next_tick = cycles;
 			}

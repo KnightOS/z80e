@@ -1,6 +1,7 @@
 #include "asic.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "t6a04.h"
 #include "memory.h"
@@ -65,11 +66,17 @@ asic_t *asic_init(ti_device_type type) {
     device->battery = BATTERIES_GOOD;
     device->device = type;
     device->clock_rate = 6000000;
+
+    device->timers = calloc(sizeof(z80_hardware_timers_t), 1);
+    device->timers->max_timers = 20;
+    device->timers->timers = calloc(sizeof(z80_hardware_timer_t), 20);
+
     device->state = malloc(sizeof(ti_emulation_state_t));
     device->state->stopped = 0;
     device->state->debugger = 0;
     device->state->runloop = runloop_init(device);
     device->hook = create_hook_set(device);
+
 
     plug_devices(device);
     asic_mirror_ports(device);
@@ -81,4 +88,50 @@ void asic_free(asic_t* device) {
     ti_mmu_free(device->mmu);
     free_devices(device);
     free(device);
+}
+
+int asic_add_timer(asic_t *asic, int flags, double frequency, timer_tick tick, void *data) {
+	z80_hardware_timer_t *timer = 0;
+	int i;
+	for (i = 0; i < asic->timers->max_timers; i++) {
+
+		if (!(asic->timers->timers[i].flags & TIMER_IN_USE)) {
+			timer = &asic->timers->timers[i];
+			break;
+		}
+
+		if (i == asic->timers->max_timers - 1) {
+			asic->timers->max_timers += 10;
+			asic->timers->timers = realloc(asic->timers->timers, sizeof(z80_hardware_timer_t) * asic->timers->max_timers);
+			z80_hardware_timer_t *ne = &asic->timers->timers[asic->timers->max_timers - 10];
+			memset(ne, 0, sizeof(z80_hardware_timer_t) * 10);
+		}
+	}
+
+	timer->cycles_until_tick = asic->clock_rate / frequency;
+	timer->flags = flags & TIMER_IN_USE;
+	timer->frequency = frequency;
+	timer->on_tick = tick;
+	timer->data = data;
+	return i;
+}
+
+void asic_remove_timer(asic_t *asic, int index) {
+	asic->timers->timers[index].flags &= ~TIMER_IN_USE;
+}
+
+int asic_set_clock_rate(asic_t *asic, int new_rate) {
+	int old_rate = asic->clock_rate;
+
+	int i;
+	for (i = 0; i < asic->timers->max_timers; i++) {
+		z80_hardware_timer_t *timer = &asic->timers->timers[i];
+		if (timer->flags & TIMER_IN_USE) {
+			timer->cycles_until_tick =
+				new_rate / (timer->cycles_until_tick * timer->frequency);
+		}
+	}
+
+	asic->clock_rate = new_rate;
+	return old_rate;
 }
