@@ -35,10 +35,6 @@ z80cpu_t* cpu_init(void) {
     return cpu;
 }
 
-void cpu_raise_interrupt(z80cpu_t  *cpu) {
-    cpu->INT_pending = 1;
-}
-
 void cpu_free(z80cpu_t *cpu) {
     free(cpu);
 }
@@ -844,8 +840,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
             if (cpu->IFF_wait) {
                 cpu->IFF_wait = 0;
             } else {
-                if (cpu->INT_pending) {
-                    cpu->INT_pending = 0;
+                if (cpu->interrupt) {
                     cpu->halted = 0;
                     handle_interrupt(&context);
                     goto exit_loop;

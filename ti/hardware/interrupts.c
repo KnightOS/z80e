@@ -41,7 +41,7 @@ void ti_interrupts_interrupt(ti_interrupts_t *interrupts, int flag) {
 	}
 
 	if (should_interrupt) {
-		cpu_raise_interrupt(interrupts->asic->cpu);
+		interrupts->asic->cpu->interrupt = 1;
 	}
 }
 
@@ -102,6 +102,16 @@ void ti_interrupts_acknowledge_interrupt(ti_interrupts_t *interrupts, int flag) 
 
 	if (flag & INTERRUPT_THIRD_CRYSTAL) {
 		interrupts->interrupted.third_crystal = 0;
+	}
+	if (!(
+		interrupts->interrupted.on_key ||
+		interrupts->interrupted.first_timer ||
+		interrupts->interrupted.second_timer ||
+		interrupts->interrupted.link_activity ||
+		interrupts->interrupted.first_crystal ||
+		interrupts->interrupted.second_crystal ||
+		interrupts->interrupted.third_crystal)) {
+		interrupts->asic->cpu->interrupt = 0;
 	}
 }
 
