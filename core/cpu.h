@@ -4,14 +4,14 @@
 #include <registers.h>
 
 typedef struct z80cpu z80cpu_t;
-
+typedef struct z80iodevice z80iodevice_t;
 #include "hooks.h"
 
-typedef struct {
+struct z80iodevice {
     void *device;
     uint8_t (*read_in)(void *);
     void (*write_out)(void *, uint8_t);
-} z80iodevice_t;
+};
 
 struct z80cpu {
     z80iodevice_t devices[0x100];

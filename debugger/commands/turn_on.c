@@ -1,0 +1,13 @@
+#include "commands.h"
+#include "debugger.h"
+#include "interrupts.h"
+
+int command_turn_on(debugger_state_t *state, int argc, char **argv) {
+	if (argc != 1) {
+		state->print(state, "%s - Interrupt the CPU and raise the 'on button' interrupt\n");
+		return 0;
+	}
+
+	ti_interrupts_interrupt(state->asic->interrupts, INTERRUPT_ON_KEY);
+	return 0;
+}

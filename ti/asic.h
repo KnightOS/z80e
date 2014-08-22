@@ -10,6 +10,7 @@ typedef struct asic asic_t;
 #include "ti.h"
 #include "runloop.h"
 #include "hooks.h"
+#include "interrupts.h"
 
 typedef enum {
     BATTERIES_REMOVED,
@@ -62,6 +63,7 @@ struct asic {
     battery_state battery;
     int battery_remove_check;
     int clock_rate;
+    ti_interrupts_t *interrupts;
     z80_hardware_timers_t *timers;
     hook_info_t *hook;
 };

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "asic.h"
 #include "cpu.h"
+#include "interrupts.h"
 
 typedef struct {
     asic_t *asic;
@@ -39,7 +40,8 @@ void write_status(void *_status, uint8_t value) {
     if (status->asic->device == TI83p || status->asic->device == TI73) {
         return;
     }
-    // TODO: Acknowledge interrupts
+
+    write_acknowledged_interrupts(status->asic->interrupts, value);
 }
 
 z80iodevice_t init_status(asic_t *asic) {

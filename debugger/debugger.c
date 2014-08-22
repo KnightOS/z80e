@@ -142,6 +142,7 @@ debugger_command_t default_commands[] = {
 	{ "so", command_step_over, 1 },
 	{ "set", command_set, 0 },
 	{ "unset", command_unset, 0 },
+	{ "turn_on", command_turn_on, 0 },
 };
 
 int default_command_count = sizeof(default_commands) / sizeof(debugger_command_t);

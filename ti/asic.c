@@ -15,6 +15,7 @@ void plug_devices(asic_t *asic) {
 
     asic->cpu->devices[0x01] = init_keyboard();
     asic->cpu->devices[0x02] = init_status(asic);
+    asic->cpu->devices[0x03] = init_interrupts(asic, &asic->interrupts);
     setup_lcd_display(asic);
 
     init_mapping_ports(asic);

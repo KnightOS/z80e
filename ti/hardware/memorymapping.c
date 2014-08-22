@@ -2,6 +2,7 @@
 #include "log.h"
 #include "memory.h"
 #include "memorymapping.h"
+#include "interrupts.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -43,7 +44,9 @@ void reload_mapping(memory_mapping_state_t *state) {
 }
 
 uint8_t read_device_status_port(void *device) {
-    return 0; // Nothing to read yet
+    memory_mapping_state_t *state = device;
+
+    return read_interrupting_device(state->asic->interrupts);
 }
 
 void write_device_status_port(void *device, uint8_t data) {
@@ -52,6 +55,8 @@ void write_device_status_port(void *device, uint8_t data) {
     state->map_mode = data & 1;
     log_message(L_DEBUG, "memorymapping", "Set mapping mode to %d (at 0x%04X)", state->map_mode, state->asic->cpu->registers.PC);
     reload_mapping(state);
+
+    write_timer_speed(state->asic->interrupts, data);
 }
 
 uint8_t read_ram_paging_port(void *device) {
