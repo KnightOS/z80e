@@ -881,7 +881,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                     old = read_r(context.z, &context);
                     r->flags.H = 1;
                     r->flags.N = 0;
-                    cpu->registers.flags.Z = (old & (1 << context.y)) > 0;
+                    cpu->registers.flags.Z = (old & (1 << context.y)) == 0;
                     break;
                 case 2: // RES y, r[z]
                     context.cycles += 4;

@@ -135,7 +135,7 @@ int test_BIT() {
     device->cpu->registers.B = 0x80;
     flash(device, test, sizeof(test));
     int cycles = cpu_execute(device->cpu, 8);
-    if (device->cpu->registers.flags.Z != 1 ||
+    if (device->cpu->registers.flags.Z == 1 ||
         cycles != 0) {
         asic_free(device);
         return 1;
