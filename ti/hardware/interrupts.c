@@ -3,6 +3,20 @@
 
 #include <stdlib.h>
 
+void ti_interrupts_check_state(ti_interrupts_t *interrupts) {
+	if (!(
+		interrupts->interrupted.on_key ||
+		interrupts->interrupted.first_timer ||
+		interrupts->interrupted.second_timer ||
+		interrupts->interrupted.link_activity ||
+		interrupts->interrupted.first_crystal ||
+		interrupts->interrupted.second_crystal ||
+		interrupts->interrupted.third_crystal)) {
+		log_message(L_DEBUG, "interrupts", "disabling interrupt pin");
+		interrupts->asic->cpu->interrupt = 0;
+	}
+}
+
 void ti_interrupts_interrupt(ti_interrupts_t *interrupts, int flag) {
 	int should_interrupt = 0;
 
@@ -126,17 +140,7 @@ void ti_interrupts_acknowledge_interrupt(ti_interrupts_t *interrupts, int flag) 
 		log_message(L_DEBUG, "interrupts", "third crystal interrupt acknowledged");
 	}
 
-	if (!(
-		interrupts->interrupted.on_key ||
-		interrupts->interrupted.first_timer ||
-		interrupts->interrupted.second_timer ||
-		interrupts->interrupted.link_activity ||
-		interrupts->interrupted.first_crystal ||
-		interrupts->interrupted.second_crystal ||
-		interrupts->interrupted.third_crystal)) {
-		log_message(L_DEBUG, "interrupts", "disabling interrupt pin");
-		interrupts->asic->cpu->interrupt = 0;
-	}
+	ti_interrupts_check_state(interrupts);
 }
 
 uint8_t read_interrupt_mask(void *device) {
@@ -163,17 +167,7 @@ void write_interrupt_mask(void *device, uint8_t value) {
 	interrupts->interrupted.second_crystal &= (interrupts->enabled.second_crystal = value & INTERRUPT_SECOND_CRYSTAL);
 	interrupts->interrupted.third_crystal &= (interrupts->enabled.third_crystal = value & INTERRUPT_THIRD_CRYSTAL);
 
-	if (!(
-		interrupts->interrupted.on_key ||
-		interrupts->interrupted.first_timer ||
-		interrupts->interrupted.second_timer ||
-		interrupts->interrupted.link_activity ||
-		interrupts->interrupted.first_crystal ||
-		interrupts->interrupted.second_crystal ||
-		interrupts->interrupted.third_crystal)) {
-		log_message(L_DEBUG, "interrupts", "disabling interrupt pin");
-		interrupts->asic->cpu->interrupt = 0;
-	}
+	ti_interrupts_check_state(interrupts);
 }
 
 uint8_t read_interrupting_device(void *device) {
@@ -198,6 +192,7 @@ void write_acknowledged_interrupts(void *device, uint8_t value) {
 	interrupts->interrupted.first_crystal &= (value & INTERRUPT_FIRST_CRYSTAL);
 	interrupts->interrupted.second_crystal &= (value & INTERRUPT_SECOND_CRYSTAL);
 	interrupts->interrupted.third_crystal &= (value & INTERRUPT_THIRD_CRYSTAL);
+	ti_interrupts_check_state(interrupts);
 }
 
 double first_timer_table[2][4] =
