@@ -25,7 +25,7 @@ struct z80cpu {
         uint8_t halted : 1;
     };
     uint8_t bus;
-    uint8_t prefix;
+    uint16_t prefix;
     void *memory;
     uint8_t (*read_byte)(void *, uint16_t);
     void (*write_byte)(void *, uint16_t, uint8_t);
