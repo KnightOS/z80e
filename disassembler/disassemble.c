@@ -92,19 +92,22 @@ void parse_r(struct context *context, uint8_t part) {
 
 void parse_rw_r(struct context *context, int write, int read) {
 	uint16_t old_prefix = context->prefix;
-	if (write == 6) {
+
+	if (write != 6) {
 		context->prefix &= 0xFF;
 	}
 
-	parse_r(context, read);
+	parse_r(context, write);
+
+	if (write == 6) {
+		context->prefix &= 0xFF;
+	} else {
+		context->prefix = old_prefix;
+	}
 
 	context->write(context->memory, ", ");
 
-	if (write == 6) {
-		context->prefix = old_prefix;
-	} else {
-		context->prefix &= 0xFF;
-	}
+	parse_r(context, read);
 }
 
 void parse_cc(int i, struct context *context) {
