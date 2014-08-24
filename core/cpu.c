@@ -410,6 +410,22 @@ uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
     return 0; // This should never happen
 }
 
+uint8_t read_write_r(int read, int write, struct ExecutionContext *context) {
+    uint16_t old_prefix = context->cpu->prefix;
+    if (write == 6) {
+        context->cpu->prefix &= 0xFF;
+    }
+
+    uint8_t r = read_r(read, context);
+
+    if (write == 6) {
+        context->cpu->prefix = old_prefix;
+    } else {
+        context->cpu->prefix &= 0xFF;
+    }
+    return write_r(write, r, context);
+}
+
 uint16_t read_rp(int i, struct ExecutionContext *context) {
     switch (i) {
     case 0: return context->cpu->registers.BC;
@@ -1247,7 +1263,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                     cpu->halted = 1;
                 } else { // LD r[y], r[z]
                     context.cycles += 4;
-                    write_r(context.y, read_r(context.z, &context), &context);
+                    read_write_r(context.z, context.y, &context);
                 }
                 break;
             case 2: // ALU[y] r[z]
