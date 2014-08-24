@@ -3,8 +3,7 @@
 #include "disassemble.h"
 
 struct context {
-    uint8_t prefix;
-    uint8_t second_prefix;
+    uint16_t prefix;
     struct disassemble_memory *memory;
     union {
         uint8_t opcode;
@@ -43,7 +42,7 @@ void parse_nn(struct context *context) {
 }
 
 void parse_HorIHw(struct context *context) {
-	switch (context->second_prefix) {
+	switch (context->prefix >> 8) {
 	case 0xDD: context->write(context->memory, "IXH"); break;
 	case 0xFD: context->write(context->memory, "IYH"); break;
 	default: context->write(context->memory, "H"); break;
@@ -51,7 +50,7 @@ void parse_HorIHw(struct context *context) {
 }
 
 void parse_LorILw(struct context *context) {
-	switch (context->second_prefix) {
+	switch (context->prefix >> 8) {
 	case 0xDD: context->write(context->memory, "IXL"); break;
 	case 0xFD: context->write(context->memory, "IYL"); break;
 	default: context->write(context->memory, "L"); break;
@@ -59,7 +58,7 @@ void parse_LorILw(struct context *context) {
 }
 
 void parse_HLorIr(struct context *context) {
-	switch (context->second_prefix) {
+	switch (context->prefix >> 8) {
 	case 0xDD: context->write(context->memory, "IX"); break;
 	case 0xFD: context->write(context->memory, "IY"); break;
 	default: context->write(context->memory, "HL"); break;
@@ -77,10 +76,10 @@ void parse_r(struct context *context, uint8_t part) {
 	case 5: parse_LorILw(context);
 		break;
 	case 6:
-	        if (context->second_prefix == 0xDD) {
+	        if (context->prefix >> 8 == 0xDD) {
 			uint8_t d = context->memory->read_byte(context->memory, context->memory->current++);
 			context->write(context->memory, "(IX + 0x%X)", d);
-		} else if (context->second_prefix == 0xFD) {
+		} else if (context->prefix >> 8 == 0xFD) {
 			uint8_t d = context->memory->read_byte(context->memory, context->memory->current++);
 			context->write(context->memory, "(IY + 0x%X)", d);
 		} else {
@@ -88,6 +87,23 @@ void parse_r(struct context *context, uint8_t part) {
 		}
 		break;
 	case 7: context->write(context->memory, "A"); break;
+	}
+}
+
+void parse_rw_r(struct context *context, int write, int read) {
+	uint16_t old_prefix = context->prefix;
+	if (write == 6) {
+		context->prefix &= 0xFF;
+	}
+
+	parse_r(context, read);
+
+	context->write(context->memory, ", ");
+
+	if (write == 6) {
+		context->prefix = old_prefix;
+	} else {
+		context->prefix &= 0xFF;
 	}
 }
 
@@ -269,20 +285,20 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 
         context.prefix = 0;
 
-        context.second_prefix = 0;
-
         uint8_t data = memory->read_byte(memory, memory->current);
 
 	if (data == 0xDD || data == 0xFD) {
-		context.second_prefix = memory->read_byte(memory, memory->current++);
+		context.prefix &= 0x00FF;
+		context.prefix |= memory->read_byte(memory, memory->current++) << 8;
                 data = memory->read_byte(memory, memory->current);
         }
 	if (data == 0xCB || data == 0xED) {
-		context.prefix = memory->read_byte(memory, memory->current++);
+		context.prefix &= 0xFF00;
+		context.prefix |= memory->read_byte(memory, memory->current++);
                 data = memory->read_byte(memory, memory->current);
         }
 
-	if (context.second_prefix && context.prefix) {
+	if (context.prefix >> 8 && context.prefix & 0xFF) {
 		data = memory->read_byte(memory, memory->current-- + 1);
 	}
 
@@ -291,8 +307,8 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
         context.memory = memory;
 	write_pointer write = context.write = write_p;
 
-        if (context.prefix == 0xCB || context.prefix == 0xED) {
-            switch (context.prefix) {
+        if (context.prefix & 0xFF) {
+            switch (context.prefix & 0xFF) {
             case 0xCB:
                 switch (context.x) {
                 case 0: // rot[y] r[z]
@@ -563,9 +579,7 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
                     write(memory, "HALT");
                 } else { // LD r[y], r[z]
                     write(memory, "LD ");
-                    parse_r(&context, context.y);
-                    write(memory, ", ");
-                    parse_r(&context, context.z);
+                    parse_rw_r(&context, context.y, context.z);
                 }
                 break;
             case 2: // ALU[y] r[z]
@@ -685,7 +699,7 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
             }
         }
 
-	if (context.prefix && context.second_prefix) {
+	if (context.prefix >> 8 && context.prefix & 0xFF) {
 		memory->current++;
 	}
 	return memory->current - start_mem;
