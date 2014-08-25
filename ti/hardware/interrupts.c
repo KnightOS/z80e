@@ -165,7 +165,7 @@ void write_interrupt_mask(void *device, uint8_t value) {
 	interrupts->interrupted.link_activity &= (interrupts->enabled.link_activity = value & INTERRUPT_LINK_ACTIVITY);
 	interrupts->interrupted.first_crystal &= (interrupts->enabled.first_crystal = value & INTERRUPT_FIRST_CRYSTAL);
 	interrupts->interrupted.second_crystal &= (interrupts->enabled.second_crystal = value & INTERRUPT_SECOND_CRYSTAL);
-	interrupts->interrupted.third_crystal &= (interrupts->enabled.third_crystal = value & INTERRUPT_THIRD_CRYSTAL);
+	interrupts->interrupted.third_crystal &= (interrupts->enabled.third_crystal = !!(value & INTERRUPT_THIRD_CRYSTAL));
 
 	ti_interrupts_check_state(interrupts);
 }
