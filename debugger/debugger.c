@@ -140,6 +140,7 @@ debugger_command_t default_commands[] = {
 	{ "unhalt", command_unhalt, 0 },
 	{ "step_over", command_step_over, 0 },
 	{ "so", command_step_over, 1 },
+	{ "on", command_on, 0 },
 	{ "set", command_set, 0 },
 	{ "unset", command_unset, 0 },
 	{ "turn_on", command_turn_on, 0 },
