@@ -7,6 +7,7 @@
 struct ExecutionContext {
     uint8_t cycles;
     z80cpu_t *cpu;
+    int switch_memory;
     union {
         uint8_t opcode;
         struct {
@@ -248,6 +249,15 @@ uint16_t pop(z80cpu_t *cpu) {
 }
 
 uint8_t read_n(struct ExecutionContext *context) {
+    if (context->switch_memory == 1) {
+        context->switch_memory = 2;
+        return cpu_read_byte(context->cpu, context->cpu->registers.PC + 1);
+    } else if (context->switch_memory == 2) {
+        context->switch_memory = 0;
+        context->cpu->registers.PC += 2;
+        return cpu_read_byte(context->cpu, context->cpu->registers.PC - 2);
+    }
+
     return cpu_read_byte(context->cpu, context->cpu->registers.PC++);
 }
 
@@ -258,6 +268,15 @@ uint16_t read_nn(struct ExecutionContext *context) {
 }
 
 int8_t read_d(struct ExecutionContext *context) {
+    if (context->switch_memory == 1) {
+        context->switch_memory = 2;
+        return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC + 1);
+    } else if (context->switch_memory == 2) {
+        context->switch_memory = 0;
+        context->cpu->registers.PC += 2;
+        return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC - 2);
+    }
+
     return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC++);
 }
 
@@ -553,6 +572,12 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 
 void execute_rot(int y, int z, struct ExecutionContext *context) {
     uint8_t r = read_r(z, context);
+    if (z == 6) {
+        // reset the PC back to the offset, so
+        // the write reads it correctly
+        context->cpu->registers.PC--;
+    }
+
     uint8_t old_r = r;
     uint8_t old_7 = (r & 0x80) > 0;
     uint8_t old_0 = (r & 1) > 0;
@@ -885,8 +910,14 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
         r->R &= 0x7F;
         r->R |= old_r & 0x80;
 
+//         |
+//      |
+//         |
+//            |
+// DD CB DD OP
+
         if ((cpu->prefix & 0xFF) == 0xCB) {
-            int switch_opcode_data = (cpu->prefix >> 8) != 0x00;
+            int switch_opcode_data = cpu->prefix >> 8;
             if (switch_opcode_data) {
                 context.opcode = cpu_read_byte(cpu, cpu->registers.PC--);
             }
@@ -907,12 +938,18 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                 context.cycles += 4;
                 old = read_r(context.z, &context);
                 old &= ~(1 << context.y);
+                if (context.z == 6) {
+                    cpu->registers.PC--;
+                }
                 write_r(context.z, old, &context);
                 break;
             case 3: // SET y, r[z]
                 context.cycles += 4;
                 old = read_r(context.z, &context);
                 old |= 1 << context.y;
+                if (context.z == 6) {
+                    cpu->registers.PC--;
+                }
                 write_r(context.z, old, &context);
                 break;
             }
@@ -1196,6 +1233,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                     break;
                 case 6: // LD r[y], n
                     context.cycles += 7;
+                    context.switch_memory = context.y == 6 && context.cpu->prefix >> 8;
                     write_r(context.y, context.n(&context), &context);
                     break;
                 case 7:
