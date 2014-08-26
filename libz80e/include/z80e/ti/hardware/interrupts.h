@@ -3,8 +3,8 @@
 
 typedef struct ti_interrupts ti_interrupts_t;
 
-#include "cpu.h"
-#include "asic.h"
+#include <z80e/core/cpu.h>
+#include <z80e/ti/asic.h>
 
 struct ti_interrupts {
 	asic_t *asic;

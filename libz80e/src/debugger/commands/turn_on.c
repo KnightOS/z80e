@@ -1,6 +1,6 @@
-#include "commands.h"
-#include "debugger.h"
-#include "interrupts.h"
+#include "debugger/commands.h"
+#include "debugger/debugger.h"
+#include "ti/hardware/interrupts.h"
 
 int command_turn_on(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 1) {

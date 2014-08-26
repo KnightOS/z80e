@@ -1,5 +1,5 @@
-#include "interrupts.h"
-#include "log.h"
+#include "ti/hardware/interrupts.h"
+#include "log/log.h"
 
 #include <stdlib.h>
 
