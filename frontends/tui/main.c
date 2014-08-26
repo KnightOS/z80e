@@ -35,6 +35,51 @@ appContext_t create_context(void) {
     return context;
 }
 
+void print_lcd(void *data, ti_bw_lcd_t *lcd) {
+	int cY;
+	int cX;
+
+	#define LCD_BRAILLE
+	#ifndef LCD_BRAILLE
+		for (cX = 0; cX < 64; cX++) {
+			for (cY = 0; cY < 120; cY++) {
+				printf("%c", bw_lcd_read_screen(lcd, cY, cX) ? 'O' : ' ');
+			}
+			printf("\n");
+		}
+	#else
+		for (cX = 0; cX < 64; cX += 4) {
+			for (cY = 0; cY < 120; cY += 2) {
+				int a = bw_lcd_read_screen(lcd, cY + 0, cX + 0);
+				int b = bw_lcd_read_screen(lcd, cY + 0, cX + 1);
+				int c = bw_lcd_read_screen(lcd, cY + 0, cX + 2);
+				int d = bw_lcd_read_screen(lcd, cY + 1, cX + 0);
+				int e = bw_lcd_read_screen(lcd, cY + 1, cX + 1);
+				int f = bw_lcd_read_screen(lcd, cY + 1, cX + 2);
+				int g = bw_lcd_read_screen(lcd, cY + 0, cX + 3);
+				int h = bw_lcd_read_screen(lcd, cY + 1, cX + 3);
+				uint32_t byte_value = 0x2800;
+				byte_value += (
+					(a << 0) |
+					(b << 1) |
+					(c << 2) |
+					(d << 3) |
+					(e << 4) |
+					(f << 5) |
+					(g << 6) |
+					(h << 7));
+				char buff[5] = {0};
+				unicode_to_utf8(buff, byte_value);
+				printf("%s", buff);
+			}
+			printf("\n");
+		}
+	#endif
+	printf("C: 0x%02X X: 0x%02X Y: 0x%02X Z: 0x%02X\n", lcd->contrast, lcd->X, lcd->Y, lcd->Z);
+	printf("   %c%c%c%c  O1: 0x%01X 02: 0x%01X\n", lcd->up ? 'V' : '^', lcd->counter ? '-' : '|',
+		lcd->word_length ? '8' : '6', lcd->display_on ? 'O' : ' ', lcd->op_amp1, lcd->op_amp2);
+}
+
 void setDevice(appContext_t *context, char *target) {
     if (strcasecmp(target, "TI73") == 0) {
         context->device = TI73;
@@ -176,6 +221,7 @@ int main(int argc, char **argv) {
         fclose(file);
     }
 
+    hook_add_lcd_update(device->hook, NULL, print_lcd);
     debugger_t *debugger = init_debugger(device);
 
     if (device->state->debugger) {
