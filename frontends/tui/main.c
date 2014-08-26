@@ -13,6 +13,7 @@
 #include <strings.h>
 #include <signal.h>
 #include <time.h>
+#include <limits.h>
 
 typedef struct {
     ti_device_type device;
@@ -150,10 +151,15 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
     }
 }
 
+void frontend_log(void *data, loglevel_t level, const char *part, const char *message, va_list args) {
+	vprintf(message, args);
+	printf("\n");
+}
+
 void sigint_handler(int sig) {
     signal(SIGINT, sigint_handler);
 
-    log_message(L_ERROR, "sigint", "Caught interrupt, stopping emulation");
+    log_message(context.device_asic->log, L_ERROR, "sigint", "Caught interrupt, stopping emulation");
     context.device_asic->state->stopped = 1;
 
     if (context.device_asic->state->debugger == DEBUGGER_ENABLED) {
@@ -193,11 +199,11 @@ int main(int argc, char **argv) {
     }
 
     asic_t *device = asic_init(context.device);
-
+    device->log = init_log(frontend_log, 0, INT_MAX);
     context.device_asic = device;
     device->state->debugger = tmp_debug;
     if (context.rom_file == NULL) {
-        log_message(L_WARN, "main", "No ROM file specified, starting debugger");
+        log_message(device->log, L_WARN, "main", "No ROM file specified, starting debugger");
         device->state->debugger = DEBUGGER_ENABLED;
     } else {
         FILE *file = fopen(context.rom_file, "r");

@@ -4,12 +4,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#ifdef CURSES
-WINDOW *log_window = 0;
-#endif
-
-int logging_level = INT_MAX;
-
 const char *loglevel_to_string(loglevel_t level) {
 	switch (level) {
 	case L_DEBUG:
@@ -25,23 +19,28 @@ const char *loglevel_to_string(loglevel_t level) {
 	}
 }
 
-void log_message(loglevel_t level, const char *part, const char *format, ...) {
-	if (level > logging_level) {
+log_t *init_log(log_func func, void *data, int log_level) {
+	log_t *log = calloc(sizeof(log_t), 1);
+	log->log = func;
+	log->data = data;
+	log->logging_level = log_level;
+	return log;
+}
+
+void log_message(log_t *log, loglevel_t level, const char *part, const char *format, ...) {
+	if (log == 0) {
+		return;
+	}
+
+	if (level > log->logging_level) {
 		return;
 	}
 
 	va_list format_list;
 	va_start(format_list, format);
-	#ifdef CURSES
-		if (log_window == 0) {
-			log_window = stdscr;
-		}
+	log->log(log->data, level, part, format, format_list);
+}
 
-		vwprintw(log_window, format, format_list);
-		wprintw(log_window, "\n");
-		wrefresh(log_window);
-	#else
-		vprintf(format, format_list);
-		printf("\n");
-	#endif
+void free_log(log_t *log) {
+	free(log);
 }

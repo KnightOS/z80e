@@ -53,7 +53,7 @@ void write_device_status_port(void *device, uint8_t data) {
     memory_mapping_state_t *state = device;
 
     state->map_mode = data & 1;
-    log_message(L_DEBUG, "memorymapping", "Set mapping mode to %d (at 0x%04X)", state->map_mode, state->asic->cpu->registers.PC);
+    log_message(state->asic->log, L_DEBUG, "memorymapping", "Set mapping mode to %d (at 0x%04X)", state->map_mode, state->asic->cpu->registers.PC);
     reload_mapping(state);
 
     write_timer_speed(state->asic->interrupts, data);
@@ -69,7 +69,7 @@ void write_ram_paging_port(void *device, uint8_t data) {
     memory_mapping_state_t *state = device;
 
     state->ram_bank_page = data & 0x7; // 0b111
-    log_message(L_DEBUG, "memorymapping", "Set ram banking page to %d (at 0x%04X)", state->ram_bank_page, state->asic->cpu->registers.PC);
+    log_message(state->asic->log, L_DEBUG, "memorymapping", "Set ram banking page to %d (at 0x%04X)", state->ram_bank_page, state->asic->cpu->registers.PC);
     reload_mapping(state);
 }
 
@@ -104,7 +104,7 @@ void write_bank_a_paging_port(void *device, uint8_t data) {
     state->bank_a_flash = is_flash;
     state->bank_a_page = data;
 
-    log_message(L_DEBUG, "memorymapping", "Set bank A page to %c:%02X (at 0x%04X)", state->bank_a_flash ? 'F' : 'R',  state->bank_a_page, state->asic->cpu->registers.PC);
+    log_message(state->asic->log, L_DEBUG, "memorymapping", "Set bank A page to %c:%02X (at 0x%04X)", state->bank_a_flash ? 'F' : 'R',  state->bank_a_page, state->asic->cpu->registers.PC);
     reload_mapping(state);
 }
 
@@ -139,7 +139,7 @@ void write_bank_b_paging_port(void *device, uint8_t data) {
     state->bank_b_flash = is_flash;
     state->bank_b_page = data;
 
-    log_message(L_DEBUG, "memorymapping", "Set bank B page to %c:%02X (at 0x%04X)", state->bank_b_flash ? 'F' : 'R',  state->bank_b_page, state->asic->cpu->registers.PC);
+    log_message(state->asic->log, L_DEBUG, "memorymapping", "Set bank B page to %c:%02X (at 0x%04X)", state->bank_b_flash ? 'F' : 'R',  state->bank_b_page, state->asic->cpu->registers.PC);
     reload_mapping(state);
 }
 

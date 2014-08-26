@@ -35,6 +35,7 @@ debugger_state_t *tui_new_state(struct debugger_state *state, const char *title)
 	stat->debugger = state->debugger;
 	stat->create_new_state = tui_new_state;
 	stat->close_window = tui_close_window;
+	stat->log = state->log;
 	return stat;
 }
 
@@ -42,9 +43,9 @@ tui_state_t *current_state;
 
 #define dprint(...) printf(__VA_ARGS__)
 void tui_init(tui_state_t *state) {
-	debugger_state_t dstate = { print_tui, vprint_tui, 0, state, state->debugger->asic, state->debugger, tui_new_state, tui_close_window };
+	debugger_state_t dstate = { print_tui, vprint_tui, 0, state, state->debugger->asic, state->debugger, tui_new_state, tui_close_window, state->debugger->asic->log};
 	debugger_state_t *used_state = tui_new_state(&dstate, "Sourcing z80erc...");
-	log_message(L_DEBUG, "TUI", "Running commands in z80erc...");
+	log_message(dstate.log, L_DEBUG, "TUI", "Running commands in z80erc...");
 	debugger_source_rc(used_state, "z80erc");
 	tui_close_window(used_state);
 }
@@ -104,7 +105,7 @@ void tui_tick(tui_state_t *state) {
 
 			add_history(result);
 
-			debugger_state_t dstate = { print_tui, vprint_tui, 0, state, asic, state->debugger, tui_new_state, tui_close_window };
+			debugger_state_t dstate = { print_tui, vprint_tui, 0, state, asic, state->debugger, tui_new_state, tui_close_window, asic->log };
 			debugger_state_t *used_state = tui_new_state(&dstate, result);
 
 			int retval = debugger_exec(used_state, result);

@@ -31,7 +31,7 @@ void setup_lcd_display(asic_t *asic, hook_info_t *hook) {
 	}
 
 	lcd->hook = hook;
-
+	lcd->asic = asic;
 	asic->cpu->devices[0x10].device = lcd;
 	asic->cpu->devices[0x10].read_in = bw_lcd_status_read;
 	asic->cpu->devices[0x10].write_out = bw_lcd_status_write;
@@ -83,7 +83,7 @@ uint8_t bw_lcd_status_read(void *device) {
 void bw_lcd_status_write(void *device, uint8_t val) {
 	ti_bw_lcd_t *lcd = device;
 
-	log_message(L_DEBUG, "lcd", "Wrote 0x%02X (0b%d%d%d%d%d%d%d%d) to status", val,
+	log_message(lcd->asic->log, L_DEBUG, "lcd", "Wrote 0x%02X (0b%d%d%d%d%d%d%d%d) to status", val,
 		!!(val & (1 << 7)),
 		!!(val & (1 << 6)),
 		!!(val & (1 << 5)),
@@ -95,35 +95,35 @@ void bw_lcd_status_write(void *device, uint8_t val) {
 	);
 	if (val & 0xC0) { // 0b11XXXXXX
 		lcd->contrast = val & 0x3F;
-		log_message(L_DEBUG, "lcd", "\tSet contrast to 0x%02X", lcd->contrast);
+		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tSet contrast to 0x%02X", lcd->contrast);
 	} else if (val & 0x80) { // 0b10XXXXXX
 		lcd->X = val & 0x3F;
-		log_message(L_DEBUG, "lcd", "\tSet X (vertical!) to 0x%02X", lcd->X);
+		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tSet X (vertical!) to 0x%02X", lcd->X);
 	} else if (val & 0x40) { // 0b01XXXXXX
 		lcd->Z = val & 0x3F;
-		log_message(L_DEBUG, "lcd", "\tSet Z (vertical scroll) to 0x%02X", lcd->Z);
+		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tSet Z (vertical scroll) to 0x%02X", lcd->Z);
 	} else if (val & 0x20) { // 0b001XXXXX
 		lcd->Y = val & 0x1F;
-		log_message(L_DEBUG, "lcd", "\tSet Y (horizontal!) to 0x%02X", lcd->Y);
+		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tSet Y (horizontal!) to 0x%02X", lcd->Y);
 	} else if ((val & 0x18) == 0x18) { // 0b00011***
 		// test mode - not emulating yet
 	} else if (val & 0x10) { // 0b00010*XX
 		lcd->op_amp1 = val & 0x03;
-		log_message(L_DEBUG, "lcd", "\tSet Op-Amp 1 to 0x%02X", lcd->op_amp1);
+		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tSet Op-Amp 1 to 0x%02X", lcd->op_amp1);
 	} else if (val & 0x08) { // 0b00001*XX
 		lcd->op_amp2 = val & 0x03;
-		log_message(L_DEBUG, "lcd", "\tSet Op-Amp 2 to 0x%02X", lcd->op_amp2);
+		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tSet Op-Amp 2 to 0x%02X", lcd->op_amp2);
 	} else if (val & 0x04) { // 0b000001XX
 		lcd->counter = !!(val & 0x02);
 		lcd->up = !!(val & 0x01);
-		log_message(L_DEBUG, "lcd", "\tSet counter to %s and Up/Down to %s",
+		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tSet counter to %s and Up/Down to %s",
 			lcd->counter ? "Y" : "X", lcd->up ? "Up" : "Down");
 	} else if (val & 0x02) { // 0b0000001X
 		lcd->display_on = !!(val & 0x01);
-		log_message(L_DEBUG, "lcd", "\tDisplay turned %s", lcd->display_on ? "ON" : "OFF");
+		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tDisplay turned %s", lcd->display_on ? "ON" : "OFF");
 	} else { // 0b0000000X
 		lcd->word_length = !!(val & 0x01);
-		log_message(L_DEBUG, "lcd", "\tWord Length set to %d", lcd->word_length ? 8 : 6);
+		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tWord Length set to %d", lcd->word_length ? 8 : 6);
 	}
 }
 
@@ -195,7 +195,7 @@ void bw_lcd_data_write(void *device, uint8_t val) {
 		cY--;
 	}
 
-	log_message(L_DEBUG, "lcd", "Wrote %02X (0b%d%d%d%d%d%d%d%d) to %d (Y), %d (X)",
+	log_message(lcd->asic->log, L_DEBUG, "lcd", "Wrote %02X (0b%d%d%d%d%d%d%d%d) to %d (Y), %d (X)",
 		val,
 		!!(val & (1 << 7)), !!(val & (1 << 6)),
 		!!(val & (1 << 5)), !!(val & (1 << 4)),

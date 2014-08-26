@@ -6,6 +6,7 @@
 typedef struct asic asic_t;
 
 #include <z80e/core/cpu.h>
+#include <z80e/log/log.h>
 #include <z80e/ti/memory.h>
 #include <z80e/ti/ti.h>
 #include <z80e/runloop/runloop.h>
@@ -66,6 +67,7 @@ struct asic {
     ti_interrupts_t *interrupts;
     z80_hardware_timers_t *timers;
     hook_info_t *hook;
+    log_t *log;
 };
 
 asic_t* asic_init(ti_device_type);

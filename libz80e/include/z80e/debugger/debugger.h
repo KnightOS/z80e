@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include <z80e/ti/asic.h>
+#include <z80e/log/log.h>
 
 typedef struct debugger_state debugger_state_t;
 typedef struct debugger debugger_t;
@@ -32,6 +33,7 @@ struct debugger_state {
 	debugger_t *debugger;
 	debugger_state_t *(*create_new_state)(debugger_state_t *, const char *command_name);
 	void (*close_window)(debugger_state_t *);
+	log_t *log;
 };
 
 struct debugger {

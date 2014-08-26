@@ -78,7 +78,6 @@ asic_t *asic_init(ti_device_type type) {
     device->state->runloop = runloop_init(device);
     device->hook = create_hook_set(device);
 
-
     plug_devices(device);
     asic_mirror_ports(device);
     return device;

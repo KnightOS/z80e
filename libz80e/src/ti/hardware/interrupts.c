@@ -12,7 +12,7 @@ void ti_interrupts_check_state(ti_interrupts_t *interrupts) {
 		interrupts->interrupted.first_crystal ||
 		interrupts->interrupted.second_crystal ||
 		interrupts->interrupted.third_crystal)) {
-		log_message(L_DEBUG, "interrupts", "disabling interrupt pin");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "disabling interrupt pin");
 		interrupts->asic->cpu->interrupt = 0;
 	}
 }
@@ -23,43 +23,43 @@ void ti_interrupts_interrupt(ti_interrupts_t *interrupts, int flag) {
 	if (flag & INTERRUPT_ON_KEY && interrupts->enabled.on_key) {
 		interrupts->interrupted.on_key = 1;
 		should_interrupt |= 1;
-		log_message(L_DEBUG, "interrupts", "Triggered ON interrupt");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "Triggered ON interrupt");
 	}
 
 	if (flag & INTERRUPT_FIRST_TIMER && interrupts->enabled.first_timer) {
 		interrupts->interrupted.on_key = 1;
 		should_interrupt |= 1;
-		log_message(L_DEBUG, "interrupts", "Triggered first timer interrupt");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "Triggered first timer interrupt");
 	}
 
 	if (flag & INTERRUPT_SECOND_TIMER && interrupts->enabled.second_timer) {
 		interrupts->interrupted.on_key = 1;
 		should_interrupt |= 1;
-		log_message(L_DEBUG, "interrupts", "Triggered second timer interrupt");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "Triggered second timer interrupt");
 	}
 
 	if (flag & INTERRUPT_LINK_ACTIVITY && interrupts->enabled.link_activity) {
 		interrupts->interrupted.link_activity = 1;
 		should_interrupt |= 1;
-		log_message(L_DEBUG, "interrupts", "Triggered link activity interrupt");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "Triggered link activity interrupt");
 	}
 
 	if (flag & INTERRUPT_FIRST_CRYSTAL && interrupts->enabled.first_crystal) {
 		interrupts->interrupted.first_crystal = 1;
 		should_interrupt |= 1;
-		log_message(L_DEBUG, "interrupts", "Triggered first crystal interrupt");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "Triggered first crystal interrupt");
 	}
 
 	if (flag & INTERRUPT_SECOND_CRYSTAL && interrupts->enabled.second_crystal) {
 		interrupts->interrupted.second_crystal = 1;
 		should_interrupt |= 1;
-		log_message(L_DEBUG, "interrupts", "Triggered second crystal interrupt");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "Triggered second crystal interrupt");
 	}
 
 	if (flag & INTERRUPT_THIRD_CRYSTAL && interrupts->enabled.third_crystal) {
 		interrupts->interrupted.third_crystal = 1;
 		should_interrupt |= 1;
-		log_message(L_DEBUG, "interrupts", "Triggered third crystal interrupt");
+		log_message(interrupts->asic->log,L_DEBUG, "interrupts", "Triggered third crystal interrupt");
 	}
 
 	if (should_interrupt) {
@@ -70,74 +70,74 @@ void ti_interrupts_interrupt(ti_interrupts_t *interrupts, int flag) {
 void ti_interrupts_set_interrupt_enabled(ti_interrupts_t *interrupts, int flag, int set_to) {
 	if (flag & INTERRUPT_ON_KEY) {
 		interrupts->enabled.on_key = set_to;
-		log_message(L_DEBUG, "interrupts", "on key interrupt %s", set_to ? "enabled" : "disabled");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "on key interrupt %s", set_to ? "enabled" : "disabled");
 	}
 
 	if (flag & INTERRUPT_FIRST_TIMER) {
 		interrupts->enabled.first_timer = set_to;
-		log_message(L_DEBUG, "interrupts", "first timer interrupt %s", set_to ? "enabled" : "disabled");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "first timer interrupt %s", set_to ? "enabled" : "disabled");
 	}
 
 	if (flag & INTERRUPT_SECOND_TIMER) {
 		interrupts->enabled.second_timer = set_to;
-		log_message(L_DEBUG, "interrupts", "second timer interrupt %s", set_to ? "enabled" : "disabled");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "second timer interrupt %s", set_to ? "enabled" : "disabled");
 	}
 
 	if (flag & INTERRUPT_LINK_ACTIVITY) {
 		interrupts->enabled.link_activity = set_to;
-		log_message(L_DEBUG, "interrupts", "link activity interrupt %s", set_to ? "enabled" : "disabled");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "link activity interrupt %s", set_to ? "enabled" : "disabled");
 	}
 
 	if (flag & INTERRUPT_FIRST_CRYSTAL) {
 		interrupts->enabled.first_crystal = set_to;
-		log_message(L_DEBUG, "interrupts", "first crystal interrupt %s", set_to ? "enabled" : "disabled");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "first crystal interrupt %s", set_to ? "enabled" : "disabled");
 	}
 
 	if (flag & INTERRUPT_SECOND_CRYSTAL) {
 		interrupts->enabled.second_crystal = set_to;
-		log_message(L_DEBUG, "interrupts", "second crystal interrupt %s", set_to ? "enabled" : "disabled");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "second crystal interrupt %s", set_to ? "enabled" : "disabled");
 	}
 
 	if (flag & INTERRUPT_THIRD_CRYSTAL) {
 		interrupts->enabled.third_crystal = set_to;
-		log_message(L_DEBUG, "interrupts", "third crystal interrupt %s", set_to ? "enabled" : "disabled");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "third crystal interrupt %s", set_to ? "enabled" : "disabled");
 	}
 }
 
 void ti_interrupts_acknowledge_interrupt(ti_interrupts_t *interrupts, int flag) {
 	if (flag & INTERRUPT_ON_KEY) {
 		interrupts->interrupted.on_key = 0;
-		log_message(L_DEBUG, "interrupts", "on key interrupt acknowledged");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "on key interrupt acknowledged");
 	}
 
 	if (flag & INTERRUPT_FIRST_TIMER) {
 		interrupts->interrupted.first_timer = 0;
-		log_message(L_DEBUG, "interrupts", "first timer interrupt acknowledged");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "first timer interrupt acknowledged");
 	}
 
 	if (flag & INTERRUPT_SECOND_TIMER) {
 		interrupts->interrupted.second_timer = 0;
-		log_message(L_DEBUG, "interrupts", "second timer interrupt acknowledged");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "second timer interrupt acknowledged");
 	}
 
 	if (flag & INTERRUPT_LINK_ACTIVITY) {
 		interrupts->interrupted.link_activity = 0;
-		log_message(L_DEBUG, "interrupts", "link activity interrupt acknowledged");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "link activity interrupt acknowledged");
 	}
 
 	if (flag & INTERRUPT_FIRST_CRYSTAL) {
 		interrupts->interrupted.first_crystal = 0;
-		log_message(L_DEBUG, "interrupts", "first crystal interrupt acknowledged");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "first crystal interrupt acknowledged");
 	}
 
 	if (flag & INTERRUPT_SECOND_CRYSTAL) {
 		interrupts->interrupted.second_crystal = 0;
-		log_message(L_DEBUG, "interrupts", "second crystal interrupt acknowledged");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "second crystal interrupt acknowledged");
 	}
 
 	if (flag & INTERRUPT_THIRD_CRYSTAL) {
 		interrupts->interrupted.third_crystal = 0;
-		log_message(L_DEBUG, "interrupts", "third crystal interrupt acknowledged");
+		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "third crystal interrupt acknowledged");
 	}
 
 	ti_interrupts_check_state(interrupts);

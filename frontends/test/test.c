@@ -205,7 +205,6 @@ int run_all() {
 }
 
 int main(int argc, char **argv) {
-    logging_level = L_WARN;
     if (argc == 2) {
         return run_one(argv[1]);
     } else {

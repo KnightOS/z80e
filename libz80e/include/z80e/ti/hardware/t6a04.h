@@ -21,6 +21,7 @@ struct ti_bw_lcd {
 	uint8_t *ram; // [X * 64 + Y]
 
 	hook_info_t *hook;
+	asic_t *asic;
 };
 
 void setup_lcd_display(asic_t *, hook_info_t *);
