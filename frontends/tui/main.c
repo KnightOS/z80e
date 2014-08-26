@@ -14,11 +14,6 @@
 #include <signal.h>
 #include <time.h>
 
-#ifdef CURSES
-#include <curses.h>
-#include <locale.h>
-#endif
-
 typedef struct {
     ti_device_type device;
     asic_t *device_asic;
@@ -154,46 +149,6 @@ int main(int argc, char **argv) {
 
     asic_t *device = asic_init(context.device);
 
-#ifdef CURSES
-    setlocale(LC_ALL, "");
-    initscr();
-    cbreak();
-    noecho();
-    nonl();
-    timeout(0);
-    intrflush(stdscr, FALSE);
-    keypad(stdscr, TRUE);
-    start_color();
-    use_default_colors();
-
-    int width, height;
-    getmaxyx(stdscr, height, width);
-
-    int lcd_width = 60;
-    int lcd_height = 18;
-    int lcd_x = width / 2 - lcd_width / 2;
-    int lcd_y = 1;
-
-    WINDOW *lcd_window_border = newwin(lcd_height + 2, lcd_width + 2, lcd_y - 1, lcd_x - 1);
-    WINDOW *lcd_window = newwin(lcd_height, lcd_width, lcd_y, lcd_x);
-    box(lcd_window_border, 0, 0);
-    wrefresh(lcd_window_border);
-
-    bw_lcd_set_window(device->cpu->devices[0x10].device, lcd_window);
-
-    WINDOW *log_window_border = newwin(height - 2 - (lcd_height + 2), width / 2 - 2, 1 + lcd_height + 2, 1);
-    log_window = newwin(height - 4 - (lcd_height + 2), width / 2 - 4, 2 + (lcd_height + 2), 2);
-    box(log_window_border, 0, 0);
-    wrefresh(log_window_border);
-    scrollok(log_window, TRUE);
-
-    WINDOW *debugger_border = newwin(height - 2 - (lcd_height + 2), width / 2 - 1, 1 + lcd_height + 2, width / 2 - 1);
-    WINDOW *debugger_window = newwin(height - 4 - (lcd_height + 2), width / 2 - 3, lcd_height + 4, width / 2);
-    box(debugger_border, 0, 0);
-    wrefresh(debugger_border);
-    scrollok(debugger_window, TRUE);
-#endif
-
     context.device_asic = device;
     device->state->debugger = tmp_debug;
     if (context.rom_file == NULL) {
@@ -211,9 +166,6 @@ int main(int argc, char **argv) {
         length = ftell(file);
         fseek(file, 0L, SEEK_SET);
         if (!context.no_rom_check && length != device->mmu->settings->flash_pages * 0x4000) {
-            #ifdef CURSES
-                endwin();
-            #endif
             printf("Error: This file does not match the required ROM size of %d bytes, but it is %d bytes (use --no-rom-check to override).\n",
 		device->mmu->settings->flash_pages * 0x4000, length);
             fclose(file);
@@ -227,11 +179,7 @@ int main(int argc, char **argv) {
     debugger_t *debugger = init_debugger(device);
 
     if (device->state->debugger) {
-        #ifdef CURSES
-        tui_state_t state = { debugger, debugger_window };
-        #else
         tui_state_t state = { debugger };
-        #endif
 	tui_init(&state);
         tui_tick(&state);
     } else {
@@ -252,8 +200,5 @@ int main(int argc, char **argv) {
         print_state(&device->cpu->registers);
     }
     asic_free(device);
-    #ifdef CURSES
-        endwin();
-    #endif
     return 0;
 }

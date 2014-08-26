@@ -8,32 +8,19 @@
 #include <stdarg.h>
 #include <string.h>
 
-#ifndef EMSCRIPTEN
 #include <readline/readline.h>
 #include <readline/history.h>
-
-
 
 int print_tui(struct debugger_state *a, const char *b, ...) {
 	va_list list;
 	va_start(list, b);
-#ifdef CURSES
-	return vwprintw(((tui_state_t *)a->interface_state)->debugger_window, b, list);
-#else
 	return vprintf(b, list);
-#endif
 }
 
 int vprint_tui(struct debugger_state *a, const char *b, va_list list) {
-#ifdef CURSES
-	return vwprintw(((tui_state_t *)a->interface_state)->debugger_window, b, list);
-#else
 	return vprintf(b, list);
-#endif
 }
-#endif
 
-#ifndef EMSCRIPTEN
 void tui_close_window(struct debugger_state *state) {
 	free(state);
 }
@@ -53,11 +40,7 @@ debugger_state_t *tui_new_state(struct debugger_state *state, const char *title)
 
 tui_state_t *current_state;
 
-#ifdef CURSES
-#define dprint(...) wprintw(state->debugger_window, __VA_ARGS__)
-#else
 #define dprint(...) printf(__VA_ARGS__)
-#endif
 void tui_init(tui_state_t *state) {
 	debugger_state_t dstate = { print_tui, vprint_tui, 0, state, state->debugger->asic, state->debugger, tui_new_state, tui_close_window };
 	debugger_state_t *used_state = tui_new_state(&dstate, "Sourcing z80erc...");
@@ -102,25 +85,14 @@ void tui_tick(tui_state_t *state) {
 		current_pointer = disasm_custom.string_pointer;
 
 		sprintf(current_pointer, "] %s> ", asic->cpu->halted ? "HALT " : "");
-		#ifdef CURSES
-			char _result[256];
-			wprintw(state->debugger_window, "%s", prompt_buffer);
-			echo();
-			wgetnstr(state->debugger_window, _result, 256);
-			noecho();
-			char *result = _result;
-		#else
-			char *result = readline(prompt_buffer);
-		#endif
+		char *result = readline(prompt_buffer);
 		if (result) {
 			int from_history = 0;
 
 			if (*result == 0) {
 				HIST_ENTRY *hist = history_get(where_history());
 				if (hist == 0) {
-					#ifndef CURSES
-						free(result);
-					#endif
+					free(result);
 					continue;
 				}
 				result = (char *)hist->line;
@@ -143,13 +115,10 @@ void tui_tick(tui_state_t *state) {
 			tui_close_window(used_state);
 
 			if (!from_history) {
-				#ifndef CURSES
-					free(result);
-				#endif
+				free(result);
 			}
 		} else if (result == NULL) {
 			break;
 		}
 	}
 }
-#endif
