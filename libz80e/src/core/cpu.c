@@ -7,6 +7,7 @@
 struct ExecutionContext {
     uint8_t cycles;
     z80cpu_t *cpu;
+    int switch_memory;
     union {
         uint8_t opcode;
         struct {
@@ -33,10 +34,6 @@ z80cpu_t* cpu_init(void) {
         cpu->devices[i] = nullDevice;
     }
     return cpu;
-}
-
-void cpu_raise_interrupt(z80cpu_t  *cpu) {
-    cpu->INT_pending = 1;
 }
 
 void cpu_free(z80cpu_t *cpu) {
@@ -252,6 +249,15 @@ uint16_t pop(z80cpu_t *cpu) {
 }
 
 uint8_t read_n(struct ExecutionContext *context) {
+    if (context->switch_memory == 1) {
+        context->switch_memory = 2;
+        return cpu_read_byte(context->cpu, context->cpu->registers.PC + 1);
+    } else if (context->switch_memory == 2) {
+        context->switch_memory = 0;
+        context->cpu->registers.PC += 2;
+        return cpu_read_byte(context->cpu, context->cpu->registers.PC - 2);
+    }
+
     return cpu_read_byte(context->cpu, context->cpu->registers.PC++);
 }
 
@@ -262,13 +268,22 @@ uint16_t read_nn(struct ExecutionContext *context) {
 }
 
 int8_t read_d(struct ExecutionContext *context) {
+    if (context->switch_memory == 1) {
+        context->switch_memory = 2;
+        return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC + 1);
+    } else if (context->switch_memory == 2) {
+        context->switch_memory = 0;
+        context->cpu->registers.PC += 2;
+        return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC - 2);
+    }
+
     return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC++);
 }
 
 uint8_t HorIHr(struct ExecutionContext *context) {
-    if (context->cpu->prefix == 0xDD) {
+    if (context->cpu->prefix >> 8 == 0xDD) {
         return context->cpu->registers.IXH;
-    } else if (context->cpu->prefix == 0xFD) {
+    } else if (context->cpu->prefix >> 8 == 0xFD) {
         return context->cpu->registers.IYH;
     } else {
         return context->cpu->registers.H;
@@ -276,9 +291,9 @@ uint8_t HorIHr(struct ExecutionContext *context) {
 }
 
 uint8_t HorIHw(struct ExecutionContext *context, uint8_t value) {
-    if (context->cpu->prefix == 0xDD) {
+    if (context->cpu->prefix >> 8 == 0xDD) {
         context->cpu->registers.IXH = value;
-    } else if (context->cpu->prefix == 0xFD) {
+    } else if (context->cpu->prefix >> 8 == 0xFD) {
         context->cpu->registers.IYH = value;
     } else {
         context->cpu->registers.H = value;
@@ -287,9 +302,9 @@ uint8_t HorIHw(struct ExecutionContext *context, uint8_t value) {
 }
 
 uint8_t LorILr(struct ExecutionContext *context) {
-    if (context->cpu->prefix == 0xDD) {
+    if (context->cpu->prefix >> 8 == 0xDD) {
         return context->cpu->registers.IXL;
-    } else if (context->cpu->prefix == 0xFD) {
+    } else if (context->cpu->prefix >> 8 == 0xFD) {
         return context->cpu->registers.IYL;
     } else {
         return context->cpu->registers.L;
@@ -297,9 +312,9 @@ uint8_t LorILr(struct ExecutionContext *context) {
 }
 
 uint8_t LorILw(struct ExecutionContext *context, uint8_t value) {
-    if (context->cpu->prefix == 0xDD) {
+    if (context->cpu->prefix >> 8 == 0xDD) {
         context->cpu->registers.IXL = value;
-    } else if (context->cpu->prefix == 0xFD) {
+    } else if (context->cpu->prefix >> 8 == 0xFD) {
         context->cpu->registers.IYL = value;
     } else {
         context->cpu->registers.L = value;
@@ -308,9 +323,9 @@ uint8_t LorILw(struct ExecutionContext *context, uint8_t value) {
 }
 
 uint16_t HLorIr(struct ExecutionContext *context) {
-    if (context->cpu->prefix == 0xDD) {
+    if (context->cpu->prefix >> 8 == 0xDD) {
         return context->cpu->registers.IX;
-    } else if (context->cpu->prefix == 0xFD) {
+    } else if (context->cpu->prefix >> 8 == 0xFD) {
         return context->cpu->registers.IY;
     } else {
         return context->cpu->registers.HL;
@@ -318,9 +333,9 @@ uint16_t HLorIr(struct ExecutionContext *context) {
 }
 
 uint16_t HLorIw(struct ExecutionContext *context, uint16_t value) {
-    if (context->cpu->prefix == 0xDD) {
+    if (context->cpu->prefix >> 8 == 0xDD) {
         context->cpu->registers.IX = value;
-    } else if (context->cpu->prefix == 0xFD) {
+    } else if (context->cpu->prefix >> 8 == 0xFD) {
         context->cpu->registers.IY = value;
     } else {
         context->cpu->registers.HL = value;
@@ -331,11 +346,11 @@ uint16_t HLorIw(struct ExecutionContext *context, uint16_t value) {
 uint8_t indHLorIr(struct ExecutionContext *context) {
     // This function erases the prefix early so that the next read (H or L) does not
     // use IXH or IXL
-    if (context->cpu->prefix == 0xDD) {
+    if (context->cpu->prefix >> 8 == 0xDD) {
         context->cycles += 9;
         context->cpu->prefix = 0;
         return cpu_read_byte(context->cpu, context->cpu->registers.IX + read_d(context));
-    } else if (context->cpu->prefix == 0xFD) {
+    } else if (context->cpu->prefix >> 8 == 0xFD) {
         context->cycles += 9;
         context->cpu->prefix = 0;
         return cpu_read_byte(context->cpu, context->cpu->registers.IY + read_d(context));
@@ -345,11 +360,11 @@ uint8_t indHLorIr(struct ExecutionContext *context) {
 }
 
 uint8_t indHLorIw(struct ExecutionContext *context, uint8_t value) {
-    if (context->cpu->prefix == 0xDD) {
+    if (context->cpu->prefix >> 8 == 0xDD) {
         context->cycles += 9;
         context->cpu->prefix = 0;
         cpu_write_byte(context->cpu, context->cpu->registers.IX + read_d(context), value);
-    } else if (context->cpu->prefix == 0xFD) {
+    } else if (context->cpu->prefix >> 8 == 0xFD) {
         context->cycles += 9;
         context->cpu->prefix = 0;
         cpu_write_byte(context->cpu, context->cpu->registers.IY + read_d(context), value);
@@ -370,11 +385,11 @@ uint8_t read_r(int i, struct ExecutionContext *context) {
     case 5: return LorILr(context);
     case 6:
         context->cycles += 3;
-        if (context->cpu->prefix == 0xDD) {
+        if (context->cpu->prefix >> 8 == 0xDD) {
             context->cycles += 8;
             d = context->d(context);
             return cpu_read_byte(context->cpu, context->cpu->registers.IX + d);
-        } else if (context->cpu->prefix == 0xFD) {
+        } else if (context->cpu->prefix >> 8 == 0xFD) {
             context->cycles += 8;
             d = context->d(context);
             return cpu_read_byte(context->cpu, context->cpu->registers.IY + d);
@@ -397,11 +412,11 @@ uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
     case 5: return LorILw(context, value);
     case 6:
         context->cycles += 3;
-        if (context->cpu->prefix == 0xDD) {
+        if (context->cpu->prefix >> 8 == 0xDD) {
             context->cycles += 4;
             d = context->d(context);
             cpu_write_byte(context->cpu, context->cpu->registers.IX + d, value);
-        } else if (context->cpu->prefix == 0xFD) {
+        } else if (context->cpu->prefix >> 8 == 0xFD) {
             context->cycles += 4;
             d = context->d(context);
             cpu_write_byte(context->cpu, context->cpu->registers.IY + d, value);
@@ -412,6 +427,22 @@ uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
     case 7: return context->cpu->registers.A = value;
     }
     return 0; // This should never happen
+}
+
+uint8_t read_write_r(int read, int write, struct ExecutionContext *context) {
+    uint16_t old_prefix = context->cpu->prefix;
+    if (write == 6) {
+        context->cpu->prefix &= 0xFF;
+    }
+
+    uint8_t r = read_r(read, context);
+
+    if (write == 6) {
+        context->cpu->prefix = old_prefix;
+    } else {
+        context->cpu->prefix &= 0xFF;
+    }
+    return write_r(write, r, context);
 }
 
 uint16_t read_rp(int i, struct ExecutionContext *context) {
@@ -541,6 +572,12 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 
 void execute_rot(int y, int z, struct ExecutionContext *context) {
     uint8_t r = read_r(z, context);
+    if (z == 6) {
+        // reset the PC back to the offset, so
+        // the write reads it correctly
+        context->cpu->registers.PC--;
+    }
+
     uint8_t old_r = r;
     uint8_t old_7 = (r & 0x80) > 0;
     uint8_t old_0 = (r & 1) > 0;
@@ -844,8 +881,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
             if (cpu->IFF_wait) {
                 cpu->IFF_wait = 0;
             } else {
-                if (cpu->INT_pending) {
-                    cpu->INT_pending = 0;
+                if (cpu->interrupt) {
                     cpu->halted = 0;
                     handle_interrupt(&context);
                     goto exit_loop;
@@ -864,7 +900,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
         int8_t d; uint16_t nn;
         uint8_t old; uint16_t old16;
         uint8_t new; uint16_t new16;
-        uint8_t prefix = 0;
+        int reset_prefix = 1;
+
         z80registers_t *r = &cpu->registers;
         z80iodevice_t ioDevice;
 
@@ -873,186 +910,200 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
         r->R &= 0x7F;
         r->R |= old_r & 0x80;
 
-        if (cpu->prefix == 0xCB || cpu->prefix == 0xED) {
-            switch (cpu->prefix) {
-            case 0xCB:
-                switch (context.x) {
-                case 0: // rot[y] r[z]
-                    context.cycles += 4;
-                    execute_rot(context.y, context.z, &context);
-                    break;
-                case 1: // BIT y, r[z]
-                    context.cycles += 4;
-                    old = read_r(context.z, &context);
-                    r->flags.H = 1;
-                    r->flags.N = 0;
-                    cpu->registers.flags.Z = (old & (1 << context.y)) > 0;
-                    break;
-                case 2: // RES y, r[z]
-                    context.cycles += 4;
-                    old = read_r(context.z, &context);
-                    old &= ~(1 << context.y);
-                    write_r(context.z, old, &context);
-                    break;
-                case 3: // SET y, r[z]
-                    context.cycles += 4;
-                    old = read_r(context.z, &context);
-                    old |= 1 << context.y;
-                    write_r(context.z, old, &context);
-                    break;
-                }
-                cpu->prefix = 0;
+//         |
+//      |
+//         |
+//            |
+// DD CB DD OP
+
+        if ((cpu->prefix & 0xFF) == 0xCB) {
+            int switch_opcode_data = cpu->prefix >> 8;
+            if (switch_opcode_data) {
+                context.opcode = cpu_read_byte(cpu, cpu->registers.PC--);
+            }
+
+            switch (context.x) {
+            case 0: // rot[y] r[z]
+                context.cycles += 4;
+                execute_rot(context.y, context.z, &context);
                 break;
-            case 0xED:
-                switch (context.x) {
+            case 1: // BIT y, r[z]
+                context.cycles += 4;
+                old = read_r(context.z, &context);
+                r->flags.H = 1;
+                r->flags.N = 0;
+                cpu->registers.flags.Z = (old & (1 << context.y)) == 0;
+                break;
+            case 2: // RES y, r[z]
+                context.cycles += 4;
+                old = read_r(context.z, &context);
+                old &= ~(1 << context.y);
+                if (context.z == 6) {
+                    cpu->registers.PC--;
+                }
+                write_r(context.z, old, &context);
+                break;
+            case 3: // SET y, r[z]
+                context.cycles += 4;
+                old = read_r(context.z, &context);
+                old |= 1 << context.y;
+                if (context.z == 6) {
+                    cpu->registers.PC--;
+                }
+                write_r(context.z, old, &context);
+                break;
+            }
+
+            if (switch_opcode_data) {
+                cpu->registers.PC++;
+            }
+        } else if (cpu->prefix >> 8 == 0xED) {
+             switch (context.x) {
+             case 1:
+                switch (context.z) {
+                case 0:
+                    if (context.y == 6) { // IN (C)
+                        context.cycles += 8;
+                        ioDevice = cpu->devices[cpu->registers.C];
+                        if (ioDevice.read_in != NULL) {
+                            new = ioDevice.read_in(ioDevice.device);
+                             updateFlags_except(r, new, new, 0, FLAG_C);
+                             r->flags.H = r->flags.N = 0;
+                        }
+                    } else { // IN r[y], (C)
+                        context.cycles += 8;
+                        ioDevice = cpu->devices[r->C];
+                        if (ioDevice.read_in != NULL) {
+                            new = ioDevice.read_in(ioDevice.device);
+                            old = read_r(context.y, &context);
+                            write_r(context.y, new, &context);
+                            updateFlags_withOptions(r, old, new, 0, 1, 0, FLAG_C);
+                            r->flags.N = r->flags.H = 0;
+                        }
+                    }
+                    break;
                 case 1:
-                    switch (context.z) {
-                    case 0:
-                        if (context.y == 6) { // IN (C)
-                            context.cycles += 8;
-                            ioDevice = cpu->devices[cpu->registers.C];
-                            if (ioDevice.read_in != NULL) {
-                                new = ioDevice.read_in(ioDevice.device);
-                                updateFlags_except(r, new, new, 0, FLAG_C);
-                                r->flags.H = r->flags.N = 0;
-                            }
-                        } else { // IN r[y], (C)
-                            context.cycles += 8;
-                            ioDevice = cpu->devices[r->C];
-                            if (ioDevice.read_in != NULL) {
-                                new = ioDevice.read_in(ioDevice.device);
-                                old = read_r(context.y, &context);
-                                write_r(context.y, new, &context);
-                                updateFlags_withOptions(r, old, new, 0, 1, 0, FLAG_C);
-                                r->flags.N = r->flags.H = 0;
-                            }
+                    if (context.y == 6) { // OUT (C), 0
+                        // This instruction outputs 0 for NMOS z80s, and 0xFF for CMOS z80s.
+                        // TIs are the CMOS variant. Most emulators do *not* emulate this
+                        // correctly, but I have verified through my own research that the
+                        // correct value to output is 0xFF.
+                        context.cycles += 8;
+                        ioDevice = cpu->devices[r->C];
+                        if (ioDevice.write_out != NULL) {
+                            ioDevice.write_out(ioDevice.device, 0xFF);
                         }
-                        break;
-                    case 1:
-                        if (context.y == 6) { // OUT (C), 0
-                            // This instruction outputs 0 for NMOS z80s, and 0xFF for CMOS z80s.
-                            // TIs are the CMOS variant. Most emulators do *not* emulate this
-                            // correctly, but I have verified through my own research that the
-                            // correct value to output is 0xFF.
-                            context.cycles += 8;
-                            ioDevice = cpu->devices[r->C];
-                            if (ioDevice.write_out != NULL) {
-                                ioDevice.write_out(ioDevice.device, 0xFF);
-                            }
-                        } else { // OUT (C), r[y]
-                            context.cycles += 8;
-                            ioDevice = cpu->devices[r->C];
-                            if (ioDevice.write_out != NULL) {
-                                ioDevice.write_out(ioDevice.device, read_r(context.y, &context));
-                            }
+                    } else { // OUT (C), r[y]
+                        context.cycles += 8;
+                        ioDevice = cpu->devices[r->C];
+                        if (ioDevice.write_out != NULL) {
+                            ioDevice.write_out(ioDevice.device, read_r(context.y, &context));
                         }
-                        break;
-                    case 2:
-                        if (context.q == 0) { // SBC HL, rp[p]
-                            context.cycles += 11;
-                            old16 = r->HL;
-                            r->HL -= read_rp(context.p, &context) + r->flags.C;
-                            updateFlags_subtraction(r, old16, r->HL, 1);
-                        } else { // ADC HL, rp[p]
-                            context.cycles += 11;
-                            old16 = r->HL;
-                            r->HL += read_rp(context.p, &context) + r->flags.C;
-                            updateFlags(r, old16, r->HL, 1);
-                        }
-                        break;
-                    case 3:
-                        if (context.q == 0) { // LD (nn), rp[p]
-                            context.cycles += 16;
-                            cpu_write_word(cpu, context.nn(&context), read_rp(context.p, &context));
-                        } else { // LD rp[p], (nn)
-                            context.cycles += 16;
-                            write_rp(context.p, cpu_read_word(cpu, context.nn(&context)), &context);
-                        }
-                        break;
-                    case 4: // NEG
-                        context.cycles += 4;
-                        old = r->A;
-                        r->A = -r->A;
-                        updateFlags_subtraction(r, old, r->A, 0);
-                        r->flags.C = old != 0;
-                        r->flags.PV = old == 0x80;
-                        break;
-                    case 5:
-                        if (context.y == 1) { // RETI
-                            // Note: Intentionally not implemented, not relevant for TI devices
-                        } else { // RETN
-                            // Note: Intentionally not implemented, not relevant for TI devices
-                        }
-                        break;
-                    case 6: // IM im[y]
-                        context.cycles += 4;
-                        execute_im(context.y, &context);
-                        break;
-                    case 7:
-                        switch (context.y) {
-                        case 0: // LD I, A
-                            context.cycles += 5;
-                            r->I = r->A;
-                            break;
-                        case 1: // LD R, A
-                            context.cycles += 5;
-                            r->R = r->A;
-                            break;
-                        case 2: // LD A, I
-                            context.cycles += 5;
-                            old = r->A;
-                            r->A = r->I;
-                            updateFlags_except(r, old, r->A, 0, FLAG_C);
-                            r->flags.H = r->flags.N = 0;
-                            r->flags.PV = cpu->IFF2;
-                            break;
-                        case 3: // LD A, R
-                            context.cycles += 5;
-                            old = r->A;
-                            r->A = r->R;
-                            updateFlags_except(r, old, r->A, 0, FLAG_C);
-                            r->flags.H = r->flags.N = 0;
-                            r->flags.PV = cpu->IFF2;
-                            break;
-                        case 4: // RRD
-                            context.cycles += 14;
-                            old = r->A;
-                            old16 = cpu_read_word(cpu, r->HL);
-                            r->A = old16 & 0xFF;
-                            old16 >>= 8;
-                            old16 |= old << 8;
-                            cpu_write_word(cpu, r->HL, old16);
-                            break;
-                        case 5: // RLD
-                            context.cycles += 14;
-                            old = r->A;
-                            old16 = cpu_read_word(cpu, r->HL);
-                            r->A = old16 >> 8;
-                            old16 <<= 8;
-                            old16 |= old;
-                            cpu_write_word(cpu, r->HL, old16);
-                            break;
-                        default: // NOP (invalid instruction)
-                            context.cycles += 4;
-                            break;
-                        }
-                        break;
                     }
                     break;
                 case 2:
-                    if (context.y >= 4) { // bli[y,z]
-                        execute_bli(context.y, context.z, &context);
-                    } else { // NONI (invalid instruction)
-                        context.cycles += 4;
-                        cpu->IFF_wait = 1;
+                    if (context.q == 0) { // SBC HL, rp[p]
+                       context.cycles += 11;
+                       old16 = r->HL;
+                       r->HL -= read_rp(context.p, &context) + r->flags.C;
+                        updateFlags_subtraction(r, old16, r->HL, 1);
+                    } else { // ADC HL, rp[p]
+                       context.cycles += 11;
+                       old16 = r->HL;
+                       r->HL += read_rp(context.p, &context) + r->flags.C;
+                       updateFlags(r, old16, r->HL, 1);
                     }
                     break;
-                default: // NONI (invalid instruction)
+                case 3:
+                    if (context.q == 0) { // LD (nn), rp[p]
+                        context.cycles += 16;
+                        cpu_write_word(cpu, context.nn(&context), read_rp(context.p, &context));
+                    } else { // LD rp[p], (nn)
+                        context.cycles += 16;
+                        write_rp(context.p, cpu_read_word(cpu, context.nn(&context)), &context);
+                    }
+                    break;
+                case 4: // NEG
                     context.cycles += 4;
-                    cpu->IFF_wait = 1;
+                    old = r->A;
+                    r->A = -r->A;
+                    updateFlags_subtraction(r, old, r->A, 0);
+                    r->flags.C = old != 0;
+                    r->flags.PV = old == 0x80;
+                    break;
+                case 5:
+                    if (context.y == 1) { // RETI
+                        // Note: Intentionally not implemented, not relevant for TI devices
+                    } else { // RETN
+                        // Note: Intentionally not implemented, not relevant for TI devices
+                    }
+                    break;
+                case 6: // IM im[y]
+                    context.cycles += 4;
+                    execute_im(context.y, &context);
+                    break;
+                case 7:
+                    switch (context.y) {
+                    case 0: // LD I, A
+                        context.cycles += 5;
+                        r->I = r->A;
+                        break;
+                    case 1: // LD R, A
+                        context.cycles += 5;
+                        r->R = r->A;
+                        break;
+                    case 2: // LD A, I
+                        context.cycles += 5;
+                        old = r->A;
+                        r->A = r->I;
+                        updateFlags_except(r, old, r->A, 0, FLAG_C);
+                        r->flags.H = r->flags.N = 0;
+                        r->flags.PV = cpu->IFF2;
+                        break;
+                    case 3: // LD A, R
+                        context.cycles += 5;
+                        old = r->A;
+                        r->A = r->R;
+                        updateFlags_except(r, old, r->A, 0, FLAG_C);
+                        r->flags.H = r->flags.N = 0;
+                        r->flags.PV = cpu->IFF2;
+                        break;
+                    case 4: // RRD
+                        context.cycles += 14;
+                        old = r->A;
+                        old16 = cpu_read_word(cpu, r->HL);
+                        r->A = old16 & 0xFF;
+                        old16 >>= 8;
+                        old16 |= old << 8;
+                        cpu_write_word(cpu, r->HL, old16);
+                        break;
+                    case 5: // RLD
+                        context.cycles += 14;
+                        old = r->A;
+                        old16 = cpu_read_word(cpu, r->HL);
+                        r->A = old16 >> 8;
+                        old16 <<= 8;
+                        old16 |= old;
+                        cpu_write_word(cpu, r->HL, old16);
+                        break;
+                    default: // NOP (invalid instruction)
+                        context.cycles += 4;
+                        break;
+                    }
                     break;
                 }
-                cpu->prefix = 0;
+                break;
+            case 2:
+                if (context.y >= 4) { // bli[y,z]
+                    execute_bli(context.y, context.z, &context);
+                } else { // NONI (invalid instruction)
+                    context.cycles += 4;
+                    cpu->IFF_wait = 1;
+                }
+                break;
+            default: // NONI (invalid instruction)
+                context.cycles += 4;
+                cpu->IFF_wait = 1;
                 break;
             }
         } else {
@@ -1182,6 +1233,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                     break;
                 case 6: // LD r[y], n
                     context.cycles += 7;
+                    context.switch_memory = context.y == 6 && context.cpu->prefix >> 8;
                     write_r(context.y, context.n(&context), &context);
                     break;
                 case 7:
@@ -1249,7 +1301,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                     cpu->halted = 1;
                 } else { // LD r[y], r[z]
                     context.cycles += 4;
-                    write_r(context.y, read_r(context.z, &context), &context);
+                    read_write_r(context.z, context.y, &context);
                 }
                 break;
             case 2: // ALU[y] r[z]
@@ -1307,7 +1359,9 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                         break;
                     case 1: // 0xCB prefixed opcodes
                         context.cycles += 4;
-                        prefix = 0xCB;
+                        cpu->prefix &= 0xFF00;
+                        cpu->prefix |= 0x00CB;
+                        reset_prefix = 0;
                         break;
                     case 2: // OUT (n), A
                         context.cycles += 11;
@@ -1371,18 +1425,24 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                             break;
                         case 1: // 0xDD prefixed opcodes
                             context.cycles += 4;
-                            prefix = 0xDD;
+                            cpu->prefix &= 0xFF;
+                            cpu->prefix |= 0xDD00;
+                            reset_prefix = 0;
                             break;
                         case 2: // 0xED prefixed opcodes
                             context.cycles += 4;
-                            prefix = 0xED;
+                            cpu->prefix &= 0xFF;
+                            cpu->prefix |= 0xED00;
+                            reset_prefix = 0;
                             break;
                         case 3: // 0xFD prefixed opcodes
                             context.cycles += 4;
-                            prefix = 0xFD;
+                            cpu->prefix &= 0xFF;
+                            cpu->prefix |= 0xFD00;
+                            reset_prefix = 0;
                             break;
                         }
-                        break; 
+                        break;
                     }
                     break;
                 case 6: // alu[y] n
@@ -1390,7 +1450,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
                     break;
                 case 7: // RST y*8
                     context.cycles += 11;
-                    push(context.cpu, r->PC + 2);
+                    push(context.cpu, r->PC);
                     r->PC = context.y * 8;
                     break;
                 }
@@ -1398,7 +1458,9 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
             }
         }
 
-        cpu->prefix = prefix;
+        if (reset_prefix) {
+            cpu->prefix = 0;
+        }
 
 exit_loop:
         cycles -= context.cycles;

@@ -7,7 +7,7 @@ int test_IM_1() {
         asic_free(device);
         return 1;
     }
-    cpu_raise_interrupt(device->cpu);
+    device->cpu->interrupt = 1;
     int cycles = cpu_execute(device->cpu, 13);
     if (device->cpu->registers.PC != 0x38 ||
         device->cpu->registers.SP != 0xFFFE ||
@@ -29,7 +29,7 @@ int test_IM_2() {
         return 1;
     }
     device->cpu->bus = 0x90;
-    cpu_raise_interrupt(device->cpu);
+    device->cpu->interrupt = 1;
     int cycles = cpu_execute(device->cpu, 19);
     if (device->cpu->registers.PC != 0x8090 ||
         device->cpu->registers.SP != 0xFFFE ||

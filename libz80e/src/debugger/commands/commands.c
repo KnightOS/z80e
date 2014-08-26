@@ -16,6 +16,22 @@ uint16_t parse_operand(debugger_state_t *state, const char *start, const char **
 		*end += len; \
 		return state->asic->cpu->registers. num; \
 	}
+		REGISTER(IXH, 3, "IXH");
+		REGISTER(IXL, 3, "IXL");
+		REGISTER(IYH, 3, "IYH");
+		REGISTER(IYL, 3, "IYL");
+		REGISTER(_BC, 3, "BC'");
+		REGISTER(_DE, 3, "DE'");
+		REGISTER(_HL, 3, "HL'");
+		REGISTER(_AF, 3, "AF'");
+		REGISTER(IX, 2, "IX");
+		REGISTER(IY, 2, "IY");
+		REGISTER(AF, 2, "AF");
+		REGISTER(BC, 2, "BC");
+		REGISTER(DE, 2, "DE");
+		REGISTER(HL, 2, "HL");
+		REGISTER(PC, 2, "PC");
+		REGISTER(SP, 2, "SP");
 		REGISTER(A, 1, "A");
 		REGISTER(B, 1, "B");
 		REGISTER(C, 1, "C");
@@ -24,24 +40,8 @@ uint16_t parse_operand(debugger_state_t *state, const char *start, const char **
 		REGISTER(F, 1, "F");
 		REGISTER(H, 1, "H");
 		REGISTER(L, 1, "L");
-		REGISTER(AF, 2, "AF");
-		REGISTER(_AF, 3, "AF'");
-		REGISTER(BC, 2, "BC");
-		REGISTER(_BC, 3, "BC'");
-		REGISTER(DE, 2, "DE");
-		REGISTER(_DE, 3, "DE'");
-		REGISTER(HL, 2, "HL");
-		REGISTER(_HL, 3, "HL'");
-		REGISTER(PC, 2, "PC");
-		REGISTER(SP, 2, "SP");
 		REGISTER(I, 1, "I");
 		REGISTER(R, 1, "R");
-		REGISTER(IXH, 3, "IXH");
-		REGISTER(IXL, 3, "IXL");
-		REGISTER(IX, 2, "IX");
-		REGISTER(IYH, 3, "IYH");
-		REGISTER(IYL, 3, "IYL");
-		REGISTER(IY, 2, "IY");
 
 		state->print(state, "ERROR: Unknown register/number!\n");
                 while(!strchr("+-*/(){} 	\n", *start)) {
