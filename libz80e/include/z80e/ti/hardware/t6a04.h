@@ -25,9 +25,6 @@ struct ti_bw_lcd {
 
 void setup_lcd_display(asic_t *, hook_info_t *);
 
-void bw_lcd_state_dump(ti_bw_lcd_t *lcd);
-void bw_lcd_dump(ti_bw_lcd_t *lcd);
-
 uint8_t bw_lcd_read_screen(ti_bw_lcd_t *, int, int);
 void bw_lcd_write_screen(ti_bw_lcd_t *, int, int, char);
 
