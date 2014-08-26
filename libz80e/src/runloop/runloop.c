@@ -5,11 +5,19 @@
 #include <time.h>
 #include <limits.h>
 
+#ifdef EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 long long get_time_nsec() {
+#ifdef EMSCRIPTEN
+	return emscripten_get_now() * 1000000;
+#else
 	struct timespec sp;
 	clock_gettime(CLOCK_MONOTONIC, &sp);
 
 	return sp.tv_sec * 1000000000 + sp.tv_nsec;
+#endif
 }
 
 typedef struct {

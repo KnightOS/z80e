@@ -18,8 +18,14 @@ add_library(z80e_objects OBJECT
     ${Commands}
 )
 
-set_target_properties(z80e_objects PROPERTIES APPEND_STRING PROPERTY
+if(DEFINED EMSCRIPTEN)
+set_target_properties(z80e_objects PROPERTIES
+    COMPILE_FLAGS " ${CMAKE_INCLUDE_SYSTEM_FLAG_CXX} ${CMAKE_CURRENT_SOURCE_DIR}/include/ -Wno-warn-absolute-paths -DEMSCRIPTEN")
+else()
+set_target_properties(z80e_objects PROPERTIES
     COMPILE_FLAGS " ${CMAKE_INCLUDE_SYSTEM_FLAG_CXX} ${CMAKE_CURRENT_SOURCE_DIR}/include/")
+endif()
+
 
 set_target_properties(z80e_objects PROPERTIES APPEND_STRING PROPERTY
     INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include/z80e")
