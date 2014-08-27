@@ -36,6 +36,11 @@ appContext_t create_context(void) {
     return context;
 }
 
+int lcd_changed = 0;
+void lcd_changed_hook(void *data, ti_bw_lcd_t *lcd) {
+	lcd_changed = 1;
+}
+
 void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 	int cY;
 	int cX;
@@ -79,6 +84,14 @@ void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 	printf("C: 0x%02X X: 0x%02X Y: 0x%02X Z: 0x%02X\n", lcd->contrast, lcd->X, lcd->Y, lcd->Z);
 	printf("   %c%c%c%c  O1: 0x%01X 02: 0x%01X\n", lcd->up ? 'V' : '^', lcd->counter ? '-' : '|',
 		lcd->word_length ? '8' : '6', lcd->display_on ? 'O' : ' ', lcd->op_amp1, lcd->op_amp2);
+}
+
+void lcd_timer_tick(asic_t *asic, void *data) {
+    ti_bw_lcd_t *lcd = data;
+    if (lcd_changed) {
+        print_lcd(asic, lcd);
+        lcd_changed = 0;
+    }
 }
 
 void setDevice(appContext_t *context, char *target) {
@@ -227,7 +240,9 @@ int main(int argc, char **argv) {
         fclose(file);
     }
 
-    hook_add_lcd_update(device->hook, NULL, print_lcd);
+    hook_add_lcd_update(device->hook, NULL, lcd_changed_hook);
+    asic_add_timer(device, 0, 60, lcd_timer_tick, device->cpu->devices[0x10].device);
+
     debugger_t *debugger = init_debugger(device);
 
     if (device->state->debugger) {
