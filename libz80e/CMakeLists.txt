@@ -1,8 +1,15 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 project (z80e_objects)
 
 FILE(GLOB Hardware src/ti/hardware/*.c)
 FILE(GLOB Commands src/debugger/commands/*.c)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/z80e)
+
+if(DEFINED EMSCRIPTEN)
+add_compile_options(-Wno-warn-absolute-paths)
+add_definitions(-DEMSCRIPTEN)
+endif()
 
 add_library(z80e_objects OBJECT
     src/core/cpu.c
@@ -17,15 +24,3 @@ add_library(z80e_objects OBJECT
     ${Hardware}
     ${Commands}
 )
-
-if(DEFINED EMSCRIPTEN)
-set_target_properties(z80e_objects PROPERTIES
-    COMPILE_FLAGS " ${CMAKE_INCLUDE_SYSTEM_FLAG_CXX} ${CMAKE_CURRENT_SOURCE_DIR}/include/ -Wno-warn-absolute-paths -DEMSCRIPTEN")
-else()
-set_target_properties(z80e_objects PROPERTIES
-    COMPILE_FLAGS " ${CMAKE_INCLUDE_SYSTEM_FLAG_CXX} ${CMAKE_CURRENT_SOURCE_DIR}/include/")
-endif()
-
-
-set_target_properties(z80e_objects PROPERTIES APPEND_STRING PROPERTY
-    INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include/z80e")

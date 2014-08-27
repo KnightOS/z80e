@@ -1,15 +1,21 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 project (libz80e)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "bin/")
 
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../../libz80e/include)
+
+if(DEFINED EMSCRIPTEN)
+add_executable(z80e
+    $<TARGET_OBJECTS:z80e_objects>
+) # bit of a hack to get it to compile to .js directly
+
+SET_TARGET_PROPERTIES(z80e PROPERTIES LINK_FLAGS @${CMAKE_CURRENT_SOURCE_DIR}/emscripten.config)
+else()
 add_library(z80e SHARED
     $<TARGET_OBJECTS:z80e_objects>
 )
 
-set_target_properties(z80e PROPERTIES APPEND_STRING PROPERTY
-    COMPILE_FLAGS " ${CMAKE_INCLUDE_SYSTEM_FLAG_CXX} ${CMAKE_CURRENT_SOURCE_DIR}/../../libz80e/include"
-)
-if(NOT DEFINED EMSCRIPTEN)
 TARGET_LINK_LIBRARIES(z80e rt)
 endif()
