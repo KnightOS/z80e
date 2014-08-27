@@ -2,15 +2,13 @@
 #include "debugger/debugger.h"
 #include "debugger/commands.h"
 
-void unicode_to_utf8(char *b, uint32_t c) {
+void dump_lcd_unicode_to_utf8(char *b, uint32_t c) {
 	if (c<0x80) *b++=c;
 	else if (c<0x800) *b++=192+c/64, *b++=128+c%64;
 	else if (c-0xd800u<0x800) return;
 	else if (c<0x10000) *b++=224+c/4096, *b++=128+c/64%64, *b++=128+c%64;
 	else if (c<0x110000) *b++=240+c/262144, *b++=128+c/4096%64, *b++=128+c/64%64, *b++=128+c%64;
 }
-
-
 
 int command_dump_lcd(debugger_state_t *state, int argc, char **argv) {
 	ti_bw_lcd_t *lcd = state->asic->cpu->devices[0x10].device;
@@ -47,7 +45,7 @@ int command_dump_lcd(debugger_state_t *state, int argc, char **argv) {
 					(g << 6) |
 					(h << 7));
 				char buff[5] = {0};
-				unicode_to_utf8(buff, byte_value);
+				dump_lcd_unicode_to_utf8(buff, byte_value);
 				state->print(state, "%s", buff);
 			}
 			state->print(state, "\n");

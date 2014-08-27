@@ -41,6 +41,14 @@ void lcd_changed_hook(void *data, ti_bw_lcd_t *lcd) {
 	lcd_changed = 1;
 }
 
+void tui_unicode_to_utf8(char *b, uint32_t c) {
+	if (c<0x80) *b++=c;
+	else if (c<0x800) *b++=192+c/64, *b++=128+c%64;
+	else if (c-0xd800u<0x800) return;
+	else if (c<0x10000) *b++=224+c/4096, *b++=128+c/64%64, *b++=128+c%64;
+	else if (c<0x110000) *b++=240+c/262144, *b++=128+c/4096%64, *b++=128+c/64%64, *b++=128+c%64;
+}
+
 void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 	int cY;
 	int cX;
@@ -75,7 +83,7 @@ void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 					(g << 6) |
 					(h << 7));
 				char buff[5] = {0};
-				unicode_to_utf8(buff, byte_value);
+				tui_unicode_to_utf8(buff, byte_value);
 				printf("%s", buff);
 			}
 			printf("\n");
