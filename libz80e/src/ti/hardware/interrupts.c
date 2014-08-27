@@ -227,9 +227,12 @@ void set_first_timer_frequency(void *device, double speed) {
 
 	if (interrupts->first_timer_id != -1) {
 		asic_remove_timer(interrupts->asic, interrupts->first_timer_id);
+		interrupts->first_timer_id = -1;
 	}
 
-	interrupts->first_timer_id = asic_add_timer(interrupts->asic, 0, speed, first_timer_tick, interrupts);
+	if (speed != 0) {
+		interrupts->first_timer_id = asic_add_timer(interrupts->asic, 0, speed, first_timer_tick, interrupts);
+	}
 }
 
 void set_second_timer_frequency(void *device, double speed) {
@@ -237,9 +240,12 @@ void set_second_timer_frequency(void *device, double speed) {
 
 	if (interrupts->second_timer_id != -1) {
 		asic_remove_timer(interrupts->asic, interrupts->second_timer_id);
+		interrupts->second_timer_id = -1;
 	}
 
-	interrupts->second_timer_id = asic_add_timer(interrupts->asic, 0, speed, second_timer_tick, interrupts);
+	if (speed != 0) {
+		interrupts->second_timer_id = asic_add_timer(interrupts->asic, 0, speed, second_timer_tick, interrupts);
+	}
 }
 
 z80iodevice_t init_interrupts(asic_t *asic, ti_interrupts_t **result) {
