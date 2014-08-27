@@ -5,9 +5,9 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 
 add_subdirectory(libz80e libz80e)
 add_subdirectory(frontends/libz80e frontends/libz80e)
+add_subdirectory(frontends/test frontends/test)
 
 if(NOT DEFINED EMSCRIPTEN)
-add_subdirectory(frontends/test frontends/test)
 add_subdirectory(frontends/tui frontends/tui)
 endif()
 
