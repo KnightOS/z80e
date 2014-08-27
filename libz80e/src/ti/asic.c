@@ -109,7 +109,7 @@ int asic_add_timer(asic_t *asic, int flags, double frequency, timer_tick tick, v
 	}
 
 	timer->cycles_until_tick = asic->clock_rate / frequency;
-	timer->flags = flags & TIMER_IN_USE;
+	timer->flags = flags | TIMER_IN_USE;
 	timer->frequency = frequency;
 	timer->on_tick = tick;
 	timer->data = data;
