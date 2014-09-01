@@ -72,10 +72,9 @@ asic_t *asic_init(ti_device_type type) {
     device->timers->max_timers = 20;
     device->timers->timers = calloc(sizeof(z80_hardware_timer_t), 20);
 
-    device->state = malloc(sizeof(ti_emulation_state_t));
-    device->state->stopped = 0;
-    device->state->debugger = 0;
-    device->state->runloop = runloop_init(device);
+    device->stopped = 0;
+    device->debugger = 0;
+    device->runloop = runloop_init(device);
     device->hook = create_hook_set(device);
 
     plug_devices(device);

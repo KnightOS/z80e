@@ -151,7 +151,7 @@ void handleFlag(appContext_t *context, char flag, int *i, char **argv) {
     }
 }
 
-debugger_state tmp_debug = 0;
+int enable_debug = 0;
 
 void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
     if (strcasecmp(flag, "device") == 0) {
@@ -162,7 +162,7 @@ void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
     } else if (strcasecmp(flag, "no-rom-check") == 0) {
         context->no_rom_check = 1;
     } else if (strcasecmp(flag, "debug") == 0) {
-        tmp_debug = DEBUGGER_ENABLED;
+        enable_debug = 1;
     } else if (strcasecmp(flag, "help") == 0) {
         print_help();
         exit(0);
@@ -181,9 +181,9 @@ void sigint_handler(int sig) {
     signal(SIGINT, sigint_handler);
 
     log_message(context.device_asic->log, L_ERROR, "sigint", "Caught interrupt, stopping emulation");
-    context.device_asic->state->stopped = 1;
+    context.device_asic->stopped = 1;
 
-    if (context.device_asic->state->debugger == DEBUGGER_ENABLED) {
+    if (!context.device_asic->debugger || context.device_asic->debugger->state == DEBUGGER_ENABLED) {
         #ifdef CURSES
             endwin();
         #endif
@@ -222,10 +222,16 @@ int main(int argc, char **argv) {
     asic_t *device = asic_init(context.device);
     device->log = init_log(frontend_log, 0, INT_MAX);
     context.device_asic = device;
-    device->state->debugger = tmp_debug;
-    if (context.rom_file == NULL) {
+
+    if (enable_debug) {
+        device->debugger = init_debugger(device);
+        device->debugger->state = DEBUGGER_ENABLED;
+    }
+
+    if (context.rom_file == NULL && !enable_debug) {
         log_message(device->log, L_WARN, "main", "No ROM file specified, starting debugger");
-        device->state->debugger = DEBUGGER_ENABLED;
+        device->debugger = init_debugger(device);
+        device->debugger->state = DEBUGGER_ENABLED;
     } else {
         FILE *file = fopen(context.rom_file, "r");
         if (!file) {
@@ -251,23 +257,21 @@ int main(int argc, char **argv) {
     hook_add_lcd_update(device->hook, NULL, lcd_changed_hook);
     asic_add_timer(device, 0, 60, lcd_timer_tick, device->cpu->devices[0x10].device);
 
-    debugger_t *debugger = init_debugger(device);
-
-    if (device->state->debugger) {
-        tui_state_t state = { debugger };
+    if (device->debugger) {
+        tui_state_t state = { device->debugger };
 	tui_init(&state);
         tui_tick(&state);
     } else {
         if (context.cycles == -1) { // Run indefinitely
             while (1) {
-                runloop_tick(device->state->runloop);
-                if (device->state->stopped) {
+                runloop_tick(device->runloop);
+                if (device->stopped) {
                     break;
                 }
                 nanosleep((struct timespec[]){{0, (1.f / 60.f) * 1000000000}}, NULL);
             }
         } else {
-            runloop_tick_cycles(device->state->runloop, context.cycles);
+            runloop_tick_cycles(device->runloop, context.cycles);
         }
     }
 

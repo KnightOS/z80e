@@ -11,6 +11,7 @@ typedef struct asic asic_t;
 #include <z80e/ti/ti.h>
 #include <z80e/runloop/runloop.h>
 #include <z80e/debugger/hooks.h>
+#include <z80e/debugger/debugger.h>
 #include <z80e/ti/hardware/interrupts.h>
 
 typedef enum {
@@ -43,31 +44,21 @@ struct z80_hardware_timers {
 	z80_hardware_timer_t *timers;
 };
 
-typedef enum {
-    DEBUGGER_DISABLED,
-    DEBUGGER_ENABLED,
-    DEBUGGER_LONG_OPERATION,
-    DEBUGGER_LONG_OPERATION_INTERRUPTABLE
-} debugger_state;
-
-typedef struct {
-    int stopped: 1;
-    debugger_state debugger: 2;
-    runloop_state_t *runloop;
-} ti_emulation_state_t;
-
 struct asic {
-    z80cpu_t* cpu;
-    ti_emulation_state_t *state;
+    int stopped;
     ti_device_type device;
-    ti_mmu_t* mmu;
     battery_state battery;
     int battery_remove_check;
     int clock_rate;
+
+    z80cpu_t* cpu;
+    runloop_state_t *runloop;
+    ti_mmu_t* mmu;
     ti_interrupts_t *interrupts;
     z80_hardware_timers_t *timers;
     hook_info_t *hook;
     log_t *log;
+    debugger_t *debugger;
 };
 
 asic_t* asic_init(ti_device_type);

@@ -4,12 +4,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <z80e/ti/asic.h>
-#include <z80e/log/log.h>
-
 typedef struct debugger_state debugger_state_t;
 typedef struct debugger debugger_t;
 typedef int (*debugger_function_t)(debugger_state_t *, int, char **);
+
+#include <z80e/ti/asic.h>
+#include <z80e/log/log.h>
 
 typedef struct {
 	const char *name;
@@ -36,6 +36,13 @@ struct debugger_state {
 	log_t *log;
 };
 
+typedef enum {
+	DEBUGGER_DISABLED,
+	DEBUGGER_ENABLED,
+	DEBUGGER_LONG_OPERATION,
+	DEBUGGER_LONG_OPERATION_INTERRUPTABLE
+} debugger_state;
+
 struct debugger {
 	struct {
 		int echo : 1;
@@ -44,7 +51,9 @@ struct debugger {
 
 	debugger_list_t commands;
 	asic_t *asic;
+	debugger_state state;
 };
+
 int debugger_source_rc(debugger_state_t *, const char *rc_name);
 
 debugger_t *init_debugger(asic_t *);

@@ -151,7 +151,7 @@ void break_callback(struct break_data *data, uint16_t address) {
 		log_message(data->asic->log, L_DEBUG, "break", "Breakpoint hit at 0x%04X", address);
 	}
 
-	data->asic->state->stopped = 1;
+	data->asic->stopped = 1;
 
 	if (data->count != -1 && !(--data->count)) {
 		hook_remove_before_execution(data->asic->hook, data->hook_id);
