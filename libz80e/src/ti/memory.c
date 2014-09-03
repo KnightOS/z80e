@@ -13,31 +13,30 @@
 
 ti_mmu_t* ti_mmu_init(ti_device_type device_type) {
     ti_mmu_t *mmu = malloc(sizeof(ti_mmu_t));
-    mmu->settings = malloc(sizeof(ti_mmu_settings_t));
     switch (device_type) {
         case TI83p:
         case TI73:
-            mmu->settings->ram_pages = 3;
-            mmu->settings->flash_pages = 0x20;
+            mmu->settings.ram_pages = 3;
+            mmu->settings.flash_pages = 0x20;
             break;
         case TI84p:
-            mmu->settings->ram_pages = 8;
-            mmu->settings->flash_pages = 0x40;
+            mmu->settings.ram_pages = 8;
+            mmu->settings.flash_pages = 0x40;
             break;
         case TI83pSE:
         case TI84pSE:
-            mmu->settings->ram_pages = 8;
-            mmu->settings->flash_pages = 0x80;
+            mmu->settings.ram_pages = 8;
+            mmu->settings.flash_pages = 0x80;
             break;
         case TI84pCSE:
-            mmu->settings->ram_pages = 3;
-            mmu->settings->flash_pages = 0x100;
+            mmu->settings.ram_pages = 3;
+            mmu->settings.flash_pages = 0x100;
             break;
     }
-    mmu->ram = malloc(mmu->settings->ram_pages * 0x4000);
-    memset(mmu->ram, 0, mmu->settings->ram_pages * 0x4000);
-    mmu->flash = malloc(mmu->settings->flash_pages * 0x4000);
-    memset(mmu->flash, 0xFF, mmu->settings->flash_pages * 0x4000);
+    mmu->ram = malloc(mmu->settings.ram_pages * 0x4000);
+    memset(mmu->ram, 0, mmu->settings.ram_pages * 0x4000);
+    mmu->flash = malloc(mmu->settings.flash_pages * 0x4000);
+    memset(mmu->flash, 0xFF, mmu->settings.flash_pages * 0x4000);
     mmu->flash_unlocked = 0;
     // Default bank mappings
     mmu->banks[0].page = 0; mmu->banks[0].flash = 1;
@@ -50,7 +49,6 @@ ti_mmu_t* ti_mmu_init(ti_device_type device_type) {
 void ti_mmu_free(ti_mmu_t *mmu) {
     free(mmu->ram);
     free(mmu->flash);
-    free(mmu->settings);
     free(mmu);
 }
 
