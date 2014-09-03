@@ -52,7 +52,7 @@ void asic_mirror_ports(asic_t *asic) {
 
 void free_devices(asic_t *asic) {
     /* Link port unimplemented */
-    free_keyboard(asic->cpu->devices[0x01]);
+    free_keyboard(asic->cpu->devices[0x01].device);
     free_status(asic->cpu->devices[0x02]);
     free_mapping_ports(asic);
 }

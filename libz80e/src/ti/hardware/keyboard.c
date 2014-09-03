@@ -11,15 +11,15 @@ typedef struct {
 } keyboard_state_t;
 
 /* Key codes in z80e are group << 4 | bit. That is, 0x14 is bit 4 of group 1. */
-void depress_key(z80iodevice_t keyboard, uint8_t keycode) {
-    keyboard_state_t *state = (keyboard_state_t*)keyboard.device;
+void depress_key(void *keyboard, uint8_t keycode) {
+    keyboard_state_t *state = keyboard;
     uint8_t group = keycode >> 4;
     uint8_t mask = 1 << (keycode & 0xF);
     state->groups[group] &= ~mask;
 }
 
-void release_key(z80iodevice_t keyboard, uint8_t keycode) {
-    keyboard_state_t *state = (keyboard_state_t*)keyboard.device;
+void release_key(void *keyboard, uint8_t keycode) {
+    keyboard_state_t *state = keyboard;
     uint8_t group = keycode >> 4;
     uint8_t mask = 1 << (keycode & 0xF);
     state->groups[group] |= mask;
@@ -60,6 +60,6 @@ z80iodevice_t init_keyboard() {
     return device;
 }
 
-void free_keyboard(z80iodevice_t keyboard) {
-    free(keyboard.device);
+void free_keyboard(void *keyboard) {
+    free(keyboard);
 }

@@ -21,7 +21,7 @@ void setup_lcd_display(asic_t *asic, hook_info_t *hook) {
 
 	bw_lcd_reset(lcd);
 
-	lcd->ram = malloc((64 * 128));
+	lcd->ram = malloc((64 * 120));
 	int cY;
 	int cX;
 	for (cX = 0; cX < 64; cX++) {
