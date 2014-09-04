@@ -22,6 +22,8 @@ int command_break(debugger_state_t *state, int argc, char **argv);
 int command_step_over(debugger_state_t *state, int argc, char **argv);
 int command_dump_lcd(debugger_state_t *state, int argc, char **argv);
 int command_turn_on(debugger_state_t *state, int argc, char **argv);
+int command_press_key(debugger_state_t *state, int argc, char **argv);
+int command_release_key(debugger_state_t *state, int argc, char **argv);
 
 uint16_t parse_expression(debugger_state_t *, const char *);
 #endif
