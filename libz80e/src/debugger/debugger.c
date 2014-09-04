@@ -145,6 +145,8 @@ debugger_command_t default_commands[] = {
 	{ "unset", command_unset, 0 },
 	{ "lcd", command_dump_lcd, 0 },
 	{ "turn_on", command_turn_on, 0 },
+	{ "press_key", command_press_key, 0 },
+	{ "release_key", command_release_key, 0 },
 };
 
 int default_command_count = sizeof(default_commands) / sizeof(debugger_command_t);
