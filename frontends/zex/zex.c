@@ -1,4 +1,4 @@
-#include "asic.h"
+#include <z80e/ti/asic.h>
 
 #include <errno.h>
 #include <stdio.h>

@@ -9,6 +9,7 @@ add_subdirectory(frontends/test frontends/test)
 
 if(NOT DEFINED EMSCRIPTEN)
 add_subdirectory(frontends/tui frontends/tui)
+add_subdirectory(frontends/zex frontends/zex)
 endif()
 
 set(CMAKE_BUILD_TYPE Release)
