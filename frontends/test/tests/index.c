@@ -155,6 +155,8 @@ int test_ixh_ixl() {
 		asic_free(device);
 		return 1;
 	}
+	asic_free(device);
+
 	device = asic_init(TI83p);
 	uint8_t test2[] = { 0xDD, 0x85 }; // ADD A, IXL
 	device->cpu->registers.IXL = 0x20;
@@ -165,6 +167,30 @@ int test_ixh_ixl() {
 			cycles != 0) {
 		asic_free(device);
 		return 2;
+	}
+	asic_free(device);
+	
+	device = asic_init(TI83p);
+	uint8_t test3[] = { 0xDD, 0x67 }; // LD IXH, A
+	device->cpu->registers.A = 0x10;
+	flash(device, test3, sizeof(test3));
+	cycles = cpu_execute(device->cpu, 8);
+	if (device->cpu->registers.IXH != 0x10 ||
+			cycles != 0) {
+		asic_free(device);
+		return 3;
+	}
+	asic_free(device);
+
+	device = asic_init(TI83p);
+	uint8_t test4[] = { 0xDD, 0x7C }; // LD A, IXH
+	device->cpu->registers.IXH = 0x10;
+	flash(device, test4, sizeof(test4));
+	cycles = cpu_execute(device->cpu, 8);
+	if (device->cpu->registers.A != 0x10 ||
+			cycles != 0) {
+		asic_free(device);
+		return 3;
 	}
 	asic_free(device);
 	return 0;
