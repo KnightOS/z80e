@@ -11,14 +11,13 @@
 #include "ti/hardware/status.h"
 
 void plug_devices(asic_t *asic) {
-    /* Link port unimplemented */
+	/* Link port unimplemented */
+	asic->cpu->devices[0x01] = init_keyboard();
+	asic->cpu->devices[0x02] = init_status(asic);
+	asic->cpu->devices[0x03] = init_interrupts(asic, &asic->interrupts);
+	setup_lcd_display(asic, asic->hook);
 
-    asic->cpu->devices[0x01] = init_keyboard();
-    asic->cpu->devices[0x02] = init_status(asic);
-    asic->cpu->devices[0x03] = init_interrupts(asic, &asic->interrupts);
-    setup_lcd_display(asic, asic->hook);
-
-    init_mapping_ports(asic);
+	init_mapping_ports(asic);
 }
 
 void asic_null_write(void *ignored, uint8_t value) {
@@ -26,74 +25,72 @@ void asic_null_write(void *ignored, uint8_t value) {
 }
 
 void asic_mirror_ports(asic_t *asic) {
-    int i;
+	int i;
+	switch (asic->device) {
+	case TI83p:
+		for (i = 0x08; i < 0x10; i++) {
+			asic->cpu->devices[i] = asic->cpu->devices[i & 0x07];
+			asic->cpu->devices[i].write_out = asic_null_write;
+		}
+		asic->cpu->devices[0x12] = asic->cpu->devices[0x10];
+		asic->cpu->devices[0x13] = asic->cpu->devices[0x11];
 
-    switch (asic->device) {
-    case TI83p:
-        for (i = 0x08; i < 0x10; i++) {
-            asic->cpu->devices[i] = asic->cpu->devices[i & 0x07];
-            asic->cpu->devices[i].write_out = asic_null_write;
-        }
-        asic->cpu->devices[0x12] = asic->cpu->devices[0x10];
-        asic->cpu->devices[0x13] = asic->cpu->devices[0x11];
-
-        for (i = 0x14; i < 0x100; i++) {
-            asic->cpu->devices[i] = asic->cpu->devices[i & 0x07];
-            asic->cpu->devices[i].write_out = asic_null_write;
-        }
-        break;
-
-    default:
-        for (i = 0x60; i < 0x80; i++) {
-            asic->cpu->devices[i] = asic->cpu->devices[i - 0x20];
-        }
-    }
+		for (i = 0x14; i < 0x100; i++) {
+			asic->cpu->devices[i] = asic->cpu->devices[i & 0x07];
+			asic->cpu->devices[i].write_out = asic_null_write;
+		}
+		break;
+	default:
+		for (i = 0x60; i < 0x80; i++) {
+			asic->cpu->devices[i] = asic->cpu->devices[i - 0x20];
+		}
+		break;
+	}
 }
 
 void free_devices(asic_t *asic) {
-    /* Link port unimplemented */
-    free_keyboard(asic->cpu->devices[0x01].device);
-    free_status(asic->cpu->devices[0x02]);
-    free_mapping_ports(asic);
+	/* Link port unimplemented */
+	free_keyboard(asic->cpu->devices[0x01].device);
+	free_status(asic->cpu->devices[0x02]);
+	free_mapping_ports(asic);
 }
 
 asic_t *asic_init(ti_device_type type) {
-    asic_t* device = malloc(sizeof(asic_t));
-    device->cpu = cpu_init();
-    device->mmu = ti_mmu_init(type);
-    device->cpu->memory = (void*)device->mmu;
-    device->cpu->read_byte = ti_read_byte;
-    device->cpu->write_byte = ti_write_byte;
-    device->battery = BATTERIES_GOOD;
-    device->device = type;
-    device->clock_rate = 6000000;
+	asic_t* device = malloc(sizeof(asic_t));
+	device->cpu = cpu_init();
+	device->mmu = ti_mmu_init(type);
+	device->cpu->memory = (void*)device->mmu;
+	device->cpu->read_byte = ti_read_byte;
+	device->cpu->write_byte = ti_write_byte;
+	device->battery = BATTERIES_GOOD;
+	device->device = type;
+	device->clock_rate = 6000000;
 
-    device->timers = calloc(sizeof(z80_hardware_timers_t), 1);
-    device->timers->max_timers = 20;
-    device->timers->timers = calloc(sizeof(z80_hardware_timer_t), 20);
+	device->timers = calloc(sizeof(z80_hardware_timers_t), 1);
+	device->timers->max_timers = 20;
+	device->timers->timers = calloc(sizeof(z80_hardware_timer_t), 20);
 
-    device->stopped = 0;
-    device->debugger = 0;
-    device->runloop = runloop_init(device);
-    device->hook = create_hook_set(device);
+	device->stopped = 0;
+	device->debugger = 0;
+	device->runloop = runloop_init(device);
+	device->hook = create_hook_set(device);
 
-    plug_devices(device);
-    asic_mirror_ports(device);
-    return device;
+	plug_devices(device);
+	asic_mirror_ports(device);
+	return device;
 }
 
 void asic_free(asic_t* device) {
-    cpu_free(device->cpu);
-    ti_mmu_free(device->mmu);
-    free_devices(device);
-    free(device);
+	cpu_free(device->cpu);
+	ti_mmu_free(device->mmu);
+	free_devices(device);
+	free(device);
 }
 
 int asic_add_timer(asic_t *asic, int flags, double frequency, timer_tick tick, void *data) {
 	z80_hardware_timer_t *timer = 0;
 	int i;
 	for (i = 0; i < asic->timers->max_timers; i++) {
-
 		if (!(asic->timers->timers[i].flags & TIMER_IN_USE)) {
 			timer = &asic->timers->timers[i];
 			break;

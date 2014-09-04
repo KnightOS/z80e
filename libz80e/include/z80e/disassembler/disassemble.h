@@ -4,9 +4,9 @@
 #include <stdint.h>
 
 struct disassemble_memory {
-    uint8_t (*read_byte)(struct disassemble_memory *, uint16_t);
-    uint16_t current;
-    void *extra_data;
+	uint8_t (*read_byte)(struct disassemble_memory *, uint16_t);
+	uint16_t current;
+	void *extra_data;
 };
 
 

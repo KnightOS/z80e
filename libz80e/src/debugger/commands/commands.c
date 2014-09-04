@@ -12,10 +12,10 @@ uint16_t parse_operand(debugger_state_t *state, const char *start, const char **
 		return strtol(start, (char **)end, 0);
 	} else {
 #define REGISTER(num, len, print) \
-	if (strncasecmp(start, print, len) == 0) {\
-		*end += len; \
-		return state->asic->cpu->registers. num; \
-	}
+if (strncasecmp(start, print, len) == 0) {\
+	*end += len; \
+	return state->asic->cpu->registers. num; \
+}
 		REGISTER(IXH, 3, "IXH");
 		REGISTER(IXL, 3, "IXL");
 		REGISTER(IYH, 3, "IYH");
@@ -44,7 +44,7 @@ uint16_t parse_operand(debugger_state_t *state, const char *start, const char **
 		REGISTER(R, 1, "R");
 
 		state->print(state, "ERROR: Unknown register/number!\n");
-                while(!strchr("+-*/(){} 	\n", *start)) {
+		while(!strchr("+-*/(){} 	\n", *start)) {
 			start++;
 		}
 		*end = 0;
@@ -196,7 +196,7 @@ uint16_t parse_expression(debugger_state_t *state, const char *string) {
 		}
 	}
 
-//	print_stack(value_stack, value_stack_pos, operator_stack, operator_stack_pos);
+	//	print_stack(value_stack, value_stack_pos, operator_stack, operator_stack_pos);
 
 	while (operator_stack_pos > 0) {
 		char ch = operator_stack[operator_stack_pos - 1];
@@ -220,7 +220,7 @@ uint16_t parse_expression(debugger_state_t *state, const char *string) {
 		}
 	}
 
-//	print_stack(value_stack, value_stack_pos, operator_stack, operator_stack_pos);
+	//	print_stack(value_stack, value_stack_pos, operator_stack, operator_stack_pos);
 
 	if (value_stack_pos > 0) {
 		return value_stack[value_stack_pos - 1];

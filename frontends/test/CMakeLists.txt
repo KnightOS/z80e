@@ -6,12 +6,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../../libz80e/include)
 
 add_executable(tests
-    test.c
-    $<TARGET_OBJECTS:z80e_objects>
+	test.c
+	$<TARGET_OBJECTS:z80e_objects>
 )
 
 if(NOT DEFINED EMSCRIPTEN)
 target_link_libraries(tests
-    rt
+	rt
 )
 endif()

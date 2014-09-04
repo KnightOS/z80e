@@ -15,9 +15,9 @@ typedef struct asic asic_t;
 #include <z80e/ti/hardware/interrupts.h>
 
 typedef enum {
-    BATTERIES_REMOVED,
-    BATTERIES_LOW,
-    BATTERIES_GOOD
+	BATTERIES_REMOVED,
+	BATTERIES_LOW,
+	BATTERIES_GOOD
 } battery_state;
 
 
@@ -45,20 +45,20 @@ struct z80_hardware_timers {
 };
 
 struct asic {
-    int stopped;
-    ti_device_type device;
-    battery_state battery;
-    int battery_remove_check;
-    int clock_rate;
+	int stopped;
+	ti_device_type device;
+	battery_state battery;
+	int battery_remove_check;
+	int clock_rate;
 
-    z80cpu_t* cpu;
-    runloop_state_t *runloop;
-    ti_mmu_t* mmu;
-    ti_interrupts_t *interrupts;
-    z80_hardware_timers_t *timers;
-    hook_info_t *hook;
-    log_t *log;
-    debugger_t *debugger;
+	z80cpu_t* cpu;
+	runloop_state_t *runloop;
+	ti_mmu_t* mmu;
+	ti_interrupts_t *interrupts;
+	z80_hardware_timers_t *timers;
+	hook_info_t *hook;
+	log_t *log;
+	debugger_t *debugger;
 };
 
 asic_t* asic_init(ti_device_type);

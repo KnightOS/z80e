@@ -5,9 +5,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../../libz80e/include)
 
 add_executable(tui
-    main.c
-    tui.c
-    $<TARGET_OBJECTS:z80e_objects>
+	main.c
+	tui.c
+	$<TARGET_OBJECTS:z80e_objects>
 )
 
 TARGET_LINK_LIBRARIES(tui readline rt)

@@ -12,15 +12,15 @@ add_definitions(-DEMSCRIPTEN)
 endif()
 
 add_library(z80e_objects OBJECT
-    src/core/cpu.c
-    src/core/registers.c
-    src/debugger/debugger.c
-    src/debugger/hooks.c
-    src/disassembler/disassemble.c
-    src/ti/asic.c
-    src/ti/memory.c
-    src/log/log.c
-    src/runloop/runloop.c
-    ${Hardware}
-    ${Commands}
+	src/core/cpu.c
+	src/core/registers.c
+	src/debugger/debugger.c
+	src/debugger/hooks.c
+	src/disassembler/disassemble.c
+	src/ti/asic.c
+	src/ti/memory.c
+	src/log/log.c
+	src/runloop/runloop.c
+	${Hardware}
+	${Commands}
 )

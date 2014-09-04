@@ -75,7 +75,7 @@ void tui_tick(tui_state_t *state) {
 	struct tui_disasm disasm_custom = { asic->mmu, 0 };
 	struct disassemble_memory disasm = { tui_disassemble_read, 0, &disasm_custom };
 	while (1) {
-                char prompt_buffer[80];
+		char prompt_buffer[80];
 		char *current_pointer = prompt_buffer;
 		ti_mmu_bank_state_t *st = &asic->mmu->banks[asic->cpu->registers.PC / 0x4000];
 		current_pointer += sprintf(prompt_buffer, "z80e [%c:%02X:0x%04X ", st->flash ? 'F' : 'R', st->page, asic->cpu->registers.PC);

@@ -11,29 +11,29 @@ typedef struct z80iodevice z80iodevice_t;
 #include <z80e/debugger/hooks.h>
 
 struct z80iodevice {
-    void *device;
-    uint8_t (*read_in)(void *);
-    void (*write_out)(void *, uint8_t);
+	void *device;
+	uint8_t (*read_in)(void *);
+	void (*write_out)(void *, uint8_t);
 };
 
 struct z80cpu {
-    z80iodevice_t devices[0x100];
-    z80registers_t registers;
-    struct {
-        uint8_t IFF1 : 1;
-        uint8_t IFF2 : 1;
-        uint8_t int_mode : 2;
-        // Internal use:
-        uint8_t IFF_wait : 1;
-        uint8_t halted : 1;
-    };
-    uint8_t bus;
-    uint16_t prefix;
-    void *memory;
-    uint8_t (*read_byte)(void *, uint16_t);
-    void (*write_byte)(void *, uint16_t, uint8_t);
-    int interrupt;
-    hook_info_t *hook;
+	z80iodevice_t devices[0x100];
+	z80registers_t registers;
+	struct {
+		uint8_t IFF1 : 1;
+		uint8_t IFF2 : 1;
+		uint8_t int_mode : 2;
+		// Internal use:
+		uint8_t IFF_wait : 1;
+		uint8_t halted : 1;
+	};
+	uint8_t bus;
+	uint16_t prefix;
+	void *memory;
+	uint8_t (*read_byte)(void *, uint16_t);
+	void (*write_byte)(void *, uint16_t, uint8_t);
+	int interrupt;
+	hook_info_t *hook;
 };
 
 
