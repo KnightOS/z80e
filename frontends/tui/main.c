@@ -16,12 +16,25 @@
 #include <limits.h>
 
 typedef struct {
+	char *key;
+	loglevel_t level;
+} loglevel_options_t;
+
+const loglevel_options_t log_options[] = {
+	{ "DEBUG", L_DEBUG },
+	{ "WARN", L_WARN },
+	{ "ERROR", L_ERROR },
+	{ "INFO", L_INFO }
+};
+
+typedef struct {
 	ti_device_type device;
 	asic_t *device_asic;
 	char *rom_file;
 	int cycles;
 	int print_state;
 	int no_rom_check;
+	loglevel_t log_level;
 } appContext_t;
 
 appContext_t context;
@@ -33,6 +46,7 @@ appContext_t create_context(void) {
 	context.cycles = -1;
 	context.print_state = 0;
 	context.no_rom_check = 0;
+	context.log_level = L_WARN;
 	return context;
 }
 
@@ -89,9 +103,11 @@ void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 		printf("\n");
 	}
 #endif
-	printf("C: 0x%02X X: 0x%02X Y: 0x%02X Z: 0x%02X\n", lcd->contrast, lcd->X, lcd->Y, lcd->Z);
-	printf("   %c%c%c%c  O1: 0x%01X 02: 0x%01X\n", lcd->up ? 'V' : '^', lcd->counter ? '-' : '|',
-			lcd->word_length ? '8' : '6', lcd->display_on ? 'O' : ' ', lcd->op_amp1, lcd->op_amp2);
+	if (context.log_level >= L_INFO) {
+		printf("C: 0x%02X X: 0x%02X Y: 0x%02X Z: 0x%02X\n", lcd->contrast, lcd->X, lcd->Y, lcd->Z);
+		printf("   %c%c%c%c  O1: 0x%01X 02: 0x%01X\n", lcd->up ? 'V' : '^', lcd->counter ? '-' : '|',
+				lcd->word_length ? '8' : '6', lcd->display_on ? 'O' : ' ', lcd->op_amp1, lcd->op_amp2);
+	}
 }
 
 void lcd_timer_tick(asic_t *asic, void *data) {
@@ -155,12 +171,23 @@ int enable_debug = 0;
 
 void handleLongFlag(appContext_t *context, char *flag, int *i, char **argv) {
 	if (strcasecmp(flag, "device") == 0) {
-		char *next = argv[*i++];
+		char *next = argv[++*i];
 		setDevice(context, next);
 	} else if (strcasecmp(flag, "print-state") == 0) {
 		context->print_state = 1;
 	} else if (strcasecmp(flag, "no-rom-check") == 0) {
 		context->no_rom_check = 1;
+	} else if (strcasecmp(flag, "log") == 0) {
+		char *level = argv[++*i];
+		int j;
+		for (j = 0; j < sizeof(log_options) / sizeof(loglevel_options_t); ++j) {
+			if (strcasecmp(level, log_options[j].key) == 0) {
+				context->log_level = log_options[j].level;
+				return;
+			}
+		}
+		fprintf(stderr, "%s is not a valid logging level.\n", level);
+		exit(1);
 	} else if (strcasecmp(flag, "debug") == 0) {
 		enable_debug = 1;
 	} else if (strcasecmp(flag, "help") == 0) {
@@ -220,7 +247,7 @@ int main(int argc, char **argv) {
 	}
 
 	asic_t *device = asic_init(context.device);
-	device->log = init_log(frontend_log, 0, INT_MAX);
+	device->log = init_log(frontend_log, 0, context.log_level);
 	context.device_asic = device;
 
 	if (enable_debug) {
