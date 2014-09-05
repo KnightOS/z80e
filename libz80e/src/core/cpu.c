@@ -934,7 +934,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 				context.cycles += 4;
 				old = read_r(context.z, &context);
 				old &= ~(1 << context.y);
-				if (context.z == 6) {
+				if (context.z == 6 && switch_opcode_data) {
 					cpu->registers.PC--;
 				}
 				write_r(context.z, old, &context);
@@ -943,7 +943,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 				context.cycles += 4;
 				old = read_r(context.z, &context);
 				old |= 1 << context.y;
-				if (context.z == 6) {
+				if (context.z == 6 && switch_opcode_data) {
 					cpu->registers.PC--;
 				}
 				write_r(context.z, old, &context);
