@@ -169,17 +169,5 @@ int test_ixh_ixl() {
 		return 2;
 	}
 	asic_free(device);
-	
-	device = asic_init(TI83p);
-	uint8_t test3[] = { 0xDD, 0x67 }; // LD IXH, A
-	device->cpu->registers.A = 0x10;
-	flash(device, test3, sizeof(test3));
-	cycles = cpu_execute(device->cpu, 8);
-	if (device->cpu->registers.IXH != 0x10 ||
-			cycles != 0) {
-		asic_free(device);
-		return 3;
-	}
-	asic_free(device);
 	return 0;
 }
