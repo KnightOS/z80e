@@ -499,7 +499,7 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 						write(memory, "LD A, (DE)");
 						break;
 					case 2: // LD HL, (nn)
-						write(memory, "LD");
+						write(memory, "LD ");
 						parse_HLorIr(&context);
 						write(memory, ", (");
 						parse_nn(&context);
