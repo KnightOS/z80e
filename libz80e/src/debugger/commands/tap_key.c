@@ -4,9 +4,9 @@
 #include "ti/hardware/keyboard.h"
 #include "debugger/keys.h"
 
-int command_release_key(debugger_state_t *state, int argc, char **argv) {
+int command_tap_key(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 2) {
-		state->print(state, "%s - Release the specified key code, in hex or by name.\n", argv[0]);
+		state->print(state, "%s - Depress the specified key code, in hex or by name.\n", argv[0]);
 		return 0;
 	}
 	uint8_t key;
@@ -23,6 +23,10 @@ int command_release_key(debugger_state_t *state, int argc, char **argv) {
 		key = parse_expression(state, argv[1]);
 	}
 
+	depress_key(state->asic->cpu->devices[0x01].device, key);
+	char *_argv[] = { "run", "1000" };
+	command_run(state, 2, _argv);
 	release_key(state->asic->cpu->devices[0x01].device, key);
-	return 0;
+	char *__argv[] = { "run" };
+	return command_run(state, 1, __argv);
 }
