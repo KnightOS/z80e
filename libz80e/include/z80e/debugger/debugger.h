@@ -49,6 +49,7 @@ struct debugger {
 		int echo_reg : 1;
 		int auto_on : 1;
 		int knightos : 1;
+		int nointonstep : 1;
 	} flags;
 
 	debugger_list_t commands;

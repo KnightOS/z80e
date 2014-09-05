@@ -36,6 +36,8 @@ int command_set(debugger_state_t *state, int argc, char **argv) {
 		state->debugger->flags.auto_on = 1;
 	} else if (strcmp(argv[1], "knightos") == 0) {
 		state->debugger->flags.knightos = 1;
+	} else if (strcmp(argv[1], "nointonstep") == 0) {
+		state->debugger->flags.nointonstep = 1;
 	} else {
 		state->print(state, "Unknown variable '%s'!\n", argv[1]);
 		return 1;
@@ -58,6 +60,8 @@ int command_unset(debugger_state_t *state, int argc, char **argv) {
 		state->debugger->flags.auto_on = 0;
 	} else if (strcmp(argv[1], "knightos") == 0) {
 		state->debugger->flags.knightos = 0;
+	} else if (strcmp(argv[1], "nointonstep") == 0) {
+		state->debugger->flags.nointonstep = 0;
 	} else {
 		state->print(state, "Unknown variable '%s'!\n", argv[1]);
 		return 1;
