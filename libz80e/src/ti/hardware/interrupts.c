@@ -158,13 +158,13 @@ uint8_t read_interrupt_mask(void *device) {
 void write_interrupt_mask(void *device, uint8_t value) {
 	ti_interrupts_t *interrupts = device;
 
-	interrupts->interrupted.on_key &= (interrupts->enabled.on_key = value & INTERRUPT_ON_KEY);
-	interrupts->interrupted.first_timer &= (interrupts->enabled.first_timer = value & INTERRUPT_FIRST_TIMER);
-	interrupts->interrupted.second_timer &= (interrupts->enabled.second_timer = value & INTERRUPT_SECOND_TIMER);
+	interrupts->interrupted.on_key &= (interrupts->enabled.on_key = !!(value & INTERRUPT_ON_KEY));
+	interrupts->interrupted.first_timer &= (interrupts->enabled.first_timer = !!(value & INTERRUPT_FIRST_TIMER));
+	interrupts->interrupted.second_timer &= (interrupts->enabled.second_timer = !!(value & INTERRUPT_SECOND_TIMER));
 	// TODO: low-power mode
-	interrupts->interrupted.link_activity &= (interrupts->enabled.link_activity = value & INTERRUPT_LINK_ACTIVITY);
-	interrupts->interrupted.first_crystal &= (interrupts->enabled.first_crystal = value & INTERRUPT_FIRST_CRYSTAL);
-	interrupts->interrupted.second_crystal &= (interrupts->enabled.second_crystal = value & INTERRUPT_SECOND_CRYSTAL);
+	interrupts->interrupted.link_activity &= (interrupts->enabled.link_activity = !!(value & INTERRUPT_LINK_ACTIVITY));
+	interrupts->interrupted.first_crystal &= (interrupts->enabled.first_crystal = !!(value & INTERRUPT_FIRST_CRYSTAL));
+	interrupts->interrupted.second_crystal &= (interrupts->enabled.second_crystal = !!(value & INTERRUPT_SECOND_CRYSTAL));
 	interrupts->interrupted.third_crystal &= (interrupts->enabled.third_crystal = !!(value & INTERRUPT_THIRD_CRYSTAL));
 
 	ti_interrupts_check_state(interrupts);
