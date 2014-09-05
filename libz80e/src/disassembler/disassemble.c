@@ -372,9 +372,11 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 					break;
 				case 5:
 					if (context.y == 1) { // RETI
-						// Note: Intentionally not implemented, not relevant for TI devices
+						write(memory, "RETI");
+						break;
 					} else { // RETN
-						// Note: Intentionally not implemented, not relevant for TI devices
+						write(memory, "RETN");
+						break;
 					}
 					break;
 				case 6: // IM im[y]
