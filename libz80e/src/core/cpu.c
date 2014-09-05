@@ -431,13 +431,13 @@ uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
 
 uint8_t read_write_r(int read, int write, struct ExecutionContext *context) {
 	uint16_t old_prefix = context->cpu->prefix;
-	if (write >= 4 && write <= 6) {
+	if (write == 6) {
 		context->cpu->prefix &= 0xFF;
 	}
 
 	uint8_t r = read_r(read, context);
 
-	if (write >= 4 && write <= 6) {
+	if (write == 6) {
 		context->cpu->prefix = old_prefix;
 	} else {
 		context->cpu->prefix &= 0xFF;
