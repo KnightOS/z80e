@@ -879,7 +879,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 	context.cpu = cpu;
 	while (cycles > 0 || cpu->prefix != 0) {
 		context.cycles = 0;
-		if (cpu->IFF2) {
+		if (cpu->IFF2 && !cpu->prefix) {
 			if (cpu->IFF_wait) {
 				cpu->IFF_wait = 0;
 			} else {
