@@ -185,13 +185,13 @@ uint8_t read_interrupting_device(void *device) {
 void write_acknowledged_interrupts(void *device, uint8_t value) {
 	ti_interrupts_t *interrupts = device;
 
-	interrupts->interrupted.on_key &= (value & INTERRUPT_ON_KEY);
-	interrupts->interrupted.first_timer &= (value & INTERRUPT_FIRST_TIMER);
-	interrupts->interrupted.second_timer &= (value & INTERRUPT_SECOND_TIMER);
-	interrupts->interrupted.link_activity &= (value & INTERRUPT_LINK_ACTIVITY);
-	interrupts->interrupted.first_crystal &= (value & INTERRUPT_FIRST_CRYSTAL);
-	interrupts->interrupted.second_crystal &= (value & INTERRUPT_SECOND_CRYSTAL);
-	interrupts->interrupted.third_crystal &= (value & INTERRUPT_THIRD_CRYSTAL);
+	interrupts->interrupted.on_key &= !!(value & INTERRUPT_ON_KEY);
+	interrupts->interrupted.first_timer &= !!(value & INTERRUPT_FIRST_TIMER);
+	interrupts->interrupted.second_timer &= !!(value & INTERRUPT_SECOND_TIMER);
+	interrupts->interrupted.link_activity &= !!(value & INTERRUPT_LINK_ACTIVITY);
+	interrupts->interrupted.first_crystal &= !!(value & INTERRUPT_FIRST_CRYSTAL);
+	interrupts->interrupted.second_crystal &= !!(value & INTERRUPT_SECOND_CRYSTAL);
+	interrupts->interrupted.third_crystal &= !!(value & INTERRUPT_THIRD_CRYSTAL);
 	ti_interrupts_check_state(interrupts);
 }
 
