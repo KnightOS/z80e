@@ -113,6 +113,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 				if (state->debugger->flags.auto_on) {
 					if (!((ti_bw_lcd_t *)state->asic->cpu->devices[0x10].device)->display_on) {
 						state->asic->cpu->halted = 0;
+						state->print(state, "Turned on calculator via auto_on\n");
 					}
 				} else {
 					state->print(state, "CPU is halted\n");
