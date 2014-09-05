@@ -246,8 +246,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	asic_t *device = asic_init(context.device);
-	device->log = init_log(frontend_log, 0, context.log_level);
+	log_t *log = init_log(frontend_log, 0, context.log_level);
+	asic_t *device = asic_init(context.device, log);
 	context.device_asic = device;
 
 	if (enable_debug) {

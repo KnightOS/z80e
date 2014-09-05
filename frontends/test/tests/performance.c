@@ -4,7 +4,7 @@ int test_performance() {
 		printf("disabled on Travis builds\n");
 		return -1;
 	}
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 
 	clock_t start, stop;
 	int i;

@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <z80e/core/registers.h>
+#include <z80e/log/log.h>
 
 typedef struct z80cpu z80cpu_t;
 typedef struct z80iodevice z80iodevice_t;
@@ -34,6 +35,7 @@ struct z80cpu {
 	void (*write_byte)(void *, uint16_t, uint8_t);
 	int interrupt;
 	hook_info_t *hook;
+	log_t *log;
 };
 
 
@@ -43,7 +45,7 @@ uint16_t cpu_read_register_word(z80cpu_t *, registers);
 uint8_t cpu_write_register_byte(z80cpu_t *, registers, uint8_t);
 uint16_t cpu_write_register_word(z80cpu_t *, registers, uint16_t);
 
-z80cpu_t* cpu_init(void);
+z80cpu_t* cpu_init(log_t *log);
 void cpu_free(z80cpu_t *cpu);
 uint8_t cpu_read_byte(z80cpu_t *cpu, uint16_t address);
 void cpu_write_byte(z80cpu_t *cpu, uint16_t address, uint8_t value);

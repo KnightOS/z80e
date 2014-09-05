@@ -55,9 +55,10 @@ void free_devices(asic_t *asic) {
 	free_mapping_ports(asic);
 }
 
-asic_t *asic_init(ti_device_type type) {
+asic_t *asic_init(ti_device_type type, log_t *log) {
 	asic_t* device = malloc(sizeof(asic_t));
-	device->cpu = cpu_init();
+	device->log = log;
+	device->cpu = cpu_init(log);
 	device->mmu = ti_mmu_init(type);
 	device->cpu->memory = (void*)device->mmu;
 	device->cpu->read_byte = ti_read_byte;

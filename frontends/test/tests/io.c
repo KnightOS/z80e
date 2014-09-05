@@ -7,7 +7,7 @@ void test_write(void* device, uint8_t value) {
 }
 
 int test_OUT_n_A() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xD3, 0x12 }; // OUT (0x12), A
 	device->cpu->registers.A = 0x3C;
 	flash(device, test, sizeof(test));
@@ -25,7 +25,7 @@ int test_OUT_n_A() {
 }
 
 int test_IN_A_n() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xDB, 0x12 }; // IN A, (0x12)
 	flash(device, test, sizeof(test));
 	uint8_t value = 0x3C;
@@ -42,7 +42,7 @@ int test_IN_A_n() {
 }
 
 int test_IN_C() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0x70 }; // IN (C)
 	flash(device, test, sizeof(test));
 	uint8_t value = 0;
@@ -60,7 +60,7 @@ int test_IN_C() {
 }
 
 int test_IN_r_C() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0x40 }; // IN B, (C)
 	flash(device, test, sizeof(test));
 	uint8_t value = 0x5B;
@@ -81,7 +81,7 @@ int test_OUT_C_0() {
 	// Note: Despite the mnomic of this instruction, the
 	// CMOS z80 variant (which TI calculators use) output
 	// 0xFF instead.
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0x71 }; // OUT (C), 0
 	uint8_t value;
 	z80iodevice_t test_device = { &value, test_read, test_write };
@@ -98,7 +98,7 @@ int test_OUT_C_0() {
 }
 
 int test_OUT_C_r() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0x41 }; // OUT (C), B
 	uint8_t value;
 	z80iodevice_t test_device = { &value, test_read, test_write };
@@ -116,7 +116,7 @@ int test_OUT_C_r() {
 }
 
 int test_INI() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xA2 }; // INI
 	uint8_t value = 0x3E;
 	z80iodevice_t test_device = { &value, test_read, test_write };
@@ -138,7 +138,7 @@ int test_INI() {
 }
 
 int test_IND() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xAA }; // IND
 	uint8_t value = 0x3E;
 	z80iodevice_t test_device = { &value, test_read, test_write };
@@ -160,7 +160,7 @@ int test_IND() {
 }
 
 int test_INIR() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xB2 }; // INIR
 	uint8_t value = 0x3E;
 	z80iodevice_t test_device = { &value, test_read, test_write };
@@ -186,7 +186,7 @@ int test_INIR() {
 }
 
 int test_INDR() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xBA }; // INDR
 	uint8_t value = 0x3E;
 	z80iodevice_t test_device = { &value, test_read, test_write };
@@ -212,7 +212,7 @@ int test_INDR() {
 }
 
 int test_OUTI() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xA3 };
 	uint8_t value = 0x00;
 	z80iodevice_t test_device = { &value, test_read, test_write };
@@ -239,7 +239,7 @@ int test_OUTI() {
 }
 
 int test_OUTD() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xAB };
 	uint8_t value = 0x00;
 	z80iodevice_t test_device = { &value, test_read, test_write };
@@ -266,7 +266,7 @@ int test_OUTD() {
 }
 
 int test_OTIR() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xB3 };
 	uint8_t value = 0x00;
 	z80iodevice_t test_device = { &value, test_read, test_write };
@@ -293,7 +293,7 @@ int test_OTIR() {
 }
 
 int test_OTDR() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xBB };
 	uint8_t value = 0x00;
 	z80iodevice_t test_device = { &value, test_read, test_write };

@@ -1,5 +1,5 @@
 int test_IX_IY() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test_1[] = { 0xDD, 0x77, 0x00 }; // LD (IX + 0), A
 	device->cpu->registers.IX = 0xC000;
 	device->cpu->registers.A = 0x30;
@@ -11,7 +11,7 @@ int test_IX_IY() {
 	}
 	asic_free(device);
 
-	device = asic_init(TI83p);
+	device = asic_init(TI83p, NULL);
 	uint8_t test_2[] = { 0xDD, 0x7E, 0x00 }; // LD A, (IX + 0)
 	device->cpu->registers.IX = 0xC000;
 	cpu_write_byte(device->cpu, 0xC000, 0x30);
@@ -23,7 +23,7 @@ int test_IX_IY() {
 	}
 	asic_free(device);
 
-	device = asic_init(TI83p);
+	device = asic_init(TI83p, NULL);
 	uint8_t test_3[] = { 0xFD, 0x77, 0x00 }; // LD (IY + 0), A
 	device->cpu->registers.IY = 0xC000;
 	device->cpu->registers.A = 0x30;
@@ -35,7 +35,7 @@ int test_IX_IY() {
 	}
 	asic_free(device);
 
-	device = asic_init(TI83p);
+	device = asic_init(TI83p, NULL);
 	uint8_t test_4[] = { 0xFD, 0x7E, 0x00 }; // LD A, (IY + 0)
 	device->cpu->registers.IY = 0xC000;
 	cpu_write_byte(device->cpu, 0xC000, 0x30);
@@ -51,7 +51,7 @@ int test_IX_IY() {
 }
 
 int test_JP_IX__JP_IY() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xDD, 0xE9 }; // JP (IX)
 	device->cpu->registers.IX = 0x1234;
 	flash(device, test, sizeof(test));
@@ -63,7 +63,7 @@ int test_JP_IX__JP_IY() {
 	}
 	asic_free(device);
 
-	device = asic_init(TI83p);
+	device = asic_init(TI83p, NULL);
 	uint8_t test_2[] = { 0xFD, 0xE9 }; // JP (IY)
 	device->cpu->registers.IY = 0x1234;
 	flash(device, test_2, sizeof(test_2));
@@ -78,7 +78,7 @@ int test_JP_IX__JP_IY() {
 }
 
 int test_ADD_IX_rp() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xDD, 0x09 }; // ADD IX, BC
 	device->cpu->registers.IX = 0x1000;
 	device->cpu->registers.BC = 0x0234;
@@ -91,7 +91,7 @@ int test_ADD_IX_rp() {
 	}
 	asic_free(device);
 
-	device = asic_init(TI83p);
+	device = asic_init(TI83p, NULL);
 	device->cpu->registers.IX = 0xF000;
 	device->cpu->registers.BC = 0x1000;
 	device->cpu->registers.flags.Z = 0;
@@ -109,7 +109,7 @@ int test_ADD_IX_rp() {
 }
 
 int test_prefix_reset() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xDD, 0x09, 0x09 }; // ADD IX, BC \ ADD HL, BC
 	device->cpu->registers.IX = 0x1000;
 	device->cpu->registers.HL = 0x2000;
@@ -127,7 +127,7 @@ int test_prefix_reset() {
 }
 
 int test_index_offsets() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xDD, 0x86, 0x0A }; // ADD A, (IX + 10)
 	device->cpu->registers.IX = 0x1000;
 	device->cpu->registers.A = 0x10;
@@ -144,7 +144,7 @@ int test_index_offsets() {
 }
 
 int test_ixh_ixl() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xDD, 0x84 }; // ADD A, IXH
 	device->cpu->registers.IXH = 0x20;
 	device->cpu->registers.A = 0x10;
@@ -157,7 +157,7 @@ int test_ixh_ixl() {
 	}
 	asic_free(device);
 
-	device = asic_init(TI83p);
+	device = asic_init(TI83p, NULL);
 	uint8_t test2[] = { 0xDD, 0x85 }; // ADD A, IXL
 	device->cpu->registers.IXL = 0x20;
 	device->cpu->registers.A = 0x10;

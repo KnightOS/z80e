@@ -1,5 +1,5 @@
 int test_LDI() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xA0 }; // LDI
 	device->cpu->registers.HL = 0xC000;
 	device->cpu->registers.DE = 0xD000;
@@ -24,7 +24,7 @@ int test_LDI() {
 }
 
 int test_LDIR() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xB0 }; // LDIR
 	device->cpu->registers.HL = 0xC000;
 	device->cpu->registers.DE = 0xD000;
@@ -53,7 +53,7 @@ int test_LDIR() {
 }
 
 int test_LDD() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xA8 }; // LDD
 	device->cpu->registers.HL = 0xC004;
 	device->cpu->registers.DE = 0xD004;
@@ -78,7 +78,7 @@ int test_LDD() {
 }
 
 int test_LDDR() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xB8 }; // LDDR
 	device->cpu->registers.HL = 0xC004;
 	device->cpu->registers.DE = 0xD004;
@@ -107,7 +107,7 @@ int test_LDDR() {
 }
 
 int test_CPI() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xA1 }; // CPI
 	device->cpu->registers.HL = 0xC000;
 	device->cpu->registers.BC = 5;
@@ -139,7 +139,7 @@ int test_CPI() {
 }
 
 int test_CPD() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xA9 }; // CPD
 	device->cpu->registers.HL = 0xC002;
 	device->cpu->registers.BC = 5;
@@ -171,7 +171,7 @@ int test_CPD() {
 }
 
 int test_CPIR() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xB1 }; // CPIR
 	device->cpu->registers.HL = 0xC000;
 	device->cpu->registers.BC = 5;
@@ -193,7 +193,7 @@ int test_CPIR() {
 }
 
 int test_CPDR() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xED, 0xB9 }; // CPDR
 	device->cpu->registers.HL = 0xC004;
 	device->cpu->registers.BC = 5;

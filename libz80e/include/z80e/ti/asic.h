@@ -61,7 +61,7 @@ struct asic {
 	debugger_t *debugger;
 };
 
-asic_t* asic_init(ti_device_type);
+asic_t* asic_init(ti_device_type, log_t *);
 void asic_free(asic_t*);
 
 int asic_set_clock_rate(asic_t *, int);

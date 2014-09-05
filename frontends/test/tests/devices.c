@@ -35,7 +35,7 @@ int test_keyboard() {
 }
 
 int test_memorymapping_83p() {
-	asic_t *asic = asic_init(TI83p);
+	asic_t *asic = asic_init(TI83p, NULL);
 	memory_mapping_state_t *state = asic->cpu->devices[0x04].device;
 
 	state->bank_a_page = 0;
@@ -80,7 +80,7 @@ int test_memorymapping_83p() {
 }
 
 int test_memorymapping_others() {
-	asic_t *asic = asic_init(TI84p);
+	asic_t *asic = asic_init(TI84p, NULL);
 	memory_mapping_state_t *state = asic->cpu->devices[0x04].device;
 
 
@@ -127,7 +127,7 @@ int test_memorymapping_others() {
 }
 
 int test_status() {
-	asic_t *asic = asic_init(TI83p);
+	asic_t *asic = asic_init(TI83p, NULL);
 	z80iodevice_t status = init_status(asic);
 	// Test battery status
 	asic->battery = BATTERIES_GOOD;

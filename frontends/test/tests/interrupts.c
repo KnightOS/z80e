@@ -1,6 +1,6 @@
 int test_IM_1() {
 	uint8_t test[] = { 0xED, 0x56, 0xFB, 0x18, 0xFE }; // IM 1 \ EI \ JR $
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	flash(device, test, sizeof(test));
 	cpu_execute(device->cpu, 100);
 	if (device->cpu->registers.PC != 3) {
@@ -20,7 +20,7 @@ int test_IM_1() {
 
 int test_IM_2() {
 	uint8_t test[] = { 0xED, 0x5E, 0x3E, 0x80, 0xED, 0x47, 0xFB, 0x18, 0xFE }; // IM 2 \ LD A, 0x80 \ LD I, A \ EI \ JR $
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	flash(device, test, sizeof(test));
 	cpu_execute(device->cpu, 100);
 	if (device->cpu->registers.PC != 7 ||

@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	asic_t *device = asic_init(TI84p);
+	asic_t *device = asic_init(TI84p, NULL);
 
 	int i = 0;
 	for (i = 0; i < 0x100; i++) {

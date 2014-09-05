@@ -1,5 +1,5 @@
 int test_RLCA() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0x07 }; // RLCA
 	device->cpu->registers.A = 0x80;
 	flash(device, test, sizeof(test));
@@ -15,7 +15,7 @@ int test_RLCA() {
 }
 
 int test_RRCA() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0x0F }; // RRCA
 	device->cpu->registers.A = 1;
 	flash(device, test, sizeof(test));
@@ -31,7 +31,7 @@ int test_RRCA() {
 }
 
 int test_RLA() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0x17 }; // RLA
 	device->cpu->registers.A = 0x80;
 	flash(device, test, sizeof(test));
@@ -47,7 +47,7 @@ int test_RLA() {
 }
 
 int test_RRA() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0x1F }; // RRA
 	device->cpu->registers.A = 1;
 	flash(device, test, sizeof(test));
@@ -63,7 +63,7 @@ int test_RRA() {
 }
 
 int test_RLC() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xCB, 0x00 }; // RLC B
 	device->cpu->registers.B = 0x80;
 	flash(device, test, sizeof(test));
@@ -79,7 +79,7 @@ int test_RLC() {
 }
 
 int test_RRC() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xCB, 0x08 }; // RRC B
 	device->cpu->registers.B = 1;
 	flash(device, test, sizeof(test));
@@ -95,7 +95,7 @@ int test_RRC() {
 }
 
 int test_RL() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xCB, 0x10 }; // RL B
 	device->cpu->registers.B = 0x80;
 	device->cpu->registers.flags.C = 1;
@@ -112,7 +112,7 @@ int test_RL() {
 }
 
 int test_RR() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xCB, 0x18 }; // RR B
 	device->cpu->registers.B = 1;
 	device->cpu->registers.flags.C = 0;
@@ -129,7 +129,7 @@ int test_RR() {
 }
 
 int test_SLA() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xCB, 0x20 }; // SLA B
 	device->cpu->registers.B = 0x80;
 	device->cpu->registers.flags.C = 0;
@@ -146,7 +146,7 @@ int test_SLA() {
 }
 
 int test_SRA() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xCB, 0x28 }; // SRA B
 	device->cpu->registers.B = 1;
 	device->cpu->registers.flags.C = 0;
@@ -163,7 +163,7 @@ int test_SRA() {
 }
 
 int test_SLL() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xCB, 0x30 }; // SLL B
 	device->cpu->registers.B = 1;
 	device->cpu->registers.flags.C = 0;
@@ -180,7 +180,7 @@ int test_SLL() {
 }
 
 int test_SRL() {
-	asic_t *device = asic_init(TI83p);
+	asic_t *device = asic_init(TI83p, NULL);
 	uint8_t test[] = { 0xCB, 0x38 }; // SRL B
 	device->cpu->registers.B = 1;
 	device->cpu->registers.flags.C = 0;
