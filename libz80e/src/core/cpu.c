@@ -1029,9 +1029,15 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					break;
 				case 5:
 					if (context.y == 1) { // RETI
-						// Note: Intentionally not implemented, not relevant for TI devices
+						// Note: Does not implement non-maskable interrupts
+						context.cycles += 14;
+						r->PC = pop(cpu);
+						break;
 					} else { // RETN
-						// Note: Intentionally not implemented, not relevant for TI devices
+						// Note: Does not implement non-maskable interrupts
+						context.cycles += 14;
+						r->PC = pop(cpu);
+						break;
 					}
 					break;
 				case 6: // IM im[y]
