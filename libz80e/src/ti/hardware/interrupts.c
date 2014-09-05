@@ -27,13 +27,13 @@ void ti_interrupts_interrupt(ti_interrupts_t *interrupts, int flag) {
 	}
 
 	if (flag & INTERRUPT_FIRST_TIMER && interrupts->enabled.first_timer) {
-		interrupts->interrupted.on_key = 1;
+		interrupts->interrupted.first_timer = 1;
 		should_interrupt |= 1;
 		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "Triggered first timer interrupt");
 	}
 
 	if (flag & INTERRUPT_SECOND_TIMER && interrupts->enabled.second_timer) {
-		interrupts->interrupted.on_key = 1;
+		interrupts->interrupted.second_timer = 1;
 		should_interrupt |= 1;
 		log_message(interrupts->asic->log, L_DEBUG, "interrupts", "Triggered second timer interrupt");
 	}
