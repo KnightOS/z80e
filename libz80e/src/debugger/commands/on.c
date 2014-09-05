@@ -216,6 +216,12 @@ int command_step_over(struct debugger_state *state, int argc, char **argv) {
 	if (state->debugger->flags.echo) {
 		state->print(state, "\n");
 	}
+	// Note: 0x18, 0xFE is JR $, i.e. an infinite loop, which we step over as a special case
+	if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == 0x18 &&
+		cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC + 1) == 0xFE) {
+		state->asic->cpu->registers.PC += 2;
+		return 0;
+	}
 
 	struct break_data *data = malloc(sizeof(struct break_data));
 	data->address = state->asic->cpu->registers.PC + size;
