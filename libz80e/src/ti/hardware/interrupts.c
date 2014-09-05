@@ -173,13 +173,13 @@ void write_interrupt_mask(void *device, uint8_t value) {
 uint8_t read_interrupting_device(void *device) {
 	ti_interrupts_t *interrupts = device;
 	return
-		(interrupts->enabled.on_key ? INTERRUPT_ON_KEY : 0) |
-		(interrupts->enabled.first_timer ? INTERRUPT_FIRST_TIMER : 0) |
-		(interrupts->enabled.second_timer ? INTERRUPT_SECOND_TIMER : 0) |
-		(interrupts->enabled.link_activity ? INTERRUPT_LINK_ACTIVITY : 0) |
-		(interrupts->enabled.first_crystal ? INTERRUPT_FIRST_CRYSTAL : 0) |
-		(interrupts->enabled.second_crystal ? INTERRUPT_SECOND_CRYSTAL: 0) |
-		(interrupts->enabled.third_crystal ? INTERRUPT_THIRD_CRYSTAL : 0);
+		(interrupts->interrupted.on_key ? INTERRUPT_ON_KEY : 0) |
+		(interrupts->interrupted.first_timer ? INTERRUPT_FIRST_TIMER : 0) |
+		(interrupts->interrupted.second_timer ? INTERRUPT_SECOND_TIMER : 0) |
+		(interrupts->interrupted.link_activity ? INTERRUPT_LINK_ACTIVITY : 0) |
+		(interrupts->interrupted.first_crystal ? INTERRUPT_FIRST_CRYSTAL : 0) |
+		(interrupts->interrupted.second_crystal ? INTERRUPT_SECOND_CRYSTAL: 0) |
+		(interrupts->interrupted.third_crystal ? INTERRUPT_THIRD_CRYSTAL : 0);
 }
 
 void write_acknowledged_interrupts(void *device, uint8_t value) {
