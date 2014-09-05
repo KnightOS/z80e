@@ -222,6 +222,11 @@ int command_step_over(struct debugger_state *state, int argc, char **argv) {
 		state->asic->cpu->registers.PC += 2;
 		return 0;
 	}
+	if (state->debugger->flags.knightos) {
+		if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == 0xE7) {
+			size += 2;
+		}
+	}
 
 	struct break_data *data = malloc(sizeof(struct break_data));
 	data->address = state->asic->cpu->registers.PC + size;
