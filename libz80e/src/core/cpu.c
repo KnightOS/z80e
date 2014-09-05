@@ -430,19 +430,20 @@ uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
 }
 
 uint8_t read_write_r(int read, int write, struct ExecutionContext *context) {
-	uint16_t old_prefix = context->cpu->prefix;
-	if (write == 6) {
-		context->cpu->prefix &= 0xFF;
-	}
-
-	uint8_t r = read_r(read, context);
-
-	if (write == 6) {
+	if (write == 6 || read == 6 /* Reading from/writing to (IX/IY + n) */) {
+		uint16_t old_prefix = context->cpu->prefix;
+		if (write == 6) {
+			context->cpu->prefix &= 0xFF;
+		}
+		uint8_t r = read_r(read, context);
 		context->cpu->prefix = old_prefix;
+		if (read == 6) {
+			context->cpu->prefix &= 0xFF;
+		}
+		return write_r(write, r, context);
 	} else {
-		context->cpu->prefix &= 0xFF;
+		return write_r(write, read_r(read, context), context);
 	}
-	return write_r(write, r, context);
 }
 
 uint16_t read_rp(int i, struct ExecutionContext *context) {
