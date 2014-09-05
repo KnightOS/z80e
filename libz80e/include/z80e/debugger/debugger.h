@@ -47,6 +47,7 @@ struct debugger {
 	struct {
 		int echo : 1;
 		int echo_reg : 1;
+		int auto_on : 1;
 	} flags;
 
 	debugger_list_t commands;

@@ -5,6 +5,7 @@
 #include "debugger/debugger.h"
 #include "disassembler/disassemble.h"
 #include "runloop/runloop.h"
+#include "ti/hardware/t6a04.h"
 
 struct run_disassemble_state {
 	struct disassemble_memory memory;
@@ -109,7 +110,13 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 			}
 		} else {
 			if (state->asic->cpu->halted && !oldHalted) {
-				state->print(state, "CPU is halted\n");
+				if (state->debugger->flags.auto_on) {
+					if (!((ti_bw_lcd_t *)state->asic->cpu->devices[0x10].device)->display_on) {
+						state->asic->cpu->halted = 0;
+					}
+				} else {
+					state->print(state, "CPU is halted\n");
+				}
 			}
 		}
 
