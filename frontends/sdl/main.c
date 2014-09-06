@@ -289,7 +289,7 @@ void setup_display(int w, int h) {
 	for (y = 0; y < h; y++) {
 		for (x = 0; x < w; x++) {
 			uint8_t *p = (uint8_t *)screen->pixels + y * screen->pitch + x * screen->format->BytesPerPixel;
-			*(uint32_t *)p = 0xFF99b199;
+			*(uint32_t *)p = 0xFFc6e6c6;
 		}
 	}
 
