@@ -462,7 +462,9 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 					parse_nn(&context);
 					break;
 				case 1: // ADD HL, rp[p]
-					write(memory, "ADD HL, ");
+					write(memory, "ADD ");
+					parse_HLorIr(&context);
+					write(memory, ", ");
 					parse_rp(context.p, &context);
 					break;
 				}
