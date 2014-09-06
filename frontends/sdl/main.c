@@ -7,6 +7,7 @@
 #include <z80e/log/log.h>
 #include <z80e/ti/hardware/t6a04.h>
 #include <z80e/ti/hardware/keyboard.h>
+#include <z80e/ti/hardware/interrupts.h>
 
 #include <SDL/SDL.h>
 
@@ -370,9 +371,6 @@ int main(int argc, char **argv) {
 	hook_add_lcd_update(device->hook, NULL, lcd_changed_hook);
 	asic_add_timer(device, 0, 60, lcd_timer_tick, device->cpu->devices[0x10].device);
 
-	runloop_tick_cycles(device->runloop, 1000);
-	device->cpu->halted = 0;
-
 	if (device->debugger) {
 		tui_state_t state = { device->debugger };
 		tui_init(&state);
@@ -456,6 +454,10 @@ int main(int argc, char **argv) {
 									break;
 								case SDLK_9:
 									key_tap(device, 0x23, event.type == SDL_KEYDOWN);
+									break;
+
+								case SDLK_F12:
+									ti_interrupts_interrupt(device->interrupts, INTERRUPT_ON_KEY);
 									break;
 								default:
 									break;
