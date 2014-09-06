@@ -4,11 +4,13 @@
 #include <string.h>
 
 #include "ti/hardware/t6a04.h"
+#include "ti/hardware/speed.h"
 #include "ti/memory.h"
 #include "ti/hardware/memorymapping.h"
 #include "core/cpu.h"
 #include "ti/hardware/keyboard.h"
 #include "ti/hardware/status.h"
+#include "ti/hardware/speed.h"
 
 void plug_devices(asic_t *asic) {
 	/* Link port unimplemented */
@@ -16,6 +18,10 @@ void plug_devices(asic_t *asic) {
 	asic->cpu->devices[0x02] = init_status(asic);
 	asic->cpu->devices[0x03] = init_interrupts(asic, &asic->interrupts);
 	setup_lcd_display(asic, asic->hook);
+
+	if (asic->device != TI73 && asic->device != TI83p) {
+		asic->cpu->devices[0x20] = init_speed(asic);
+	}
 
 	init_mapping_ports(asic);
 }
@@ -65,11 +71,7 @@ asic_t *asic_init(ti_device_type type, log_t *log) {
 	device->cpu->write_byte = ti_write_byte;
 	device->battery = BATTERIES_GOOD;
 	device->device = type;
-	if (type == TI73 || type == TI83p) {
-		device->clock_rate = 6000000;
-	} else {
-		device->clock_rate = 15000000;
-	}
+	device->clock_rate = 6000000;
 
 	device->timers = calloc(sizeof(z80_hardware_timers_t), 1);
 	device->timers->max_timers = 20;
