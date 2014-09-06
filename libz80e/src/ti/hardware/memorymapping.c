@@ -45,9 +45,11 @@ void reload_mapping(memory_mapping_state_t *state) {
 	int i;
 	for (i = 0; i < 4; i++) {
 		if (banks[i].flash && banks[i].page > state->asic->mmu->settings.flash_pages) {
-			log_message(state->asic->log, L_ERROR, "memorymapping", "ERROR: Flash page set is more than the MMU can manage (at 0x%04X)", state->asic->cpu->registers.PC);
+			log_message(state->asic->log, L_ERROR, "memorymapping", "ERROR: Flash page 0x%02X doesn't exist! (at 0x%04X)", banks[i].page, state->asic->cpu->registers.PC);
+			banks[i].page &= state->asic->mmu->settings.flash_pages;
 		} else if (!banks[i].flash && banks[i].page > state->asic->mmu->settings.ram_pages) {
-			log_message(state->asic->log, L_ERROR, "memorymapping", "ERROR: RAM page set is more than the MMU can manage (at 0x%04X)", state->asic->cpu->registers.PC);
+			log_message(state->asic->log, L_ERROR, "memorymapping", "ERROR: RAM page 0x%02X doesn't exist! (at 0x%04X)", banks[i].page, state->asic->cpu->registers.PC);
+			banks[i].page &= state->asic->mmu->settings.ram_pages;
 		}
 	}
 }
