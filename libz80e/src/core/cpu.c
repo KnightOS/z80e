@@ -875,7 +875,7 @@ void handle_interrupt(struct ExecutionContext *context) {
 }
 
 int cpu_execute(z80cpu_t *cpu, int cycles) {
-	struct ExecutionContext context;
+	struct ExecutionContext context = {0};
 	context.cpu = cpu;
 	while (cycles > 0 || cpu->prefix != 0) {
 		context.cycles = 0;

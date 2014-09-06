@@ -34,7 +34,7 @@ struct runloop_state {
 };
 
 runloop_state_t *runloop_init(asic_t *asic) {
-	runloop_state_t *state = malloc(sizeof(runloop_state_t));
+	runloop_state_t *state = calloc(sizeof(runloop_state_t), 1);
 
 	state->asic = asic;
 	state->last_end = get_time_nsec();
@@ -46,7 +46,7 @@ runloop_state_t *runloop_init(asic_t *asic) {
 		}
 	}
 
-	state->ticks = malloc(sizeof(timer_tick_t) * 40);
+	state->ticks = calloc(sizeof(timer_tick_t), 40);
 	state->max_tick_count = 40;
 
 	return state;
