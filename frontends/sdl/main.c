@@ -40,6 +40,10 @@ typedef struct {
 	int no_rom_check;
 	loglevel_t log_level;
 	int braille;
+	int scale;
+	int offset_l;
+	int offset_t;
+	SDL_Surface *screen;
 } appContext_t;
 
 appContext_t context;
@@ -53,13 +57,11 @@ appContext_t create_context(void) {
 	context.no_rom_check = 0;
 	context.log_level = L_WARN;
 	context.braille = 0;
+	context.scale = 5;
+	context.offset_l = 0;
+	context.offset_t = 0;
 	return context;
 }
-
-SDL_Surface *screen = NULL;
-int scale = 1;
-int offset_l = 0;
-int offset_t = 0;
 
 int lcd_changed = 0;
 void lcd_changed_hook(void *data, ti_bw_lcd_t *lcd) {
@@ -109,27 +111,27 @@ void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 
 	/* Update SDL display */
 
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_LockSurface(screen);
+	if (SDL_MUSTLOCK(context.screen)) {
+		SDL_LockSurface(context.screen);
 	}
 
 	for (cX = 0; cX < 64; cX += 1) {
 		for (cY = 0; cY < 96; cY += 1) {
 			int on = bw_lcd_read_screen(lcd, cY, cX);
 			int i, j;
-			for (i = 0; i < scale; ++i) {
-				for (j = 0; j < scale; ++j) {
-					uint8_t *p = (uint8_t *)screen->pixels + (offset_t + cX * scale + i) * screen->pitch + (offset_l + cY * scale + j) * screen->format->BytesPerPixel;
+			for (i = 0; i < context.scale; ++i) {
+				for (j = 0; j < context.scale; ++j) {
+					uint8_t *p = (uint8_t *)context.screen->pixels + (context.offset_t + cX * context.scale + i) * context.screen->pitch + (context.offset_l + cY * context.scale + j) * context.screen->format->BytesPerPixel;
 					*(uint32_t *)p = on ? 0xFF000000 : 0xFF99b199;
 				}
 			}
 		}
 	}
 
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_UnlockSurface(screen);
+	if (SDL_MUSTLOCK(context.screen)) {
+		SDL_UnlockSurface(context.screen);
 	}
-	SDL_UpdateRect(screen, offset_l, offset_t, 96 * scale, 64 * scale);
+	SDL_UpdateRect(context.screen, context.offset_l, context.offset_t, 96 * context.scale, 64 * context.scale);
 
 	/* Push pixels to display */
 
@@ -194,7 +196,7 @@ void handleFlag(appContext_t *context, char flag, int *i, char **argv) {
 			break;
 		case 's':
 			next = argv[++*i];
-			scale = atoi(next);
+			context->scale = atoi(next);
 			break;
 		default:
 			printf("Incorrect usage. See z80e --help.\n");
@@ -267,7 +269,7 @@ void key_tap(asic_t *asic, int scancode, int down) {
 }
 
 void setup_display(int w, int h) {
-	screen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE | SDL_RESIZABLE);
+	context.screen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 
 	int best_w_scale = w / 96;
 	int best_h_scale = h / 64;
@@ -275,32 +277,127 @@ void setup_display(int w, int h) {
 	int y, x;
 
 	if (best_w_scale < best_h_scale) {
-		scale = best_w_scale;
+		context.scale = best_w_scale;
 	} else {
-		scale = best_h_scale;
+		context.scale = best_h_scale;
 	}
 
-	offset_l = (w - scale * 96) / 2;
-	offset_t = (h - scale * 64) / 2;
+	context.offset_l = (w - context.scale * 96) / 2;
+	context.offset_t = (h - context.scale * 64) / 2;
 
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_LockSurface(screen);
+	if (SDL_MUSTLOCK(context.screen)) {
+		SDL_LockSurface(context.screen);
 	}
 
 	for (y = 0; y < h; y++) {
 		for (x = 0; x < w; x++) {
-			uint8_t *p = (uint8_t *)screen->pixels + y * screen->pitch + x * screen->format->BytesPerPixel;
+			uint8_t *p = (uint8_t *)context.screen->pixels + y * context.screen->pitch + x * context.screen->format->BytesPerPixel;
 			*(uint32_t *)p = 0xFFc6e6c6;
 		}
 	}
 
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_UnlockSurface(screen);
+	if (SDL_MUSTLOCK(context.screen)) {
+		SDL_UnlockSurface(context.screen);
 	}
 
-	SDL_UpdateRect(screen, 0, 0, w, h);
+	SDL_UpdateRect(context.screen, 0, 0, w, h);
 
 	lcd_changed = 1;
+}
+
+void sdl_events_hook(asic_t *device, void * unused) {
+	SDL_Event event;
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+			case SDL_KEYDOWN:
+			case SDL_KEYUP:
+				switch (event.key.keysym.sym) {
+					case SDLK_F1: /* F1 */
+						key_tap(device, 0x64, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_F2: /* F2 */
+						key_tap(device, 0x63, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_F3: /* F3 */
+						key_tap(device, 0x62, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_F4: /* F4 */
+						key_tap(device, 0x61, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_F5: /* F5 */
+						key_tap(device, 0x60, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_UP: /* Up */
+						key_tap(device, 0x03, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_LEFT: /* Left */
+						key_tap(device, 0x01, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_RIGHT: /* Right */
+						key_tap(device, 0x02, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_DOWN: /* Down */
+						key_tap(device, 0x00, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_LSHIFT: /* Shift = 2nd */
+					case SDLK_RSHIFT:
+						key_tap(device, 0x65, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_RETURN: /* Enter */
+						key_tap(device, 0x10, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_ESCAPE:
+						key_tap(device, 0x66, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_0:
+						key_tap(device, 0x40, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_1:
+						key_tap(device, 0x41, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_2:
+						key_tap(device, 0x31, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_3:
+						key_tap(device, 0x21, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_4:
+						key_tap(device, 0x42, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_5:
+						key_tap(device, 0x32, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_6:
+						key_tap(device, 0x22, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_7:
+						key_tap(device, 0x43, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_8:
+						key_tap(device, 0x33, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_9:
+						key_tap(device, 0x23, event.type == SDL_KEYDOWN);
+						break;
+
+					case SDLK_F12:
+						ti_interrupts_interrupt(device->interrupts, INTERRUPT_ON_KEY);
+						break;
+					default:
+						break;
+				}
+
+				break;
+			case SDL_VIDEORESIZE:
+				setup_display(event.resize.w, event.resize.h);
+				break;
+			case SDL_QUIT:
+				device->stopped = 1;
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 int main(int argc, char **argv) {
@@ -365,11 +462,12 @@ int main(int argc, char **argv) {
 	}
 
 	SDL_Init(SDL_INIT_EVERYTHING);
-	setup_display(scale * 96, scale * 64);
+	setup_display(context.scale * 96, context.scale * 64);
 	SDL_WM_SetCaption("z80e", NULL);
 
 	hook_add_lcd_update(device->hook, NULL, lcd_changed_hook);
 	asic_add_timer(device, 0, 60, lcd_timer_tick, device->cpu->devices[0x10].device);
+	asic_add_timer(device, 0, 100, sdl_events_hook, device->cpu->devices[0x10].device);
 
 	if (device->debugger) {
 		tui_state_t state = { device->debugger };
@@ -377,102 +475,10 @@ int main(int argc, char **argv) {
 		tui_tick(&state);
 	} else {
 		if (context.cycles == -1) { // Run indefinitely
-			SDL_Event event;
 			while (1) {
 				runloop_tick(device->runloop);
 				if (device->stopped) {
 					break;
-				}
-				while (SDL_PollEvent(&event)) {
-					switch (event.type) {
-						case SDL_KEYDOWN:
-						case SDL_KEYUP:
-							switch (event.key.keysym.sym) {
-								case SDLK_F1: /* F1 */
-									key_tap(device, 0x64, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_F2: /* F2 */
-									key_tap(device, 0x63, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_F3: /* F3 */
-									key_tap(device, 0x62, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_F4: /* F4 */
-									key_tap(device, 0x61, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_F5: /* F5 */
-									key_tap(device, 0x60, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_UP: /* Up */
-									key_tap(device, 0x03, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_LEFT: /* Left */
-									key_tap(device, 0x01, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_RIGHT: /* Right */
-									key_tap(device, 0x02, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_DOWN: /* Down */
-									key_tap(device, 0x00, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_LSHIFT: /* Shift = 2nd */
-								case SDLK_RSHIFT:
-									key_tap(device, 0x65, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_RETURN: /* Enter */
-									key_tap(device, 0x10, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_ESCAPE:
-									key_tap(device, 0x66, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_0:
-									key_tap(device, 0x40, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_1:
-									key_tap(device, 0x41, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_2:
-									key_tap(device, 0x31, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_3:
-									key_tap(device, 0x21, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_4:
-									key_tap(device, 0x42, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_5:
-									key_tap(device, 0x32, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_6:
-									key_tap(device, 0x22, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_7:
-									key_tap(device, 0x43, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_8:
-									key_tap(device, 0x33, event.type == SDL_KEYDOWN);
-									break;
-								case SDLK_9:
-									key_tap(device, 0x23, event.type == SDL_KEYDOWN);
-									break;
-
-								case SDLK_F12:
-									ti_interrupts_interrupt(device->interrupts, INTERRUPT_ON_KEY);
-									break;
-								default:
-									break;
-							}
-
-							break;
-						case SDL_VIDEORESIZE:
-							setup_display(event.resize.w, event.resize.h);
-							break;
-						case SDL_QUIT:
-							goto finish;
-							break;
-						default:
-							break;
-					}
 				}
 				nanosleep((struct timespec[]){{0, (1.f / 60.f) * 1000000000}}, NULL);
 			}
