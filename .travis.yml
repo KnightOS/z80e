@@ -6,7 +6,7 @@ before_install:
     - sudo apt-get install -qq cmake libsdl1.2-dev libsdl1.2debian
 
 script:
-    - cmake .
+    - cmake -Denable-test=YES .
     - make
     - ./frontends/test/bin/tests
 
