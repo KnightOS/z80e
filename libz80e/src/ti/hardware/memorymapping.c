@@ -41,6 +41,15 @@ void reload_mapping(memory_mapping_state_t *state) {
 		banks[3].flash = state->bank_b_flash;
 		break;
 	}
+
+	int i;
+	for (i = 0; i < 4; i++) {
+		if (banks[i].flash && banks[i].page > state->asic->mmu->settings.flash_pages) {
+			log_message(state->asic->log, L_ERROR, "memorymapping", "ERROR: Flash page set is more than the MMU can manage (at 0x%04X)", state->asic->cpu->registers.PC);
+		} else if (!banks[i].flash && banks[i].page > state->asic->mmu->settings.ram_pages) {
+			log_message(state->asic->log, L_ERROR, "memorymapping", "ERROR: RAM page set is more than the MMU can manage (at 0x%04X)", state->asic->cpu->registers.PC);
+		}
+	}
 }
 
 uint8_t read_device_status_port(void *device) {
