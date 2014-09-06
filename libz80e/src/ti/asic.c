@@ -65,7 +65,11 @@ asic_t *asic_init(ti_device_type type, log_t *log) {
 	device->cpu->write_byte = ti_write_byte;
 	device->battery = BATTERIES_GOOD;
 	device->device = type;
-	device->clock_rate = 6000000;
+	if (type == TI73 || type == TI83p) {
+		device->clock_rate = 6000000;
+	} else {
+		device->clock_rate = 15000000;
+	}
 
 	device->timers = calloc(sizeof(z80_hardware_timers_t), 1);
 	device->timers->max_timers = 20;
