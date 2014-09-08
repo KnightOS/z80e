@@ -20,9 +20,9 @@ uint8_t read_speed(void *_asic) {
 void write_speed(void *_asic, uint8_t value) {
 	asic_t *asic = (asic_t*)_asic;
 	if (value == 0) {
-		asic->clock_rate = 6000000;
+		asic_set_clock_rate(asic, 6000000);
 	} else if (value == 1) {
-		asic->clock_rate = 15000000;
+		asic_set_clock_rate(asic, 15000000);
 	}
 	// TODO: set overclock
 }
