@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 	device->cpu->registers.PC = 0x100;
 
 	while (!stop) {
-		cpu_execute(device->cpu, 1);
+		cpu_execute(device->cpu, 10000);
 	}
 
 	asic_free(device);

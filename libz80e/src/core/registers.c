@@ -64,18 +64,10 @@ void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newV
 		r->flags.Z = newValue == 0;
 	}
 	if (!(unaffected & FLAG_H)) {
-		if (carryBit) {
-			if (subtraction) {
-				r->flags.H = (newValue & 0xFFF) > (oldValue & 0xFFF);
-			} else {
-				r->flags.H = (newValue & 0xFFF) < (oldValue & 0xFFF);
-			}
+		if (subtraction) {
+			r->flags.H = (newValue & 0xF) > (oldValue & 0xF);
 		} else {
-			if (subtraction) {
-				r->flags.H = (newValue & 0xF) > (oldValue & 0xF);
-			} else {
-				r->flags.H = (newValue & 0xF) < (oldValue & 0xF);
-			}
+			r->flags.H = (newValue & 0xF) < (oldValue & 0xF);
 		}
 	}
 	if (!(unaffected & FLAG_PV)) {

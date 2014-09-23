@@ -6,6 +6,9 @@ int test_ADD_HL_rp() {
 	flash(device, test, sizeof(test));
 	int cycles = cpu_execute(device->cpu, 11);
 	if (device->cpu->registers.HL != 0x1234 ||
+			device->cpu->registers.flags.Z != 0 ||
+			device->cpu->registers.flags.C != 0 ||
+			device->cpu->registers.flags.H != 0 ||
 			cycles != 0) {
 		asic_free(device);
 		return 1;
