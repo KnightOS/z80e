@@ -9,7 +9,7 @@ int stop = 0;
 
 void cpu_reset(void *device, uint8_t data) {
 	printf("Jumped to 0x00!\n");
-	stop = 1;
+	exit(0);
 }
 
 uint8_t write_text(void *device) {
@@ -81,8 +81,6 @@ int main(int argc, char **argv) {
 	while (!stop) {
 		cpu_execute(device->cpu, 10000);
 	}
-
-	asic_free(device);
 	return 0;
 }
 
