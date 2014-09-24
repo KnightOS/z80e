@@ -32,29 +32,29 @@ int popcount(uint64_t x) {
 	return (x * h01) >> 56;
 }
 
-void updateFlags(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit) {
-	updateFlags_withOptions(r, oldValue, newValue, 0, 0, carryBit, FLAG_NONE);
+void updateFlags(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word) {
+	updateFlags_withOptions(r, oldValue, newValue, 0, 0, word, FLAG_NONE);
 }
 
-void updateFlags_subtraction(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit) {
-	updateFlags_withOptions(r, oldValue, newValue, 1, 0, carryBit, FLAG_NONE);
+void updateFlags_subtraction(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word) {
+	updateFlags_withOptions(r, oldValue, newValue, 1, 0, word, FLAG_NONE);
 }
 
-void updateFlags_parity(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit) {
-	updateFlags_withOptions(r, oldValue, newValue, 0, 1, carryBit, FLAG_NONE);
+void updateFlags_parity(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word) {
+	updateFlags_withOptions(r, oldValue, newValue, 0, 1, word, FLAG_NONE);
 }
 
-void updateFlags_except(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit, z80flags unaffected) {
-	updateFlags_withOptions(r, oldValue, newValue, 0, 0, carryBit, unaffected);
+void updateFlags_except(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word, z80flags unaffected) {
+	updateFlags_withOptions(r, oldValue, newValue, 0, 0, word, unaffected);
 }
 
-void updateParity(z80registers_t *r, uint16_t value) {
+void updateParity(z80registers_t *r, uint32_t value) {
 	r->flags.PV = popcount(value) % 2 == 0;
 }
 
-void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, int parity, int carryBit, z80flags unaffected) {
+void updateFlags_withOptions(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int subtraction, int parity, int word, z80flags unaffected) {
 	if (!(unaffected & FLAG_S)) {
-		if (carryBit) {
+		if (word) {
 			r->flags.S = (newValue & 0x8000) != 0;
 		} else {
 			r->flags.S = (newValue & 0x80) != 0;
@@ -74,10 +74,19 @@ void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newV
 		if (parity) {
 			updateParity(r, newValue);
 		} else {
-			if (carryBit) {
-				r->flags.PV = (newValue & 0x8000) != (oldValue & 0x8000);
+			uint16_t sign = word ? 0x8000 : 0x80;
+			if (subtraction) {
+				if (((newValue - oldValue & (word ? 0xFFFF : 0xFF)) & sign) != (oldValue & sign)) {
+					r->flags.PV = (oldValue & sign) != (newValue & sign);
+				} else {
+					r->flags.PV = 0;
+				}
 			} else {
-				r->flags.PV = (newValue & 0x80) != (oldValue & 0x80);
+				if (((newValue - oldValue & (word ? 0xFFFF : 0xFF)) & sign) == (oldValue & sign)) {
+					r->flags.PV = (oldValue & sign) != (newValue & sign);
+				} else {
+					r->flags.PV = 0;
+				}
 			}
 		}
 	}
@@ -92,7 +101,7 @@ void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newV
 		}
 	}
 
-	if (carryBit) {
+	if (word) {
 		newValue >>= 8;
 	}
 

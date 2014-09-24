@@ -16,13 +16,16 @@ int test_ADD_HL_rp() {
 	asic_free(device);
 
 	device = asic_init(TI83p, NULL);
-	device->cpu->registers.HL = 0xF000;
+	uint8_t test2[] = { 0xED, 0x4A }; // ADC HL, BC
+	device->cpu->registers.HL = 0xFF00;
 	device->cpu->registers.BC = 0x1000;
-	device->cpu->registers.flags.Z = 0;
-	flash(device, test, sizeof(test));
-	cycles = cpu_execute(device->cpu, 11);
-	if (device->cpu->registers.HL != 0 ||
+	device->cpu->registers.flags.C = 0;
+	flash(device, test2, sizeof(test2));
+	cycles = cpu_execute(device->cpu, 15);
+	if (device->cpu->registers.HL != 0x0F00 ||
 			device->cpu->registers.flags.Z != 0 ||
+			device->cpu->registers.flags.H != 0 ||
+			device->cpu->registers.flags.PV != 0 ||
 			device->cpu->registers.flags.C != 1 ||
 			cycles != 0) {
 		asic_free(device);

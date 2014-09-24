@@ -9,14 +9,14 @@ typedef struct {
 			union {
 				uint8_t F;
 				struct {
-					uint8_t S  : 1;
-					uint8_t Z  : 1;
-					uint8_t _5 : 1;
-					uint8_t H  : 1;
-					uint8_t _3  : 1;
-					uint8_t PV : 1;
-					uint8_t N  : 1;
 					uint8_t C  : 1;
+					uint8_t N  : 1;
+					uint8_t PV : 1;
+					uint8_t _3 : 1;
+					uint8_t H  : 1;
+					uint8_t _5 : 1;
+					uint8_t Z  : 1;
+					uint8_t S  : 1;
 				} flags;
 			};
 			uint8_t A;
@@ -87,12 +87,12 @@ typedef enum {
 void exAFAF(z80registers_t *r);
 void exDEHL(z80registers_t *r);
 void exx(z80registers_t *r);
-void updateParity(z80registers_t *r, uint16_t newValue);
-void updateFlags(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit);
-void updateFlags_subtraction(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit);
-void updateFlags_parity(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit);
-void updateFlags_except(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int carryBit, z80flags unaffected);
-void updateFlags_withOptions(z80registers_t *r, uint16_t oldValue, uint16_t newValue, int subtraction, int parity, int carryBit, z80flags unaffected);
+void updateParity(z80registers_t *r, uint32_t newValue);
+void updateFlags(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word);
+void updateFlags_subtraction(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word);
+void updateFlags_parity(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word);
+void updateFlags_except(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word, z80flags unaffected);
+void updateFlags_withOptions(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int subtraction, int parity, int word, z80flags unaffected);
 
 void print_state(z80registers_t *);
 
