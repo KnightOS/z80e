@@ -1263,7 +1263,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					old = read_r(context.y, &context);
 					new = write_r(context.y, old - 1, &context);
 					r->F = __flag_c(r->flags.C) | _flag_sign_8(new) | _flag_zero(new)
-						| _flag_halfcarry_8_add(old, 1) | __flag_pv(old == 0x80) | _flag_subtract(1);
+						| _flag_halfcarry_8_sub(old, 1) | __flag_pv(old == 0x80) | _flag_subtract(1);
 					break;
 				case 6: // LD r[y], n
 					context.cycles += 7;
