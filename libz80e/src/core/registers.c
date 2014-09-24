@@ -53,6 +53,12 @@ void updateParity(z80registers_t *r, uint32_t value) {
 }
 
 void updateFlags_withOptions(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int subtraction, int parity, int word, z80flags unaffected) {
+	uint32_t operand;
+	if (subtraction) {
+		operand = newValue + oldValue & (word ? 0xFFFF : 0xFF);
+	} else {
+		operand = newValue - oldValue & (word ? 0xFFFF : 0xFF);
+	}
 	if (!(unaffected & FLAG_S)) {
 		if (word) {
 			r->flags.S = (newValue & 0x8000) != 0;
@@ -64,10 +70,10 @@ void updateFlags_withOptions(z80registers_t *r, uint32_t oldValue, uint32_t newV
 		r->flags.Z = newValue == 0;
 	}
 	if (!(unaffected & FLAG_H)) {
-		if (subtraction) {
-			r->flags.H = (newValue & 0xF) > (oldValue & 0xF);
+		if (!word) {
+			r->flags.H = oldValue ^ operand ^ newValue & 0x10;
 		} else {
-			r->flags.H = (newValue & 0xF) < (oldValue & 0xF);
+			r->flags.H = ((oldValue ^ operand ^ newValue) >> 8) & 0x10;
 		}
 	}
 	if (!(unaffected & FLAG_PV)) {
@@ -76,7 +82,7 @@ void updateFlags_withOptions(z80registers_t *r, uint32_t oldValue, uint32_t newV
 		} else {
 			uint16_t sign = word ? 0x8000 : 0x80;
 			if (subtraction) {
-				if (((newValue - oldValue & (word ? 0xFFFF : 0xFF)) & sign) != (oldValue & sign)) {
+				if (((newValue + oldValue & (word ? 0xFFFF : 0xFF)) & sign) != (oldValue & sign)) {
 					r->flags.PV = (oldValue & sign) != (newValue & sign);
 				} else {
 					r->flags.PV = 0;
@@ -106,10 +112,10 @@ void updateFlags_withOptions(z80registers_t *r, uint32_t oldValue, uint32_t newV
 	}
 
 	if (!(unaffected & FLAG_3)) {
-		r->flags._3 = newValue & 0x04 ? 1 : 0;
+		r->flags._3 = newValue & 0x08 ? 1 : 0;
 	}
 	if (!(unaffected & FLAG_5)) {
-		r->flags._5 = newValue & 0x10 ? 1 : 0;
+		r->flags._5 = newValue & 0x20 ? 1 : 0;
 	}
 }
 
