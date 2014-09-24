@@ -88,11 +88,43 @@ void exAFAF(z80registers_t *r);
 void exDEHL(z80registers_t *r);
 void exx(z80registers_t *r);
 void updateParity(z80registers_t *r, uint32_t newValue);
-void updateFlags(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word);
-void updateFlags_subtraction(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word);
-void updateFlags_parity(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word);
-void updateFlags_except(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int word, z80flags unaffected);
-void updateFlags_withOptions(z80registers_t *r, uint32_t oldValue, uint32_t newValue, int subtraction, int parity, int word, z80flags unaffected);
+int popcount(uint64_t x);
+
+// S Z 5 H 3 PV N C
+#define __flag_s(a)  ((a) ? FLAG_S  : 0)
+#define __flag_5(a)  ((a) ? FLAG_5  : 0)
+#define __flag_h(a)  ((a) ? FLAG_H  : 0)
+#define __flag_3(a)  ((a) ? FLAG_3  : 0)
+#define __flag_pv(a) ((a) ? FLAG_PV : 0)
+#define __flag_c(a)  ((a) ? FLAG_C  : 0)
+
+#define _flag_carry_16(a) __flag_c((a) & 0x10000)
+#define _flag_carry_8(a)  __flag_c((a) & 0x100)
+
+#define _flag_sign_16(a)  __flag_s((a) & 0x8000)
+#define _flag_sign_8(a)   __flag_s((a) & 0x80)
+
+#define _flag_parity(a) __flag_pv(!(popcount(a) % 2))
+
+#define _flag_undef_8(a) ({ uint8_t _res = (a); __flag_5(_res & 0x20) | __flag_3(_res & 0x8);})
+#define _flag_undef_16(a) ({ uint16_t _res = (a); __flag_5(_res & 0x2000) | __flag_3(_res & 0x800);})
+
+#define _flag_overflow_8_add(op1, op2, result) __flag_pv((op1 & 0x80) == (op2 & 0x80) && (op1 & 0x80) != (result & 0x80))
+#define _flag_overflow_16_add(op1, op2, result) __flag_pv((op1 & 0x8000) == (op2 & 0x8000) && (op1 & 0x8000) != (result & 0x8000))
+
+#define _flag_overflow_8_sub(op1, op2, result) \
+	__flag_pv( \
+		(op1 & 0x80) != (op2 & 0x80) && \
+		(op1 & 0x80) != (result & 0x80))
+#define _flag_overflow_16_sub(op1, op2, result) __flag_pv((op1 & 0x8000) != (op2 & 0x8000) && (op1 & 0x8000) != (result & 0x8000))
+
+#define _flag_halfcarry_8_add(op1, op2) __flag_h(((op1 & 0xf) + (op2 & 0xf)) & 0x10)
+#define _flag_halfcarry_8_sub(op1, op2) __flag_h(((op1 & 0xf) - (op2 & 0xf)) & 0x10)
+#define _flag_halfcarry_16_add(op1, op2) __flag_h(((op1 & 0xfff) + (op2 & 0xfff)) & 0x1000)
+#define _flag_halfcarry_16_sub(op1, op2) __flag_h(((op1 & 0xfff) - (op2 & 0xfff)) & 0x1000)
+
+#define _flag_subtract(a)   ((a) ? FLAG_N : 0)
+#define _flag_zero(a)       ((a) ? 0 : FLAG_Z)
 
 void print_state(z80registers_t *);
 

@@ -518,7 +518,7 @@ void daa(struct ExecutionContext *context) {
 
 	r->flags.Z = r->A == 0;
 	r->flags.S = (r->A & 0x80) == 0x80;
-	updateParity(r, r->A);
+	r->flags.PV = !(popcount(r->A) % 2);
 }
 
 void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
@@ -529,45 +529,62 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 	case 0: // ADD A, v
 		old = r->A;
 		r->A += v;
-		updateFlags(r, old, r->A, 0);
+
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_overflow_8_add(old, v, r->A)
+			| _flag_subtract(0) | _flag_carry_8(old + v)
+			| _flag_halfcarry_8_add(old, v);
 		break;
 	case 1: // ADC A, v
 		old = r->A;
 		r->A += v + r->flags.C;
-		updateFlags(r, old, r->A, 0);
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_overflow_8_add(old, v + r->flags.C, r->A)
+			| _flag_subtract(0) | _flag_carry_8(old + v + r->flags.C)
+			| _flag_halfcarry_8_add(old, v + r->flags.C);
 		break;
 	case 2: // SUB v
 		old = r->A;
 		r->A -= v;
-		updateFlags_subtraction(r, old, r->A, 0);
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_overflow_8_sub(old, v, r->A)
+			| _flag_subtract(1) | _flag_carry_8(old - v)
+			| _flag_halfcarry_8_sub(old, v);
 		break;
 	case 3: // SBC v
 		old = r->A;
 		r->A -= v + r->flags.C;
-		updateFlags_subtraction(r, old, r->A, 0);
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_overflow_8_sub(old, v + r->flags.C, r->A)
+			| _flag_subtract(1) | _flag_carry_8(old - v - r->flags.C)
+			| _flag_halfcarry_8_sub(old, v + r->flags.C);
 		break;
 	case 4: // AND v
 		old = r->A;
 		r->A &= v;
-		updateFlags_parity(r, old, r->A, 0);
-		r->flags.C = r->flags.N = 0;
-		r->flags.H = 1;
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_parity(r->A)
+			| FLAG_H;
 		break;
 	case 5: // XOR v
 		old = r->A;
 		r->A ^= v;
-		updateFlags_parity(r, old, r->A, 0);
-		r->flags.C = r->flags.N = r->flags.H = 0;
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_parity(r->A);
 		break;
 	case 6: // OR v
 		old = r->A;
 		r->A |= v;
-		updateFlags_parity(r, old, r->A, 0);
-		r->flags.C = r->flags.N = r->flags.H = 0;
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_parity(r->A);
 		break;
 	case 7: // CP v
 		old = r->A - v;
-		updateFlags_subtraction(r, r->A, old, 0);
+		r->F = _flag_sign_8(old) | _flag_zero(old)
+			| _flag_undef_8(v) | _flag_subtract(1)
+			| _flag_carry_8(r->A - v)
+			| _flag_overflow_8_sub(r->A, v, old)
+			| _flag_halfcarry_8_sub(r->A, v);
 		break;
 	}
 }
@@ -585,63 +602,56 @@ void execute_rot(int y, int z, struct ExecutionContext *context) {
 	uint8_t old_0 = (r & 1) > 0;
 	uint8_t old_c = context->cpu->registers.flags.C > 0;
 	z80cpu_t *cpu = context->cpu;
+	z80registers_t *reg = &cpu->registers;
 	switch (y) {
 	case 0: // RLC r[z]
 		r <<= 1; r |= old_7;
 		write_r(z, r, context);
-		updateFlags_parity(&context->cpu->registers, old_r, r, 0);
-		cpu->registers.flags.C = old_7;
-		cpu->registers.flags.N = cpu->registers.flags.H = 0;
+		reg->F = __flag_c(old_7) | _flag_sign_8(r) | _flag_parity(r)
+			| _flag_undef_8(r) | _flag_zero(r);
 		break;
 	case 1: // RRC r[z]
 		r >>= 1; r |= old_0 << 7;
 		write_r(z, r, context);
-		updateFlags_parity(&context->cpu->registers, old_r, r, 0);
-		cpu->registers.flags.C = old_0;
-		cpu->registers.flags.N = cpu->registers.flags.H = 0;
+		reg->F = __flag_c(old_0) | _flag_sign_8(r) | _flag_parity(r)
+			| _flag_undef_8(r) | _flag_zero(r);
 		break;
 	case 2: // RL r[z]
 		r <<= 1; r |= old_c;
 		write_r(z, r, context);
-		updateFlags_parity(&context->cpu->registers, old_r, r, 0);
-		cpu->registers.flags.C = old_7;
-		cpu->registers.flags.N = cpu->registers.flags.H = 0;
+		reg->F = __flag_c(old_7) | _flag_sign_8(r) | _flag_parity(r)
+			| _flag_undef_8(r) | _flag_zero(r);
 		break;
 	case 3: // RR r[z]
 		r >>= 1; r |= old_c << 7;
 		write_r(z, r, context);
-		updateFlags_parity(&context->cpu->registers, old_r, r, 0);
-		cpu->registers.flags.C = old_0;
-		cpu->registers.flags.N = cpu->registers.flags.H = 0;
+		reg->F = __flag_c(old_0) | _flag_sign_8(r) | _flag_parity(r)
+			| _flag_undef_8(r) | _flag_zero(r);
 		break;
 	case 4: // SLA r[z]
 		r <<= 1;
 		write_r(z, r, context);
-		updateFlags_parity(&context->cpu->registers, old_r, r, 0);
-		cpu->registers.flags.C = old_7;
-		cpu->registers.flags.N = cpu->registers.flags.H = 0;
+		reg->F = __flag_c(old_7) | _flag_sign_8(r) | _flag_parity(r)
+			| _flag_undef_8(r) | _flag_zero(r);
 		break;
 	case 5: // SRA r[z]
 		r >>= 1;
 		r |= old_7 << 7;
 		write_r(z, r, context);
-		updateFlags_parity(&context->cpu->registers, old_r, r, 0);
-		cpu->registers.flags.C = old_0;
-		cpu->registers.flags.N = cpu->registers.flags.H = 0;
+		reg->F = __flag_c(old_0) | _flag_sign_8(r) | _flag_parity(r)
+			| _flag_undef_8(r) | _flag_zero(r);
 		break;
 	case 6: // SLL r[z]
 		r <<= 1; r |= 1;
 		write_r(z, r, context);
-		updateFlags_parity(&context->cpu->registers, old_r, r, 0);
-		cpu->registers.flags.C = old_7;
-		cpu->registers.flags.N = cpu->registers.flags.H = 0;
+		reg->F = __flag_c(old_7) | _flag_sign_8(r) | _flag_parity(r)
+			| _flag_undef_8(r) | _flag_zero(r);
 		break;
 	case 7: // SRL r[z]
 		r >>= 1;
 		write_r(z, r, context);
-		updateFlags_parity(&context->cpu->registers, old_r, r, 0);
-		cpu->registers.flags.C = old_0;
-		cpu->registers.flags.N = cpu->registers.flags.H = 0;
+		reg->F = __flag_c(old_0) | _flag_sign_8(r) | _flag_parity(r)
+			| _flag_undef_8(r) | _flag_zero(r);
 		break;
 	}
 }
@@ -662,9 +672,11 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		case 1: // CPI
 			context->cycles += 12;
 			new = cpu_read_byte(context->cpu, r->HL++);
-			updateFlags_except(r, r->A, r->A - new, 0, FLAG_C);
-			r->flags.PV = !--r->BC;
-			r->flags.N = 1;
+			uint8_t aminushl = r->A - new;
+			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
+				| _flag_halfcarry_8_sub(r->A, new)
+				| __flag_pv(!--r->BC) | _flag_subtract(1)
+				| __flag_c(r->flags.C);
 			break;
 		case 2: // INI
 			context->cycles += 12;
@@ -699,9 +711,11 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		case 1: // CPD
 			context->cycles += 12;
 			new = cpu_read_byte(context->cpu, r->HL--);
-			updateFlags_except(r, r->A, r->A - new, 0, FLAG_C);
-			r->flags.PV = !--r->BC;
-			r->flags.N = 1;
+			uint8_t aminushl = r->A - new;
+			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
+				| _flag_halfcarry_8_sub(r->A, new)
+				| __flag_pv(!--r->BC) | _flag_subtract(1)
+				| __flag_c(r->flags.C);
 			break;
 		case 2: // IND
 			context->cycles += 12;
@@ -740,9 +754,11 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		case 1: // CPIR
 			context->cycles += 12;
 			new = cpu_read_byte(context->cpu, r->HL++);
-			updateFlags_except(r, r->A, r->A - new, 0, FLAG_C);
-			r->flags.PV = !--r->BC;
-			r->flags.N = 1;
+			uint8_t aminushl = r->A - new;
+			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
+				| _flag_halfcarry_8_sub(r->A, new)
+				| __flag_pv(!--r->BC) | _flag_subtract(1)
+				| __flag_c(r->flags.C);
 			if (r->BC && !r->flags.Z) {
 				context->cycles += 5;
 				r->PC -= 2;
@@ -793,9 +809,11 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		case 1: // CPDR
 			context->cycles += 12;
 			new = cpu_read_byte(context->cpu, r->HL--);
-			updateFlags_except(r, r->A, r->A - new, 0, FLAG_C);
-			r->flags.PV = !r->BC--;
-			r->flags.N = 1;
+			uint8_t aminushl = r->A - new;
+			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
+				| _flag_halfcarry_8_sub(r->A, new)
+				| __flag_pv(!--r->BC) | _flag_subtract(1)
+				| __flag_c(r->flags.C);
 			if (r->BC && !r->flags.Z) {
 				context->cycles += 5;
 				r->PC -= 2;
@@ -902,6 +920,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 		int8_t d; uint16_t nn;
 		uint8_t old; uint16_t old16;
 		uint8_t new; uint16_t new16;
+		uint8_t op; uint16_t op16;
 		int reset_prefix = 1;
 
 		z80registers_t *r = &cpu->registers;
@@ -963,8 +982,9 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						ioDevice = cpu->devices[cpu->registers.C];
 						if (ioDevice.read_in != NULL) {
 							new = ioDevice.read_in(ioDevice.device);
-							updateFlags_except(r, new, new, 0, FLAG_C);
-							r->flags.H = r->flags.N = 0;
+							r->F = _flag_sign_8(new) | _flag_undef_8(new)
+								| __flag_c(r->flags.C) | _flag_zero(new)
+								| _flag_parity(new);
 						}
 					} else { // IN r[y], (C)
 						context.cycles += 8;
@@ -973,8 +993,9 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 							new = ioDevice.read_in(ioDevice.device);
 							old = read_r(context.y, &context);
 							write_r(context.y, new, &context);
-							updateFlags_withOptions(r, old, new, 0, 1, 0, FLAG_C);
-							r->flags.N = r->flags.H = 0;
+							r->F = _flag_sign_8(new) | _flag_undef_8(new)
+								| __flag_c(r->flags.C) | _flag_zero(new)
+								| _flag_parity(new);
 						}
 					}
 					break;
@@ -1001,13 +1022,21 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					if (context.q == 0) { // SBC HL, rp[p]
 						context.cycles += 11;
 						old16 = r->HL;
-						r->HL -= read_rp(context.p, &context) + r->flags.C;
-						updateFlags_subtraction(r, old16, r->HL, 1);
+						op16 = read_rp(context.p, &context) + r->flags.C;
+						r->HL -= op16;
+						r->F = _flag_sign_16(r->HL) | _flag_zero(r->HL)
+							| _flag_undef_16(r->HL) | _flag_overflow_16_sub(old16, op16, r->HL)
+							| _flag_subtract(1) | _flag_carry_16(old16 - op16)
+							| _flag_halfcarry_16_sub(old16, op16);
 					} else { // ADC HL, rp[p]
 						context.cycles += 11;
 						old16 = r->HL;
-						r->HL += read_rp(context.p, &context) + r->flags.C;
-						updateFlags(r, old16, r->HL, 1);
+						op16 = read_rp(context.p, &context) + r->flags.C;
+						r->HL += op16;
+						r->F = _flag_sign_16(r->HL) | _flag_zero(r->HL)
+							| _flag_undef_16(r->HL) | _flag_overflow_16_add(old16, op16, r->HL)
+							| _flag_subtract(0) | _flag_carry_16(old16 + op16)
+							| _flag_halfcarry_16_add(old16, op16);
 					}
 					break;
 				case 3:
@@ -1023,9 +1052,10 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					context.cycles += 4;
 					old = r->A;
 					r->A = -r->A;
-					updateFlags_subtraction(r, old, r->A, 0);
-					r->flags.C = old != 0;
-					r->flags.PV = old == 0x80;
+					r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+						| _flag_undef_8(r->A) | __flag_pv(old == 0x80)
+						| _flag_subtract(1) | __flag_c(old != 0)
+						| _flag_halfcarry_8_sub(old, (old - new) & 0xff);
 					break;
 				case 5:
 					if (context.y == 1) { // RETI
@@ -1058,17 +1088,17 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						context.cycles += 5;
 						old = r->A;
 						r->A = r->I;
-						updateFlags_except(r, old, r->A, 0, FLAG_C);
-						r->flags.H = r->flags.N = 0;
-						r->flags.PV = cpu->IFF2;
+						r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+							| _flag_undef_8(r->A) | __flag_pv(cpu->IFF2)
+							| _flag_subtract(0) | __flag_c(r->flags.C);
 						break;
 					case 3: // LD A, R
 						context.cycles += 5;
 						old = r->A;
 						r->A = r->R;
-						updateFlags_except(r, old, r->A, 0, FLAG_C);
-						r->flags.H = r->flags.N = 0;
-						r->flags.PV = cpu->IFF2;
+						r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+							| _flag_undef_8(r->A) | __flag_pv(cpu->IFF2)
+							| _flag_subtract(0) | __flag_c(r->flags.C);
 						break;
 					case 4: // RRD
 						context.cycles += 14;
@@ -1157,8 +1187,10 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					case 1: // ADD HL, rp[p]
 						context.cycles += 11;
 						old16 = HLorIr(&context);
-						new16 = HLorIw(&context, old16 + read_rp(context.p, &context));
-						updateFlags_except(r, old16, new16, 1, FLAG_Z | FLAG_S | FLAG_PV);
+						op16 = read_rp(context.p, &context);
+						new16 = HLorIw(&context, old16 + op16);
+						r->F = _flag_zero(!r->flags.Z) | __flag_s(r->flags.S) | __flag_pv(r->flags.PV)
+							| _flag_subtract(0) | _flag_carry_16(old16 + op16) | _flag_halfcarry_16_add(old16, op16);
 						break;
 					}
 					break;
@@ -1223,15 +1255,15 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					context.cycles += 4;
 					old = read_r(context.y, &context);
 					new = write_r(context.y, old + 1, &context);
-					updateFlags_except(r, old, new, 0, FLAG_C);
-					r->flags.PV = old == 0x7F;
+					r->F = __flag_c(r->flags.C) | _flag_sign_8(new) | _flag_zero(new)
+						| _flag_halfcarry_8_add(old, 1) | __flag_pv(old == 0x7F);
 					break;
 				case 5: // DEC r[y]
 					context.cycles += 4;
 					old = read_r(context.y, &context);
 					new = write_r(context.y, old - 1, &context);
-					updateFlags_withOptions(r, old, new, 0, 1, 0, FLAG_C);
-					r->flags.PV = old == 0x80;
+					r->F = __flag_c(r->flags.C) | _flag_sign_8(new) | _flag_zero(new)
+						| _flag_halfcarry_8_add(old, 1) | __flag_pv(old == 0x80) | _flag_subtract(1);
 					break;
 				case 6: // LD r[y], n
 					context.cycles += 7;
