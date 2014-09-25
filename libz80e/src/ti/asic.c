@@ -3,16 +3,45 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "log/log.h"
+#include "core/cpu.h"
+#include "ti/memory.h"
 #include "ti/hardware/t6a04.h"
 #include "ti/hardware/speed.h"
-#include "ti/memory.h"
 #include "ti/hardware/memorymapping.h"
-#include "core/cpu.h"
 #include "ti/hardware/keyboard.h"
 #include "ti/hardware/status.h"
-#include "ti/hardware/speed.h"
+#include "ti/hardware/flash.h"
+
+typedef struct {
+	asic_t *asic;
+	uint8_t port;
+} unimplemented_device_t;
+
+uint8_t read_unimplemented_port(void *device) {
+	unimplemented_device_t *d = device;
+	log_message(d->asic->log, L_INFO, "asic", 
+		"Warning: attempted to read from unimplemented port 0x%02x from 0x%04X.", d->port, d->asic->cpu->registers.PC);
+	return 0x00;
+}
+
+void write_unimplemented_port(void *device, uint8_t value) {
+	unimplemented_device_t *d = device;
+	log_message(d->asic->log, L_INFO, "asic",
+		"Warning: attempted to write 0x%02x to unimplemented port 0x%02x from 0x%04X.", value, d->port, d->asic->cpu->registers.PC);
+}
 
 void plug_devices(asic_t *asic) {
+	/* Unimplemented devices */
+	int i;
+	for (i = 0; i < 0x100; i++) {
+		unimplemented_device_t *d = malloc(sizeof(unimplemented_device_t));
+		d->asic = asic;
+		d->port = i;
+		z80iodevice_t device = { d, read_unimplemented_port, write_unimplemented_port };
+		asic->cpu->devices[i] = device;
+	}
+
 	/* Link port unimplemented */
 	asic->cpu->devices[0x01] = init_keyboard();
 	asic->cpu->devices[0x02] = init_status(asic);
@@ -24,6 +53,7 @@ void plug_devices(asic_t *asic) {
 	}
 
 	init_mapping_ports(asic);
+	init_flash_ports(asic);
 }
 
 void asic_null_write(void *ignored, uint8_t value) {
