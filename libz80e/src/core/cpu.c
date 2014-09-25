@@ -7,7 +7,6 @@
 struct ExecutionContext {
 	uint8_t cycles;
 	z80cpu_t *cpu;
-	int switch_memory;
 	union {
 		uint8_t opcode;
 		struct {
@@ -250,15 +249,6 @@ uint16_t pop(z80cpu_t *cpu) {
 }
 
 uint8_t read_n(struct ExecutionContext *context) {
-	if (context->switch_memory == 1) {
-		context->switch_memory = 2;
-		return cpu_read_byte(context->cpu, context->cpu->registers.PC + 1);
-	} else if (context->switch_memory == 2) {
-		context->switch_memory = 0;
-		context->cpu->registers.PC += 2;
-		return cpu_read_byte(context->cpu, context->cpu->registers.PC - 2);
-	}
-
 	return cpu_read_byte(context->cpu, context->cpu->registers.PC++);
 }
 
@@ -269,15 +259,6 @@ uint16_t read_nn(struct ExecutionContext *context) {
 }
 
 int8_t read_d(struct ExecutionContext *context) {
-	if (context->switch_memory == 1) {
-		context->switch_memory = 2;
-		return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC + 1);
-	} else if (context->switch_memory == 2) {
-		context->switch_memory = 0;
-		context->cpu->registers.PC += 2;
-		return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC - 2);
-	}
-
 	return (int8_t)cpu_read_byte(context->cpu, context->cpu->registers.PC++);
 }
 
@@ -1267,7 +1248,6 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					break;
 				case 6: // LD r[y], n
 					context.cycles += 7;
-					context.switch_memory = context.y == 6 && context.cpu->prefix >> 8;
 					write_r(context.y, context.n(&context), &context);
 					break;
 				case 7:
