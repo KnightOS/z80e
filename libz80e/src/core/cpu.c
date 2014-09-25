@@ -555,9 +555,9 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 		old = r->A;
 		r->A -= v + r->flags.C;
 		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
-			| _flag_undef_8(r->A) | _flag_overflow_8_sub(old, v + r->flags.C, r->A)
+			| _flag_undef_8(r->A) | _flag_overflow_8_sub(old, v, r->A)
 			| _flag_subtract(1) | _flag_carry_8(old - v - r->flags.C)
-			| _flag_halfcarry_8_sub(old, v + r->flags.C);
+			| _flag_halfcarry_8_sub_c(old, v + r->flags.C, r->flags.C);
 		break;
 	case 4: // AND v
 		old = r->A;
