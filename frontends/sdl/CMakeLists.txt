@@ -13,3 +13,6 @@ add_executable(z80e-sdl
 )
 
 TARGET_LINK_LIBRARIES(z80e-sdl readline rt ${SDL_LIBRARY})
+
+INSTALL(TARGETS z80e-sdl
+	RUNTIME DESTINATION bin)

@@ -11,3 +11,6 @@ add_executable(z80e-tui
 )
 
 TARGET_LINK_LIBRARIES(z80e-tui readline rt)
+
+INSTALL(TARGETS z80e-tui
+	RUNTIME DESTINATION bin)
