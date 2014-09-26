@@ -1235,24 +1235,26 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 				case 4: // INC r[y]
 					context.cycles += 4;
 					old = read_r(context.y, &context);
-					if (context.y == 6) {
+					if (context.y == 6 && cpu->prefix >> 8) {
 						cpu->registers.PC--;
 					}
 
 					new = write_r(context.y, old + 1, &context);
 					r->F = __flag_c(r->flags.C) | _flag_sign_8(new) | _flag_zero(new)
-						| _flag_halfcarry_8_add(old, 1) | __flag_pv(old == 0x7F);
+						| _flag_halfcarry_8_add(old, 1) | __flag_pv(old == 0x7F)
+						| _flag_undef_8(new);
 					break;
 				case 5: // DEC r[y]
 					context.cycles += 4;
 					old = read_r(context.y, &context);
-					if (context.y == 6) {
+					if (context.y == 6 && cpu->prefix >> 8) {
 						cpu->registers.PC--;
 					}
 
 					new = write_r(context.y, old - 1, &context);
 					r->F = __flag_c(r->flags.C) | _flag_sign_8(new) | _flag_zero(new)
-						| _flag_halfcarry_8_sub(old, 1) | __flag_pv(old == 0x80) | _flag_subtract(1);
+						| _flag_halfcarry_8_sub(old, 1) | __flag_pv(old == 0x80)
+						| _flag_subtract(1) | _flag_undef_8(new);
 					break;
 				case 6: // LD r[y], n
 					context.cycles += 7;
