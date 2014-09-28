@@ -1258,7 +1258,21 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					break;
 				case 6: // LD r[y], n
 					context.cycles += 7;
-					write_r(context.y, context.n(&context), &context);
+					if (context.y == 6 && cpu->prefix >> 8) { // LD (IX/IY + d), n
+						cpu->registers.PC++; // Skip the d byte
+					}
+
+					old = context.n(&context);
+
+					if (context.y == 6 && cpu->prefix >> 8) {
+						cpu->registers.PC -= 2;
+					}
+
+					write_r(context.y, old, &context);
+
+					if (context.y == 6 && cpu->prefix >> 8) {
+						cpu->registers.PC++;
+					}
 					break;
 				case 7:
 					switch (context.y) {
