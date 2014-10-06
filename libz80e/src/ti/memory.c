@@ -59,13 +59,12 @@ uint8_t ti_read_byte(void *memory, uint16_t address) {
 	mapped_address %= 0x4000;
 	mapped_address += bank.page * 0x4000;
 	uint8_t byte = 0;
-	if (bank.flash)
+	if (bank.flash) {
 		byte = mmu->flash[mapped_address];
-	else
+	} else {
 		byte = mmu->ram[mapped_address];
-
+	}
 	byte = hook_on_memory_read(mmu->hook, address, byte);
-
 	return byte;
 }
 
