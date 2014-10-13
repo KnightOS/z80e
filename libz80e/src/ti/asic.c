@@ -118,9 +118,9 @@ asic_t *asic_init(ti_device_type type, log_t *log) {
 }
 
 void asic_free(asic_t* device) {
-	cpu_free(device->cpu);
 	ti_mmu_free(device->mmu);
 	free_devices(device);
+	cpu_free(device->cpu);
 	free(device);
 }
 
