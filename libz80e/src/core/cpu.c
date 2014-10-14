@@ -1033,6 +1033,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					context.cycles += 4;
 					old = r->A;
 					r->A = -r->A;
+					new = r->A;
 					r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
 						| _flag_undef_8(r->A) | __flag_pv(old == 0x80)
 						| _flag_subtract(1) | __flag_c(old != 0)
