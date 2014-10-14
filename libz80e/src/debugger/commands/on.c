@@ -217,10 +217,14 @@ int command_step_over(struct debugger_state *state, int argc, char **argv) {
 		state->print(state, "\n");
 	}
 	// Note: 0x18, 0xFE is JR $, i.e. an infinite loop, which we step over as a special case
-	if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == 0x18 &&
-		cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC + 1) == 0xFE) {
-		state->asic->cpu->registers.PC += 2;
-		return 0;
+	const uint8_t jumps[] = { 0x18, 0x28, 0x38, 0x30, 0x20 };
+	int i;
+	for (i = 0; i < sizeof(jumps) / sizeof(uint8_t); ++i) {
+		if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == jumps[i] &&
+			cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC + 1) == 0xFE) {
+			state->asic->cpu->registers.PC += 2;
+			return 0;
+		}
 	}
 	if (state->debugger->flags.knightos) {
 		if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == 0xE7) {
