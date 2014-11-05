@@ -146,6 +146,7 @@ debugger_command_t default_commands[] = {
 	{ "bdump", command_backwards_hexdump, 0 },
 	{ "disassemble", command_disassemble, 1 },
 	{ "registers", command_print_registers, 0 },
+        { "regs", command_print_registers, 0},
 	{ "expression", command_print_expression, 0 },
 	{ "stack", command_stack, 1 },
 	{ "mappings", command_print_mappings, 0 },
