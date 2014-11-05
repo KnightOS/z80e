@@ -224,7 +224,7 @@ int find_best_command(debugger_t *debugger, const char *f_command, debugger_comm
 			match_numbers++;
 			if (cmd->priority > highest_priority) {
 				highest_priority = cmd->priority;
-	 			highest_priority_max = 0;
+				highest_priority_max = 0;
 				best_command = cmd;
 			} else if (cmd->priority == highest_priority) {
 				highest_priority_max++;
