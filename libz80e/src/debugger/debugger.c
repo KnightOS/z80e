@@ -146,6 +146,7 @@ debugger_command_t default_commands[] = {
 	{ "bdump", command_backwards_hexdump, 0 },
 	{ "disassemble", command_disassemble, 1 },
 	{ "registers", command_print_registers, 0 },
+	{ "regs", command_print_registers, 0},
 	{ "expression", command_print_expression, 0 },
 	{ "stack", command_stack, 1 },
 	{ "mappings", command_print_mappings, 0 },
@@ -223,7 +224,7 @@ int find_best_command(debugger_t *debugger, const char *f_command, debugger_comm
 			match_numbers++;
 			if (cmd->priority > highest_priority) {
 				highest_priority = cmd->priority;
-				highest_priority_max = 0;
+	 			highest_priority_max = 0;
 				best_command = cmd;
 			} else if (cmd->priority == highest_priority) {
 				highest_priority_max++;
