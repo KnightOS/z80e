@@ -31,7 +31,7 @@ long long get_time_nsec() {
 	double diff = (mach_absolute_time() - orwl_timestart) * orwl_timebase;
 	t.tv_sec = diff * ORWL_NANO;
 	t.tv_nsec = diff - (t.tv_sec * ORWL_GIGA);
-	return gettimeofday() * 1000;
+	return t.tv_nsec;
 #else
 	struct timespec sp;
 	clock_gettime(CLOCK_MONOTONIC, &sp);
