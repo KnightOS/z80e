@@ -12,7 +12,11 @@ add_executable(z80e-sdl
 	$<TARGET_OBJECTS:z80e_objects>
 )
 
-TARGET_LINK_LIBRARIES(z80e-sdl readline rt ${SDL_LIBRARY})
+if(APPLE)
+	TARGET_LINK_LIBRARIES(z80e-sdl readline ${SDL_LIBRARY})
+else()
+	TARGET_LINK_LIBRARIES(z80e-sdl readline rt ${SDL_LIBRARY})
+endif()
 
 if(WIN32)
 	INSTALL(TARGETS z80e-sdl.exe
