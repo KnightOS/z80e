@@ -95,7 +95,7 @@ asic_t *asic_init(ti_device_type type, log_t *log) {
 	asic_t* device = malloc(sizeof(asic_t));
 	device->log = log;
 	device->cpu = cpu_init(log);
-	device->mmu = ti_mmu_init(type);
+	device->mmu = ti_mmu_init(type, log);
 	device->cpu->memory = (void*)device->mmu;
 	device->cpu->read_byte = ti_read_byte;
 	device->cpu->write_byte = ti_write_byte;
