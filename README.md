@@ -33,3 +33,13 @@ Browser:
 
 The tests and z80e files will be compiled to bytecode and then to javascript, exporting all external-use methods into `bin/z80e.js` and `bin/tests.js`. These can be used as you would with any other emscripten module, so you can run tests.js in node to run the tests, or add it to an HTML file.
 To build on Windows or Mac, read the cmake docs and submit a pull request fixing this sentence once you figure it out.
+
+## Help, Bugs, Feedback
+
+If you need help with KnightOS, want to keep up with progress, chat with
+developers, or ask any other questions about KnightOS, you can hang out in the
+IRC channel: [#knightos on irc.freenode.net](http://webchat.freenode.net/?channels=knightos).
+ 
+To report bugs, please create [a GitHub issue](https://github.com/KnightOS/KnightOS/issues/new) or contact us on IRC.
+ 
+If you'd like to contribute to the project, please see the [contribution guidelines](http://www.knightos.org/contributing).
