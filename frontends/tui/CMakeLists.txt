@@ -10,7 +10,10 @@ add_executable(z80e-tui
 	$<TARGET_OBJECTS:z80e_objects>
 )
 
+TARGET_LINK_LIBRARIES(z80e-tui readline)
+if(NOT APPLE)
 TARGET_LINK_LIBRARIES(z80e-tui readline rt)
+endif()
 
 if(WIN32)
 	INSTALL(TARGETS z80e-tui.exe

@@ -18,7 +18,10 @@ add_library(z80e SHARED
 	$<TARGET_OBJECTS:z80e_objects>
 )
 
+if(NOT APPLE)
 TARGET_LINK_LIBRARIES(z80e rt)
+endif()
+
 endif()
 
 INSTALL(TARGETS z80e
