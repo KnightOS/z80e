@@ -305,6 +305,7 @@ void setup_display(int w, int h) {
 	lcd_changed = 1;
 }
 
+// http://wiki.libsdl.org/SDL_Keycode
 void sdl_events_hook(asic_t *device, void * unused) {
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
@@ -312,6 +313,7 @@ void sdl_events_hook(asic_t *device, void * unused) {
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
 				switch (event.key.keysym.sym) {
+					case SDLK_y: // Y=
 					case SDLK_F1: /* F1 */
 						key_tap(device, 0x64, event.type == SDL_KEYDOWN);
 						break;
