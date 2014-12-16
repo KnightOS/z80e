@@ -31,6 +31,11 @@ Browser:
     $ emconfigure cmake .
     $ make
 
+SDL frontend:
+
+    $ cmake -Denable-sdl=YES .
+    $ make
+
 The tests and z80e files will be compiled to bytecode and then to javascript, exporting all external-use methods into `bin/z80e.js` and `bin/tests.js`. These can be used as you would with any other emscripten module, so you can run tests.js in node to run the tests, or add it to an HTML file.
 To build on Windows or Mac, read the cmake docs and submit a pull request fixing this sentence once you figure it out.
 
