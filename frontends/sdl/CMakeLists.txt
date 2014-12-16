@@ -13,7 +13,7 @@ add_executable(z80e-sdl
 )
 
 if(APPLE)
-	TARGET_LINK_LIBRARIES(z80e-sdl readline ${SDL_LIBRARY})
+	TARGET_LINK_LIBRARIES(z80e-sdl readline -lSDLmain ${SDL_LIBRARY})
 else()
 	TARGET_LINK_LIBRARIES(z80e-sdl readline rt ${SDL_LIBRARY})
 endif()
