@@ -346,7 +346,7 @@ void sdl_events_hook(asic_t *device, void * unused) {
 					case SDLK_RETURN: /* Enter */
 						key_tap(device, 0x10, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_ESCAPE:
+					case SDLK_ESCAPE: /* MODE */
 						key_tap(device, 0x66, event.type == SDL_KEYDOWN);
 						break;
 					case SDLK_0:
@@ -378,6 +378,21 @@ void sdl_events_hook(asic_t *device, void * unused) {
 						break;
 					case SDLK_9:
 						key_tap(device, 0x23, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_a: /* MATH */
+						key_tap(device, 0x56, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_b: /* APPS */
+						key_tap(device, 0x46, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_c: /* PRGM */
+						key_tap(device, 0x46, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_d: /* x-1 */
+						key_tap(device, 0x55, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_e: /* SIN */
+						key_tap(device, 0x45, event.type == SDL_KEYDOWN);
 						break;
 
 					case SDLK_F12:
