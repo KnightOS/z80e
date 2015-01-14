@@ -24,16 +24,18 @@ Native (Linux):
     $ cmake .
     $ make
 
+Add change `cmake .` to `cmake -Denable-sdl=YES .` to build the SDL (graphical) frontend.
+
 Compiling on Windows with cygwin requires ncurses and GNU readline.
-
-Browser:
-
-    $ emconfigure cmake .
-    $ make
 
 SDL (Graphical) frontend:
 
     $ cmake -Denable-sdl=YES .
+    $ make
+
+Browser:
+
+    $ emconfigure cmake .
     $ make
 
 The tests and z80e files will be compiled to bytecode and then to javascript, exporting all external-use methods into `bin/z80e.js` and `bin/tests.js`. These can be used as you would with any other emscripten module, so you can run tests.js in node to run the tests, or add it to an HTML file.
