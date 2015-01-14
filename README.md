@@ -31,7 +31,7 @@ Browser:
     $ emconfigure cmake .
     $ make
 
-SDL frontend:
+SDL (Graphical) frontend:
 
     $ cmake -Denable-sdl=YES .
     $ make
