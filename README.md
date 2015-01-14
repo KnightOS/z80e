@@ -24,14 +24,9 @@ Native (Linux):
     $ cmake .
     $ make
 
-Add change `cmake .` to `cmake -Denable-sdl=YES .` to build the SDL (graphical) frontend.
+Change `cmake .` to `cmake -Denable-sdl=YES .` to build the SDL (graphical) frontend.
 
 Compiling on Windows with cygwin requires ncurses and GNU readline.
-
-SDL (Graphical) frontend:
-
-    $ cmake -Denable-sdl=YES .
-    $ make
 
 Browser:
 
