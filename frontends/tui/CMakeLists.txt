@@ -11,8 +11,9 @@ add_executable(z80e-tui
 )
 
 TARGET_LINK_LIBRARIES(z80e-tui readline)
-if(NOT APPLE)
-TARGET_LINK_LIBRARIES(z80e-tui readline rt)
+
+if(NOT APPLE AND NOT HAIKU)
+	TARGET_LINK_LIBRARIES(z80e-tui rt)
 endif()
 
 if(WIN32)

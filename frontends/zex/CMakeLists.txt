@@ -9,4 +9,6 @@ add_executable(zex
     $<TARGET_OBJECTS:z80e_objects>
 )
 
-TARGET_LINK_LIBRARIES(zex rt)
+if(NOT APPLE AND NOT HAIKU)
+	TARGET_LINK_LIBRARIES(zex rt)
+endif()

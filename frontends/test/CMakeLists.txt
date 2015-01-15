@@ -10,8 +10,6 @@ add_executable(tests
 	$<TARGET_OBJECTS:z80e_objects>
 )
 
-if(NOT DEFINED EMSCRIPTEN)
-target_link_libraries(tests
-	rt
-)
+if(NOT EMSCRIPTEN AND NOT HAIKU AND NOT APPLE)
+	target_link_libraries(tests rt)
 endif()
