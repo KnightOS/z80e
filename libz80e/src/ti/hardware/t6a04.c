@@ -46,11 +46,13 @@ uint8_t bw_lcd_read_screen(ti_bw_lcd_t *lcd, int Y, int X) {
 	return !!(lcd->ram[location >> 3] & (1 << (location % 8)));
 }
 
-void bw_lcd_write_screen(ti_bw_lcd_t *lcd, int Y, int X, char val) {
+int bw_lcd_write_screen(ti_bw_lcd_t *lcd, int Y, int X, char val) {
 	val = !!val;
 	int location = X * 120 + Y;
-	lcd->ram[location >> 3] &= ~(1 << (location % 8));
+	int orig = lcd->ram[location >> 3] &= ~(1 << (location % 8));
 	lcd->ram[location >> 3] |= (val << (location % 8));
+	
+	return orig != lcd->ram[location >> 3];
 }
 
 void bw_lcd_reset(ti_bw_lcd_t *lcd) {
@@ -189,9 +191,11 @@ void bw_lcd_data_write(void *device, uint8_t val) {
 
 	int max = lcd->word_length ? 8 : 6;
 	int i = 0;
+	int dirty = 0;
+
 	cY += max - 1;
 	for (i = 0; i < max; i++) {
-		bw_lcd_write_screen(lcd, cY, cX, val & (1 << i));
+		dirty |= bw_lcd_write_screen(lcd, cY, cX, val & (1 << i));
 		cY--;
 	}
 
@@ -204,5 +208,7 @@ void bw_lcd_data_write(void *device, uint8_t val) {
 		lcd->Y, lcd->X);
 
 	bw_lcd_advance_pointer(lcd);
-	hook_on_lcd_update(lcd->hook, lcd);
+	if (dirty) {
+		hook_on_lcd_update(lcd->hook, lcd);
+	}
 }
