@@ -392,7 +392,7 @@ void sdl_events_hook(asic_t *device, void * unused) {
 				setup_display(event.resize.w, event.resize.h);
 				break;
 			case SDL_QUIT:
-				device->stopped = 1;
+				exit(0);
 				break;
 			default:
 				break;
