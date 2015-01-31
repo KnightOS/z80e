@@ -12,10 +12,13 @@ script:
 
 notifications:
     email:
-        - sir@cmpwn.com
+        recipients:
+            - sir@cmpwn.com
+        on_success: never
+        on_failure: always
     irc:
         channels:
             - "chat.freenode.net#knightos"
-        on_success: change
+        on_success: never
         on_failure: always
         skip_join: true
