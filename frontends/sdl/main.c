@@ -46,6 +46,14 @@ typedef struct {
 	SDL_Surface *screen;
 } appContext_t;
 
+#define COLOR_ON    0x00, 0x00, 0x00
+#define COLOR_OFF   0x99, 0xb1, 0x99
+#define COLOR_CLEAR 0xc6, 0xe6, 0xc6
+
+unsigned int pixel_color_on;
+unsigned int pixel_color_off;
+unsigned int pixel_color_clear;
+
 appContext_t context;
 
 appContext_t create_context(void) {
@@ -122,7 +130,7 @@ void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 			for (i = 0; i < context.scale; ++i) {
 				for (j = 0; j < context.scale; ++j) {
 					uint8_t *p = (uint8_t *)context.screen->pixels + (context.offset_t + cX * context.scale + i) * context.screen->pitch + (context.offset_l + cY * context.scale + j) * context.screen->format->BytesPerPixel;
-					*(uint32_t *)p = on ? 0xFF000000 : 0xFF99b199;
+					*(uint32_t *)p = on ? pixel_color_on : pixel_color_off;
 				}
 			}
 		}
@@ -271,6 +279,10 @@ void key_tap(asic_t *asic, int scancode, int down) {
 void setup_display(int w, int h) {
 	context.screen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 
+	pixel_color_on    = SDL_MapRGB(context.screen->format, COLOR_ON);
+	pixel_color_off   = SDL_MapRGB(context.screen->format, COLOR_OFF);
+	pixel_color_clear = SDL_MapRGB(context.screen->format, COLOR_CLEAR);
+
 	int best_w_scale = w / 96;
 	int best_h_scale = h / 64;
 
@@ -292,7 +304,7 @@ void setup_display(int w, int h) {
 	for (y = 0; y < h; y++) {
 		for (x = 0; x < w; x++) {
 			uint8_t *p = (uint8_t *)context.screen->pixels + y * context.screen->pitch + x * context.screen->format->BytesPerPixel;
-			*(uint32_t *)p = 0xFFc6e6c6;
+			*(uint32_t *)p = pixel_color_clear;
 		}
 	}
 
