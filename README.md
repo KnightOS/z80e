@@ -3,6 +3,8 @@
 A z80 emulator designed for debugging the [KnightOS kernel](https://github.com/KnightSoft/kernel). It emulates Texas Instruments calculators and is not recommended for general-purpose z80 debugging.
 It's not done yet.
 
+A list of keybindings can be found in [KEYBINDINGS.md](KEYBINDINGS.md)
+
 ## Why z80e?
 
 Most TI emulators have some of a shared set of problems, which z80e hopes to avoid. z80e is...
