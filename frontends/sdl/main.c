@@ -324,77 +324,241 @@ void sdl_events_hook(asic_t *device, void * unused) {
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
 				switch (event.key.keysym.sym) {
-					case SDLK_F1: /* F1 */
-						key_tap(device, 0x64, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_F2: /* F2 */
-						key_tap(device, 0x63, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_F3: /* F3 */
-						key_tap(device, 0x62, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_F4: /* F4 */
-						key_tap(device, 0x61, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_F5: /* F5 */
-						key_tap(device, 0x60, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_UP: /* Up */
-						key_tap(device, 0x03, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_LEFT: /* Left */
-						key_tap(device, 0x01, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_RIGHT: /* Right */
-						key_tap(device, 0x02, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_DOWN: /* Down */
-						key_tap(device, 0x00, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_LSHIFT: /* Shift = 2nd */
-					case SDLK_RSHIFT:
+					case SDLK_LSHIFT: /* Left Shift = 2nd */
 						key_tap(device, 0x65, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_RETURN: /* Enter */
-						key_tap(device, 0x10, event.type == SDL_KEYDOWN);
+					case SDLK_RSHIFT: /* Right Shift = Clear */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Clear
 						break;
-					case SDLK_ESCAPE:
+					case SDLK_LCTRL:
+					case SDLK_RCTRL: /* CTRL = Alpha */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Alpha
+						break;
+					case SDLK_ESCAPE: /* ESC = MODE */
 						key_tap(device, 0x66, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_0:
+					case SDLK_F1: /* F1 = Y= */
+						key_tap(device, 0x64, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_F2: /* F2 = Window */
+						key_tap(device, 0x63, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_F3: /* F3 = Zoom */
+						key_tap(device, 0x62, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_F4: /* F4 = Trace */
+						key_tap(device, 0x61, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_F5: /* F5 = Graph */
+						key_tap(device, 0x60, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_F7: /* F7 = Variable Tree */
+						break;
+					case SDLK_F8: /* F8 = Toggle 400% Speed */
+						break;
+					case SDLK_F10: /* F10 = Load File */
+						break;
+					case SDLK_F11: /* F11 = Debugger */
+						break;
+					case SDLK_F12: /* F12 = On */
+						ti_interrupts_interrupt(device->interrupts, INTERRUPT_ON_KEY);
+						break;
+					case SDLK_SPACE: /* Space = 0 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to 0
+						break;
+					case SDLK_INSERT: /* Insert = Vars */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Vars
+						break;
+					case SDLK_HOME: /* Home = Math */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Math
+						break;
+					case SDLK_PAGEUP /* Page Up = Apps */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Apps
+						break;
+					case SDLK_PAGEDOWN: /* Page Down = Programs */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Programs
+						break;
+					case SDLK_END: /* END = Stats */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Stats
+						break;
+					case SDLK_BACKSPACE: /* Backspace = Save Screenshot */
+						break;
+                                        case SDLK_PLUS:
+					case SDLK_EQUALS: /* +/= = X,T,Theta,n */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to X,T,Theta,n
+						break;
+                                        case SDLK_UNDERSCORE:
+					case SDLK_MINUS: /* -/_ = negative */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to negative
+						break;
+                                        case SDLK_QUESTION:
+					case SDLK_SLASH: /* //? = negative */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to negative 
+						break;
+					case SDLK_KP1: /* Numpad 1 = Stats */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Stats
+						break;
+					case SDLK_KP2: /* Numpad 2 = Down */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Down
+						break;
+					case SDLK_KP3: /* Numpad 3 = Programs */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Programs
+						break;
+					case SDLK_KP4: /* Numpad 4 = Right */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Right
+						break;
+					case SDLK_KP6: /* Numpad 6 = Left */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Left
+						break;
+					case SDLK_KP7: /* Numpad 7 = Math */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Math
+						break;
+					case SDLK_KP8: /* Numpad 8 = Up */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Up
+						break;
+					case SDLK_KP9: /* Numpad 9 = Apps */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Apps
+						break;
+					case SDLK_KP0: /* Numpad 0 = Vars */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Vars
+						break;
+					case SDLK_KP_PLUS: /* Numpad + = + */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to +
+						break;
+					case SDLK_KP_MINUS: /* Numpad - = - */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to -
+						break;
+					case SDLK_KP_MULTIPLY: /* Numpad * = * */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to *
+						break;
+					case SDLK_KP_DIVIDE: /* Numpad / = / */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to /
+						break;
+					case SDLK_a: /* a = Math */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Math
+						break;
+					case SDLK_b: /* b = Apps */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Apps
+						break;
+					case SDLK_c: /* c = Programs */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to Programs
+						break;
+					case SDLK_d: /* d = x^-1 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to x^-1
+						break;
+					case SDLK_e: /* e = sin( */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to sin(
+						break;
+					case SDLK_f: /* f = cos( */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to cos(
+						break;
+					case SDLK_g: /* g = tan( */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to tan(
+						break;
+					case SDLK_h: /* h = ^ */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to ^
+						break;
+					case SDLK_i: /* i = x^2 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to x^2
+						break;
+					case SDLK_j: /* j = , */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to ,
+						break;
+					case SDLK_k: /* k = ( */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to (
+						break;
+					case SDLK_l: /* l = ) */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to )
+						break;
+					case SDLK_m: /* m = / */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to /
+						break;
+					case SDLK_n: /* n = log( */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to log(
+						break;
+					case SDLK_o: /* o = 7 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to 7
+						break;
+					case SDLK_p: /* p = 8 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to 8
+						break;
+					case SDLK_q: /* q = 9 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to 9
+						break;
+					case SDLK_r: /* r = * */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to *
+						break;
+					case SDLK_s: /* s = ln( */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to ln(
+						break;
+					case SDLK_t: /* t = 4 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to 4
+						break;
+					case SDLK_u: /* u = 5 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to 5
+						break;
+					case SDLK_v: /* v = 6 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to 6
+						break;
+					case SDLK_w: /* w = - */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to -
+						break;
+					case SDLK_x: /* x = sto-> */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to sto->
+						break;
+					case SDLK_y: /* y = 1 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to 1
+						break;
+					case SDLK_z: /* z = 2 */
+						key_tap(device, 0xFF, event.type == SDL_KEYDOWN); //TODO: Change to 2
+						break;
+					case SDLK_0: /* 0 = 0 */
 						key_tap(device, 0x40, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_1:
+					case SDLK_1: /* 1 = 1 */
 						key_tap(device, 0x41, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_2:
+					case SDLK_2: /* 2 = 2 */
 						key_tap(device, 0x31, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_3:
+					case SDLK_3: /* 3 = 3 */
 						key_tap(device, 0x21, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_4:
+					case SDLK_4: /* 4 = 4 */
 						key_tap(device, 0x42, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_5:
+					case SDLK_5: /* 5 = 5 */
 						key_tap(device, 0x32, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_6:
+					case SDLK_6: /* 6 = 6 */
 						key_tap(device, 0x22, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_7:
+					case SDLK_7: /* 7 = 7 */
 						key_tap(device, 0x43, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_8:
+					case SDLK_8: /* 8 = 8 */
 						key_tap(device, 0x33, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_9:
+					case SDLK_9: /* 9 = 9 */
 						key_tap(device, 0x23, event.type == SDL_KEYDOWN);
 						break;
 
-					case SDLK_F12:
-						ti_interrupts_interrupt(device->interrupts, INTERRUPT_ON_KEY);
+					case SDLK_UP: /* Up = Up */
+						key_tap(device, 0x03, event.type == SDL_KEYDOWN);
 						break;
+					case SDLK_LEFT: /* Left = Left */
+						key_tap(device, 0x01, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_RIGHT: /* Right = Right */
+						key_tap(device, 0x02, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_DOWN: /* Down = Down */
+						key_tap(device, 0x00, event.type == SDL_KEYDOWN);
+						break;
+					case SDLK_RETURN: /* Enter = Enter */
+						key_tap(device, 0x10, event.type == SDL_KEYDOWN);
+						break;
+
 					default:
 						break;
 				}
