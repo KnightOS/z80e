@@ -557,6 +557,9 @@ void sdl_events_hook(asic_t *device, void * unused) {
 					case SDLK_RETURN: /* Enter = Enter */
 						key_tap(device, 0x10, event.type == SDL_KEYDOWN);
 						break;
+					case SDLK_DELETE: /* Delete = DEL */
+						key_tap(device, 0x67, event.type == SDL_KEYDOWN);
+						break;
 
 					default:
 						break;
