@@ -20,7 +20,7 @@ Home|Math|0x56
 Page Up|Apps|0x46
 Page Down|Programs|0x36
 End|Stats|0x37
-Backspace|Save screenshot|N/A
+Backspace|Clear|0x16
 +/=|X,T,theta,n|0x47
 -/_|negative|0x20
 //?|negative|0x20
