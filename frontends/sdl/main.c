@@ -330,6 +330,9 @@ void sdl_events_hook(asic_t *device, void * unused) {
 					case SDLK_RSHIFT: /* Right Shift = Clear */
 						key_tap(device, 0x16, event.type == SDL_KEYDOWN);
 						break;
+					case SDLK_BACKSPACE: /* BKSP = Clear */
+						key_tap(device, 0x16, event.type == SDL_KEYDOWN);
+						break;
 					case SDLK_LCTRL:
 					case SDLK_RCTRL: /* CTRL = Alpha */
 						key_tap(device, 0x57, event.type == SDL_KEYDOWN);
@@ -380,8 +383,6 @@ void sdl_events_hook(asic_t *device, void * unused) {
 						break;
 					case SDLK_END: /* END = Stats */
 						key_tap(device, 0x37, event.type == SDL_KEYDOWN);
-						break;
-					case SDLK_BACKSPACE: /* Backspace = Save Screenshot */
 						break;
                                         case SDLK_PLUS:
 					case SDLK_EQUALS: /* +/= = X,T,Theta,n */
