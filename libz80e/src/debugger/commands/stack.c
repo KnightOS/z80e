@@ -12,7 +12,7 @@ int command_stack(struct debugger_state *state, int argc, char **argv) {
 	uint16_t sp = cpu->registers.SP;
 
 	uint16_t i;
-	for (i = sp; i < sp + 20; i += 2) {
+	for (i = sp; i != (uint16_t)(sp + 20); i += 2) {
 		state->print(state, "0x%04X: 0x%04X\n", i, cpu_read_word(cpu, i));
 	}
 
