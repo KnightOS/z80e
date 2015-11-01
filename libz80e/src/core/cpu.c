@@ -477,8 +477,8 @@ uint8_t read_cc(int i, struct ExecutionContext *context) {
 	case 3: return  r->flags.C;
 	case 4: return !r->flags.PV;
 	case 5: return  r->flags.PV;
-	case 6: return !r->flags.N;
-	case 7: return  r->flags.N;
+	case 6: return !r->flags.S;
+	case 7: return  r->flags.S;
 	}
 	return 0; // This should never happen
 }
