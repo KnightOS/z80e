@@ -21,15 +21,11 @@ void exx(z80registers_t *r) {
 	temp = r->_BC; r->_BC = r->BC; r->BC = temp;
 }
 
-const uint64_t m1  = 0x5555555555555555;
-const uint64_t m2  = 0x3333333333333333;
-const uint64_t m4  = 0x0f0f0f0f0f0f0f0f;
-const uint64_t h01 = 0x0101010101010101;
-int popcount(uint64_t x) {
-	x -= (x >> 1) & m1;
-	x = (x & m2) + ((x >> 2) & m2);
-	x = (x + (x >> 4)) & m4;
-	return (x * h01) >> 56;
+int parity(uint8_t x) {
+  x ^= x >> 4;
+  x ^= x >> 2;
+  x ^= x >> 1;
+  return x & 1;
 }
 
 void print_state(z80registers_t *r) {

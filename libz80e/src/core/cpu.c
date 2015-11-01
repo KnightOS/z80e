@@ -499,7 +499,7 @@ void daa(struct ExecutionContext *context) {
 
 	r->flags.Z = r->A == 0;
 	r->flags.S = (r->A & 0x80) == 0x80;
-	r->flags.PV = !(popcount(r->A) % 2);
+	r->flags.PV = !parity(r->A);
 }
 
 void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {

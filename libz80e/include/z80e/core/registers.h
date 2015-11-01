@@ -87,8 +87,7 @@ typedef enum {
 void exAFAF(z80registers_t *r);
 void exDEHL(z80registers_t *r);
 void exx(z80registers_t *r);
-void updateParity(z80registers_t *r, uint32_t newValue);
-int popcount(uint64_t x);
+int parity(uint8_t x);
 
 // S Z 5 H 3 PV N C
 #define __flag_s(a)  ((a) ? FLAG_S  : 0)
@@ -104,7 +103,7 @@ int popcount(uint64_t x);
 #define _flag_sign_16(a)  __flag_s((a) & 0x8000)
 #define _flag_sign_8(a)   __flag_s((a) & 0x80)
 
-#define _flag_parity(a) __flag_pv(!(popcount(a) % 2))
+#define _flag_parity(a) __flag_pv(!parity(a))
 
 #define _flag_undef_8(a) ({ uint8_t _res = (a); __flag_5(_res & 0x20) | __flag_3(_res & 0x8);})
 #define _flag_undef_16(a) ({ uint16_t _res = (a); __flag_5(_res & 0x2000) | __flag_3(_res & 0x800);})
