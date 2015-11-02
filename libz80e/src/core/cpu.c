@@ -485,21 +485,27 @@ uint8_t read_cc(int i, struct ExecutionContext *context) {
 
 void daa(struct ExecutionContext *context) {
 	z80registers_t *r = &context->cpu->registers;
-	uint8_t msn = r->A >> 4;
-	uint8_t lsn = r->A & 0xF;
-	uint8_t c = r->flags.C;
-	if (lsn > 9 || r->flags.H) {
-		r->A += 0x06;
-		r->flags.C = 1;
+	uint8_t old = r->A;
+	uint8_t v = 0;
+	if ((r->A & 0xF) > 9 || r->flags.H) {
+		v += 0x06;
 	}
-	if (msn > 9 || c) {
-		r->A += 0x60;
-		r->flags.C = 1;
+	if (((r->A + v) >> 4) > 9 || _flag_carry_8(r->A + v) || r->flags.C) {
+		v += 0x60;
 	}
-
-	r->flags.Z = r->A == 0;
-	r->flags.S = (r->A & 0x80) == 0x80;
-	r->flags.PV = !parity(r->A);
+	if (r->flags.N) {
+		r->A -= v;
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_parity(r->A)
+			| _flag_subtract(r->flags.N) | __flag_c(v >= 0x60)
+			| _flag_halfcarry_8_sub(old, v);
+	} else {
+		r->A += v;
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_parity(r->A)
+			| _flag_subtract(r->flags.N) | __flag_c(v >= 0x60)
+			| _flag_halfcarry_8_add(old, v);
+	}
 }
 
 void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {

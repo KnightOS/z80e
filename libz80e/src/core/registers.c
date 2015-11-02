@@ -22,10 +22,10 @@ void exx(z80registers_t *r) {
 }
 
 int parity(uint8_t x) {
-  x ^= x >> 4;
-  x ^= x >> 2;
-  x ^= x >> 1;
-  return x & 1;
+	x ^= x >> 4;
+	x ^= x >> 2;
+	x ^= x >> 1;
+	return x & 1;
 }
 
 void print_state(z80registers_t *r) {
