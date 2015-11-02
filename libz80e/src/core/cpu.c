@@ -1091,20 +1091,26 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					case 4: // RRD
 						context.cycles += 14;
 						old = r->A;
-						old16 = cpu_read_word(cpu, r->HL);
-						r->A = old16 & 0xFF;
-						old16 >>= 8;
-						old16 |= old << 8;
-						cpu_write_word(cpu, r->HL, old16);
+						new = cpu_read_byte(cpu, r->HL);
+						r->A &= 0xF0;
+						r->A |= new & 0x0F;
+						new >>= 4;
+						new |= old << 4;
+						cpu_write_byte(cpu, r->HL, new);
+						r->F = __flag_c(r->flags.C) | _flag_sign_8(r->A) | _flag_zero(r->A)
+							| _flag_parity(r->A) | _flag_undef_8(new);
 						break;
 					case 5: // RLD
 						context.cycles += 14;
 						old = r->A;
-						old16 = cpu_read_word(cpu, r->HL);
-						r->A = old16 >> 8;
-						old16 <<= 8;
-						old16 |= old;
-						cpu_write_word(cpu, r->HL, old16);
+						new = cpu_read_byte(cpu, r->HL);
+						r->A &= 0xF0;
+						r->A |= new >> 4;
+						new <<= 4;
+						new |= old & 0x0F;
+						cpu_write_byte(cpu, r->HL, new);
+						r->F = __flag_c(r->flags.C) | _flag_sign_8(r->A) | _flag_zero(r->A)
+							| _flag_parity(r->A) | _flag_undef_8(new);
 						break;
 					default: // NOP (invalid instruction)
 						context.cycles += 4;
