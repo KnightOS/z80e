@@ -477,29 +477,35 @@ uint8_t read_cc(int i, struct ExecutionContext *context) {
 	case 3: return  r->flags.C;
 	case 4: return !r->flags.PV;
 	case 5: return  r->flags.PV;
-	case 6: return !r->flags.N;
-	case 7: return  r->flags.N;
+	case 6: return !r->flags.S;
+	case 7: return  r->flags.S;
 	}
 	return 0; // This should never happen
 }
 
 void daa(struct ExecutionContext *context) {
 	z80registers_t *r = &context->cpu->registers;
-	uint8_t msn = r->A >> 4;
-	uint8_t lsn = r->A & 0xF;
-	uint8_t c = r->flags.C;
-	if (lsn > 9 || r->flags.H) {
-		r->A += 0x06;
-		r->flags.C = 1;
+	uint8_t old = r->A;
+	uint8_t v = 0;
+	if ((r->A & 0xF) > 9 || r->flags.H) {
+		v += 0x06;
 	}
-	if (msn > 9 || c) {
-		r->A += 0x60;
-		r->flags.C = 1;
+	if (((r->A + v) >> 4) > 9 || _flag_carry_8(r->A + v) || r->flags.C) {
+		v += 0x60;
 	}
-
-	r->flags.Z = r->A == 0;
-	r->flags.S = (r->A & 0x80) == 0x80;
-	r->flags.PV = !(popcount(r->A) % 2);
+	if (r->flags.N) {
+		r->A -= v;
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_parity(r->A)
+			| _flag_subtract(r->flags.N) | __flag_c(v >= 0x60)
+			| _flag_halfcarry_8_sub(old, v, 0);
+	} else {
+		r->A += v;
+		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
+			| _flag_undef_8(r->A) | _flag_parity(r->A)
+			| _flag_subtract(r->flags.N) | __flag_c(v >= 0x60)
+			| _flag_halfcarry_8_add(old, v, 0);
+	}
 }
 
 void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
@@ -510,19 +516,18 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 	case 0: // ADD A, v
 		old = r->A;
 		r->A += v;
-
 		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
 			| _flag_undef_8(r->A) | _flag_overflow_8_add(old, v, r->A)
 			| _flag_subtract(0) | _flag_carry_8(old + v)
-			| _flag_halfcarry_8_add(old, v);
+			| _flag_halfcarry_8_add(old, v, 0);
 		break;
 	case 1: // ADC A, v
 		old = r->A;
 		r->A += v + r->flags.C;
 		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
-			| _flag_undef_8(r->A) | _flag_overflow_8_add(old, v + r->flags.C, r->A)
+			| _flag_undef_8(r->A) | _flag_overflow_8_add(old, v, r->A)
 			| _flag_subtract(0) | _flag_carry_8(old + v + r->flags.C)
-			| _flag_halfcarry_8_add(old, v + r->flags.C);
+			| _flag_halfcarry_8_add(old, v, r->flags.C);
 		break;
 	case 2: // SUB v
 		old = r->A;
@@ -530,7 +535,7 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
 			| _flag_undef_8(r->A) | _flag_overflow_8_sub(old, v, r->A)
 			| _flag_subtract(1) | _flag_carry_8(old - v)
-			| _flag_halfcarry_8_sub(old, v);
+			| _flag_halfcarry_8_sub(old, v, 0);
 		break;
 	case 3: // SBC v
 		old = r->A;
@@ -538,7 +543,7 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
 			| _flag_undef_8(r->A) | _flag_overflow_8_sub(old, v, r->A)
 			| _flag_subtract(1) | _flag_carry_8(old - v - r->flags.C)
-			| _flag_halfcarry_8_sub(old, v + r->flags.C);
+			| _flag_halfcarry_8_sub(old, v, r->flags.C);
 		break;
 	case 4: // AND v
 		old = r->A;
@@ -565,14 +570,14 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 			| _flag_undef_8(v) | _flag_subtract(1)
 			| _flag_carry_8(r->A - v)
 			| _flag_overflow_8_sub(r->A, v, old)
-			| _flag_halfcarry_8_sub(r->A, v);
+			| _flag_halfcarry_8_sub(r->A, v, 0);
 		break;
 	}
 }
 
-void execute_rot(int y, int z, struct ExecutionContext *context) {
+void execute_rot(int y, int z, int switch_opcode_data, struct ExecutionContext *context) {
 	uint8_t r = read_r(z, context);
-	if (z == 6) {
+	if (z == 6 && switch_opcode_data) {
 		// reset the PC back to the offset, so
 		// the write reads it correctly
 		context->cpu->registers.PC--;
@@ -655,7 +660,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			new = cpu_read_byte(context->cpu, r->HL++);
 			uint8_t aminushl = r->A - new;
 			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new)
+				| _flag_halfcarry_8_sub(r->A, new, 0)
 				| __flag_pv(!--r->BC) | _flag_subtract(1)
 				| __flag_c(r->flags.C);
 			break;
@@ -694,7 +699,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			new = cpu_read_byte(context->cpu, r->HL--);
 			uint8_t aminushl = r->A - new;
 			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new)
+				| _flag_halfcarry_8_sub(r->A, new, 0)
 				| __flag_pv(!--r->BC) | _flag_subtract(1)
 				| __flag_c(r->flags.C);
 			break;
@@ -737,7 +742,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			new = cpu_read_byte(context->cpu, r->HL++);
 			uint8_t aminushl = r->A - new;
 			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new)
+				| _flag_halfcarry_8_sub(r->A, new, 0)
 				| __flag_pv(!--r->BC) | _flag_subtract(1)
 				| __flag_c(r->flags.C);
 			if (r->BC && !r->flags.Z) {
@@ -792,7 +797,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			new = cpu_read_byte(context->cpu, r->HL--);
 			uint8_t aminushl = r->A - new;
 			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new)
+				| _flag_halfcarry_8_sub(r->A, new, 0)
 				| __flag_pv(!--r->BC) | _flag_subtract(1)
 				| __flag_c(r->flags.C);
 			if (r->BC && !r->flags.Z) {
@@ -921,14 +926,15 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 			switch (context.x) {
 			case 0: // rot[y] r[z]
 				context.cycles += 4;
-				execute_rot(context.y, context.z, &context);
+				execute_rot(context.y, context.z, switch_opcode_data, &context);
 				break;
 			case 1: // BIT y, r[z]
 				context.cycles += 4;
 				old = read_r(context.z, &context);
-				r->flags.H = 1;
-				r->flags.N = 0;
-				cpu->registers.flags.Z = (old & (1 << context.y)) == 0;
+				old &= 1 << context.y;
+				r->F = _flag_sign_8(old) | _flag_zero(old)
+					| _flag_parity(old) | __flag_c(r->flags.C)
+					| FLAG_H;
 				break;
 			case 2: // RES y, r[z]
 				context.cycles += 4;
@@ -1003,21 +1009,21 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					if (context.q == 0) { // SBC HL, rp[p]
 						context.cycles += 11;
 						old16 = r->HL;
-						op16 = read_rp(context.p, &context) + r->flags.C;
-						r->HL -= op16;
+						op16 = read_rp(context.p, &context);
+						r->HL -= op16 + r->flags.C;
 						r->F = _flag_sign_16(r->HL) | _flag_zero(r->HL)
 							| _flag_undef_16(r->HL) | _flag_overflow_16_sub(old16, op16, r->HL)
-							| _flag_subtract(1) | _flag_carry_16(old16 - op16)
-							| _flag_halfcarry_16_sub(old16, op16);
+							| _flag_subtract(1) | _flag_carry_16(old16 - op16 - r->flags.C)
+							| _flag_halfcarry_16_sub(old16, op16, r->flags.C);
 					} else { // ADC HL, rp[p]
 						context.cycles += 11;
 						old16 = r->HL;
-						op16 = read_rp(context.p, &context) + r->flags.C;
-						r->HL += op16;
+						op16 = read_rp(context.p, &context);
+						r->HL += op16 + r->flags.C;
 						r->F = _flag_sign_16(r->HL) | _flag_zero(r->HL)
 							| _flag_undef_16(r->HL) | _flag_overflow_16_add(old16, op16, r->HL)
-							| _flag_subtract(0) | _flag_carry_16(old16 + op16)
-							| _flag_halfcarry_16_add(old16, op16);
+							| _flag_subtract(0) | _flag_carry_16(old16 + op16 + r->flags.C)
+							| _flag_halfcarry_16_add(old16, op16, r->flags.C);
 					}
 					break;
 				case 3:
@@ -1037,7 +1043,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
 						| _flag_undef_8(r->A) | __flag_pv(old == 0x80)
 						| _flag_subtract(1) | __flag_c(old != 0)
-						| _flag_halfcarry_8_sub(old, (old - new) & 0xff);
+						| _flag_halfcarry_8_sub(0, old, 0);
 					break;
 				case 5:
 					if (context.y == 1) { // RETI
@@ -1085,20 +1091,26 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					case 4: // RRD
 						context.cycles += 14;
 						old = r->A;
-						old16 = cpu_read_word(cpu, r->HL);
-						r->A = old16 & 0xFF;
-						old16 >>= 8;
-						old16 |= old << 8;
-						cpu_write_word(cpu, r->HL, old16);
+						new = cpu_read_byte(cpu, r->HL);
+						r->A &= 0xF0;
+						r->A |= new & 0x0F;
+						new >>= 4;
+						new |= old << 4;
+						cpu_write_byte(cpu, r->HL, new);
+						r->F = __flag_c(r->flags.C) | _flag_sign_8(r->A) | _flag_zero(r->A)
+							| _flag_parity(r->A) | _flag_undef_8(r->A);
 						break;
 					case 5: // RLD
 						context.cycles += 14;
 						old = r->A;
-						old16 = cpu_read_word(cpu, r->HL);
-						r->A = old16 >> 8;
-						old16 <<= 8;
-						old16 |= old;
-						cpu_write_word(cpu, r->HL, old16);
+						new = cpu_read_byte(cpu, r->HL);
+						r->A &= 0xF0;
+						r->A |= new >> 4;
+						new <<= 4;
+						new |= old & 0x0F;
+						cpu_write_byte(cpu, r->HL, new);
+						r->F = __flag_c(r->flags.C) | _flag_sign_8(r->A) | _flag_zero(r->A)
+							| _flag_parity(r->A) | _flag_undef_8(r->A);
 						break;
 					default: // NOP (invalid instruction)
 						context.cycles += 4;
@@ -1171,8 +1183,10 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						old16 = HLorIr(&context);
 						op16 = read_rp(context.p, &context);
 						new16 = HLorIw(&context, old16 + op16);
-						r->F = _flag_zero(!r->flags.Z) | __flag_s(r->flags.S) | __flag_pv(r->flags.PV)
-							| _flag_subtract(0) | _flag_carry_16(old16 + op16) | _flag_halfcarry_16_add(old16, op16);
+						r->F = __flag_s(r->flags.S) | _flag_zero(!r->flags.Z)
+							| _flag_undef_16(new16) | __flag_pv(r->flags.PV)
+							| _flag_subtract(0) | _flag_carry_16(old16 + op16)
+							| _flag_halfcarry_16_add(old16, op16, 0);
 						break;
 					}
 					break;
@@ -1242,7 +1256,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 
 					new = write_r(context.y, old + 1, &context);
 					r->F = __flag_c(r->flags.C) | _flag_sign_8(new) | _flag_zero(new)
-						| _flag_halfcarry_8_add(old, 1) | __flag_pv(old == 0x7F)
+						| _flag_halfcarry_8_add(old, 0, 1) | __flag_pv(old == 0x7F)
 						| _flag_undef_8(new);
 					break;
 				case 5: // DEC r[y]
@@ -1254,7 +1268,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 
 					new = write_r(context.y, old - 1, &context);
 					r->F = __flag_c(r->flags.C) | _flag_sign_8(new) | _flag_zero(new)
-						| _flag_halfcarry_8_sub(old, 1) | __flag_pv(old == 0x80)
+						| _flag_halfcarry_8_sub(old, 0, 1) | __flag_pv(old == 0x80)
 						| _flag_subtract(1) | _flag_undef_8(new);
 					break;
 				case 6: // LD r[y], n
@@ -1284,6 +1298,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						r->A <<= 1;
 						r->A |= old;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 1: // RRCA
 						context.cycles += 4;
@@ -1292,6 +1308,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						r->A >>= 1;
 						r->A |= old << 7;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 2: // RLA
 						context.cycles += 4;
@@ -1300,6 +1318,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						r->A <<= 1;
 						r->A |= old;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 3: // RRA
 						context.cycles += 4;
@@ -1308,6 +1328,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						r->A >>= 1;
 						r->A |= old << 7;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 4: // DAA
 						context.cycles += 4;
@@ -1318,17 +1340,23 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						context.cycles += 4;
 						r->A = ~r->A;
 						r->flags.N = r->flags.H = 1;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 6: // SCF
 						context.cycles += 4;
 						r->flags.C = 1;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 7: // CCF
 						context.cycles += 4;
 						r->flags.H = r->flags.C;
 						r->flags.C = !r->flags.C;
 						r->flags.N = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					}
 					break;

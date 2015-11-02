@@ -282,8 +282,8 @@ int test_RRD_RLD() {
 	cpu_write_word(device->cpu, 0xC000, 0x3456);
 	flash(device, test, sizeof(test));
 	int cycles = cpu_execute(device->cpu, 18);
-	if (device->cpu->registers.A != 0x56 ||
-			cpu_read_word(device->cpu, 0xC000) != 0x1234 ||
+	if (device->cpu->registers.A != 0x16 ||
+			cpu_read_word(device->cpu, 0xC000) != 0x3425 ||
 			cycles != 0) {
 		asic_free(device);
 		return 1;
