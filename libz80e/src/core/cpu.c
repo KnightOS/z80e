@@ -575,9 +575,9 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 	}
 }
 
-void execute_rot(int y, int z, struct ExecutionContext *context) {
+void execute_rot(int y, int z, int switch_opcode_data, struct ExecutionContext *context) {
 	uint8_t r = read_r(z, context);
-	if (z == 6) {
+	if (z == 6 && switch_opcode_data) {
 		// reset the PC back to the offset, so
 		// the write reads it correctly
 		context->cpu->registers.PC--;
@@ -926,7 +926,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 			switch (context.x) {
 			case 0: // rot[y] r[z]
 				context.cycles += 4;
-				execute_rot(context.y, context.z, &context);
+				execute_rot(context.y, context.z, switch_opcode_data, &context);
 				break;
 			case 1: // BIT y, r[z]
 				context.cycles += 4;
