@@ -931,9 +931,10 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 			case 1: // BIT y, r[z]
 				context.cycles += 4;
 				old = read_r(context.z, &context);
-				r->flags.H = 1;
-				r->flags.N = 0;
-				cpu->registers.flags.Z = (old & (1 << context.y)) == 0;
+				old &= 1 << context.y;
+				r->F = _flag_sign_8(old) | _flag_zero(old)
+					| _flag_parity(old) | __flag_c(r->flags.C)
+					| FLAG_H;
 				break;
 			case 2: // RES y, r[z]
 				context.cycles += 4;
