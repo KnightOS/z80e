@@ -117,10 +117,10 @@ int parity(uint8_t x);
 		(op1 & 0x80) != (result & 0x80))
 #define _flag_overflow_16_sub(op1, op2, result) __flag_pv((op1 & 0x8000) != (op2 & 0x8000) && (op1 & 0x8000) != (result & 0x8000))
 
-#define _flag_halfcarry_8_add(op1, op2) __flag_h(((op1 & 0xf) + (op2 & 0xf)) & 0x10)
-#define _flag_halfcarry_8_sub(op1, op2) __flag_h(((op1 & 0xf) - (op2 & 0xf)) & 0x10)
-#define _flag_halfcarry_16_add(op1, op2) __flag_h(((op1 & 0xfff) + (op2 & 0xfff)) & 0x1000)
-#define _flag_halfcarry_16_sub(op1, op2) __flag_h(((op1 & 0xfff) - (op2 & 0xfff)) & 0x1000)
+#define _flag_halfcarry_8_add(op1, op2, carry) __flag_h(((op1 & 0xf) + (op2 & 0xf) + carry) & 0x10)
+#define _flag_halfcarry_8_sub(op1, op2, carry) __flag_h(((op1 & 0xf) - (op2 & 0xf) - carry) & 0x10)
+#define _flag_halfcarry_16_add(op1, op2, carry) __flag_h(((op1 & 0xfff) + (op2 & 0xfff) + carry) & 0x1000)
+#define _flag_halfcarry_16_sub(op1, op2, carry) __flag_h(((op1 & 0xfff) - (op2 & 0xfff) - carry) & 0x1000)
 
 #define _flag_subtract(a)   ((a) ? FLAG_N : 0)
 #define _flag_zero(a)       ((a) ? 0 : FLAG_Z)
