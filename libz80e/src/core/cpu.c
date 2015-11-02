@@ -1098,7 +1098,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						new |= old << 4;
 						cpu_write_byte(cpu, r->HL, new);
 						r->F = __flag_c(r->flags.C) | _flag_sign_8(r->A) | _flag_zero(r->A)
-							| _flag_parity(r->A) | _flag_undef_8(new);
+							| _flag_parity(r->A) | _flag_undef_8(r->A);
 						break;
 					case 5: // RLD
 						context.cycles += 14;
@@ -1110,7 +1110,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						new |= old & 0x0F;
 						cpu_write_byte(cpu, r->HL, new);
 						r->F = __flag_c(r->flags.C) | _flag_sign_8(r->A) | _flag_zero(r->A)
-							| _flag_parity(r->A) | _flag_undef_8(new);
+							| _flag_parity(r->A) | _flag_undef_8(r->A);
 						break;
 					default: // NOP (invalid instruction)
 						context.cycles += 4;
