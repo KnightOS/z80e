@@ -741,9 +741,10 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			context->cycles += 12;
 			new = cpu_read_byte(context->cpu, r->HL++);
 			uint8_t aminushl = r->A - new;
+			r->BC--;
 			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
 				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(!--r->BC) | _flag_subtract(1)
+				| __flag_pv(0) | _flag_subtract(1)
 				| __flag_c(r->flags.C);
 			if (r->BC && !r->flags.Z) {
 				context->cycles += 5;
@@ -796,9 +797,10 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			context->cycles += 12;
 			new = cpu_read_byte(context->cpu, r->HL--);
 			uint8_t aminushl = r->A - new;
+			r->BC--;
 			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
 				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(!--r->BC) | _flag_subtract(1)
+				| __flag_pv(0) | _flag_subtract(1)
 				| __flag_c(r->flags.C);
 			if (r->BC && !r->flags.Z) {
 				context->cycles += 5;
