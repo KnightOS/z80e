@@ -1340,17 +1340,23 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						context.cycles += 4;
 						r->A = ~r->A;
 						r->flags.N = r->flags.H = 1;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 6: // SCF
 						context.cycles += 4;
 						r->flags.C = 1;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 7: // CCF
 						context.cycles += 4;
 						r->flags.H = r->flags.C;
 						r->flags.C = !r->flags.C;
 						r->flags.N = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					}
 					break;
