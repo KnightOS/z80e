@@ -1043,7 +1043,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 					r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
 						| _flag_undef_8(r->A) | __flag_pv(old == 0x80)
 						| _flag_subtract(1) | __flag_c(old != 0)
-						| _flag_halfcarry_8_sub(old, (old - new) & 0xff, 0);
+						| _flag_halfcarry_8_sub(0, old, 0);
 					break;
 				case 5:
 					if (context.y == 1) { // RETI
