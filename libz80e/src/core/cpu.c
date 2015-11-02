@@ -525,7 +525,7 @@ void execute_alu(int i, uint8_t v, struct ExecutionContext *context) {
 		old = r->A;
 		r->A += v + r->flags.C;
 		r->F = _flag_sign_8(r->A) | _flag_zero(r->A)
-			| _flag_undef_8(r->A) | _flag_overflow_8_add(old, v + r->flags.C, r->A)
+			| _flag_undef_8(r->A) | _flag_overflow_8_add(old, v, r->A)
 			| _flag_subtract(0) | _flag_carry_8(old + v + r->flags.C)
 			| _flag_halfcarry_8_add(old, v, r->flags.C);
 		break;
@@ -1011,7 +1011,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						op16 = read_rp(context.p, &context);
 						r->HL -= op16 + r->flags.C;
 						r->F = _flag_sign_16(r->HL) | _flag_zero(r->HL)
-							| _flag_undef_16(r->HL) | _flag_overflow_16_sub(old16, op16 + r->flags.C, r->HL)
+							| _flag_undef_16(r->HL) | _flag_overflow_16_sub(old16, op16, r->HL)
 							| _flag_subtract(1) | _flag_carry_16(old16 - op16 - r->flags.C)
 							| _flag_halfcarry_16_sub(old16, op16, r->flags.C);
 					} else { // ADC HL, rp[p]
@@ -1020,7 +1020,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						op16 = read_rp(context.p, &context);
 						r->HL += op16 + r->flags.C;
 						r->F = _flag_sign_16(r->HL) | _flag_zero(r->HL)
-							| _flag_undef_16(r->HL) | _flag_overflow_16_add(old16, op16 + r->flags.C, r->HL)
+							| _flag_undef_16(r->HL) | _flag_overflow_16_add(old16, op16, r->HL)
 							| _flag_subtract(0) | _flag_carry_16(old16 + op16 + r->flags.C)
 							| _flag_halfcarry_16_add(old16, op16, r->flags.C);
 					}

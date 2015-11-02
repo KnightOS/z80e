@@ -109,12 +109,8 @@ int parity(uint8_t x);
 #define _flag_undef_16(a) ({ uint16_t _res = (a); __flag_5(_res & 0x2000) | __flag_3(_res & 0x800);})
 
 #define _flag_overflow_8_add(op1, op2, result) __flag_pv((op1 & 0x80) == (op2 & 0x80) && (op1 & 0x80) != (result & 0x80))
+#define _flag_overflow_8_sub(op1, op2, result) __flag_pv((op1 & 0x80) != (op2 & 0x80) && (op1 & 0x80) != (result & 0x80))
 #define _flag_overflow_16_add(op1, op2, result) __flag_pv((op1 & 0x8000) == (op2 & 0x8000) && (op1 & 0x8000) != (result & 0x8000))
-
-#define _flag_overflow_8_sub(op1, op2, result) \
-	__flag_pv( \
-		(op1 & 0x80) != (op2 & 0x80) && \
-		(op1 & 0x80) != (result & 0x80))
 #define _flag_overflow_16_sub(op1, op2, result) __flag_pv((op1 & 0x8000) != (op2 & 0x8000) && (op1 & 0x8000) != (result & 0x8000))
 
 #define _flag_halfcarry_8_add(op1, op2, carry) __flag_h(((op1 & 0xf) + (op2 & 0xf) + carry) & 0x10)
