@@ -1298,6 +1298,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						r->A <<= 1;
 						r->A |= old;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 1: // RRCA
 						context.cycles += 4;
@@ -1306,6 +1308,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						r->A >>= 1;
 						r->A |= old << 7;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 2: // RLA
 						context.cycles += 4;
@@ -1314,6 +1318,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						r->A <<= 1;
 						r->A |= old;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 3: // RRA
 						context.cycles += 4;
@@ -1322,6 +1328,8 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						r->A >>= 1;
 						r->A |= old << 7;
 						r->flags.N = r->flags.H = 0;
+						r->flags._3 = (r->A & FLAG_3) > 0;
+						r->flags._5 = (r->A & FLAG_5) > 0;
 						break;
 					case 4: // DAA
 						context.cycles += 4;
