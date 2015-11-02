@@ -1183,8 +1183,10 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						old16 = HLorIr(&context);
 						op16 = read_rp(context.p, &context);
 						new16 = HLorIw(&context, old16 + op16);
-						r->F = _flag_zero(!r->flags.Z) | __flag_s(r->flags.S) | __flag_pv(r->flags.PV)
-							| _flag_subtract(0) | _flag_carry_16(old16 + op16) | _flag_halfcarry_16_add(old16, op16);
+						r->F = __flag_s(r->flags.S) | _flag_zero(!r->flags.Z)
+							| _flag_undef_16(new16) | __flag_pv(r->flags.PV)
+							| _flag_subtract(0) | _flag_carry_16(old16 + op16)
+							| _flag_halfcarry_16_add(old16, op16);
 						break;
 					}
 					break;
