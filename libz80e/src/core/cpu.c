@@ -1048,10 +1048,12 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 				case 3:
 					if (context.q == 0) { // LD (nn), rp[p]
 						context.cycles += 16;
-						cpu_write_word(cpu, context.nn(&context), read_rp(context.p, &context));
+						r->WZ = context.nn(&context);
+						cpu_write_word(cpu, r->WZ, read_rp(context.p, &context));
 					} else { // LD rp[p], (nn)
 						context.cycles += 16;
-						write_rp(context.p, cpu_read_word(cpu, context.nn(&context)), &context);
+						r->WZ = context.nn(&context);
+						write_rp(context.p, cpu_read_word(cpu, r->WZ), &context);
 					}
 					break;
 				case 4: // NEG
@@ -1223,11 +1225,13 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 							break;
 						case 2: // LD (nn), HL
 							context.cycles += 16;
-							cpu_write_word(cpu, context.nn(&context), HLorIr(&context));
+							r->WZ = context.nn(&context);
+							cpu_write_word(cpu, r->WZ, HLorIr(&context));
 							break;
 						case 3: // LD (nn), A
 							context.cycles += 13;
-							cpu_write_byte(cpu, context.nn(&context), r->A);
+							r->WZ = context.nn(&context);
+							cpu_write_byte(cpu, r->WZ, r->A);
 							break;
 						}
 						break;
@@ -1243,12 +1247,13 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 							break;
 						case 2: // LD HL, (nn)
 							context.cycles += 16;
-							HLorIw(&context, cpu_read_word(cpu, context.nn(&context)));
+							r->WZ = context.nn(&context);
+							HLorIw(&context, cpu_read_word(cpu, r->WZ));
 							break;
 						case 3: // LD A, (nn)
 							context.cycles += 13;
-							old16 = context.nn(&context);
-							r->A = cpu_read_byte(cpu, old16);
+							r->WZ = context.nn(&context);
+							r->A = cpu_read_byte(cpu, r->WZ);
 							break;
 						}
 						break;
@@ -1465,9 +1470,9 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						break;
 					case 4: // EX (SP), HL
 						context.cycles += 19;
-						r->WZ = old16 = cpu_read_word(cpu, r->SP);
+						r->WZ = cpu_read_word(cpu, r->SP);
 						cpu_write_word(cpu, r->SP, HLorIr(&context));
-						HLorIw(&context, old16);
+						HLorIw(&context, r->WZ);
 						break;
 					case 5: // EX DE, HL
 						context.cycles += 4;
