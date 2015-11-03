@@ -951,7 +951,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 				old = read_r(context.z, &context);
 				old &= 1 << context.y;
 				r->F = _flag_sign_8(old) | _flag_zero(old)
-					| _flag_undef_8(context.z != 6 ? old : r->WZ >> 8)
+					| (context.z == 6 ? _flag_undef_16(r->WZ) : _flag_undef_8(new))
 					| _flag_parity(old) | __flag_c(r->flags.C)
 					| FLAG_H;
 				break;
