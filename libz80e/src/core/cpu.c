@@ -645,15 +645,18 @@ void execute_rot(int y, int z, int switch_opcode_data, struct ExecutionContext *
 void execute_bli(int y, int z, struct ExecutionContext *context) {
 	z80registers_t *r = &context->cpu->registers;
 	z80iodevice_t ioDevice;
-	uint8_t new;
+	uint8_t old, new, hc;
 	switch (y) {
 	case 4:
 		switch (z) {
 		case 0: // LDI
 			context->cycles += 12;
-			cpu_write_byte(context->cpu, r->DE++, cpu_read_byte(context->cpu, r->HL++));
-			r->flags.PV = !--r->BC;
-			r->flags.N = r->flags.H = 0;
+			old = cpu_read_byte(context->cpu, r->HL++);
+			cpu_write_byte(context->cpu, r->DE++, old);
+			new = r->A + old;
+			r->F = (r->F & (FLAG_S | FLAG_Z | FLAG_C))
+				| __flag_pv(--r->BC) | _flag_subtract(0)
+				| _flag_undef_8_block(new);
 			break;
 		case 1: // CPI
 			context->cycles += 12;
@@ -690,9 +693,12 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		switch (z) {
 		case 0: // LDD
 			context->cycles += 12;
-			cpu_write_byte(context->cpu, r->DE--, cpu_read_byte(context->cpu, r->HL--));
-			r->flags.PV = !--r->BC;
-			r->flags.N = r->flags.H = 0;
+			old = cpu_read_byte(context->cpu, r->HL--);
+			cpu_write_byte(context->cpu, r->DE--, old);
+			new = r->A + old;
+			r->F = (r->F & (FLAG_S | FLAG_Z | FLAG_C))
+				| __flag_pv(--r->BC) | _flag_subtract(0)
+				| _flag_undef_8_block(new);
 			break;
 		case 1: // CPD
 			context->cycles += 12;
@@ -729,9 +735,12 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		switch (z) {
 		case 0: // LDIR
 			context->cycles += 12;
-			cpu_write_byte(context->cpu, r->DE++, cpu_read_byte(context->cpu, r->HL++));
-			r->BC--;
-			r->flags.N = r->flags.H = r->flags.PV = 0;
+			old = cpu_read_byte(context->cpu, r->HL++);
+			cpu_write_byte(context->cpu, r->DE++, old);
+			new = r->A + old;
+			r->F = (r->F & (FLAG_S | FLAG_Z | FLAG_C))
+				| __flag_pv(--r->BC) | _flag_subtract(0)
+				| _flag_undef_8_block(new);
 			if (r->BC) {
 				context->cycles += 5;
 				r->PC -= 2;
@@ -785,9 +794,12 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		switch (z) {
 		case 0: // LDDR
 			context->cycles += 12;
-			cpu_write_byte(context->cpu, r->DE--, cpu_read_byte(context->cpu, r->HL--));
-			r->BC--;
-			r->flags.N = r->flags.H = r->flags.PV = 0;
+			old = cpu_read_byte(context->cpu, r->HL--);
+			cpu_write_byte(context->cpu, r->DE--, old);
+			new = r->A + old;
+			r->F = (r->F & (FLAG_S | FLAG_Z | FLAG_C))
+				| __flag_pv(--r->BC) | _flag_subtract(0)
+				| _flag_undef_8_block(new);
 			if (r->BC) {
 				context->cycles += 5;
 				r->PC -= 2;
@@ -1122,7 +1134,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 				}
 				break;
 			case 2:
-				if (context.y >= 4) { // bli[y,z]
+				if (context.y >= 4 && context.z < 4) { // bli[y,z]
 					execute_bli(context.y, context.z, &context);
 				} else { // NONI (invalid instruction)
 					context.cycles += 4;
