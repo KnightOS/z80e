@@ -331,11 +331,13 @@ uint8_t indHLorIr(struct ExecutionContext *context) {
 	if (context->cpu->prefix >> 8 == 0xDD) {
 		context->cycles += 9;
 		context->cpu->prefix = 0;
-		return cpu_read_byte(context->cpu, context->cpu->registers.IX + read_d(context));
+		context->cpu->registers.WZ = context->cpu->registers.IX + read_d(context);
+		return cpu_read_byte(context->cpu, context->cpu->registers.WZ);
 	} else if (context->cpu->prefix >> 8 == 0xFD) {
 		context->cycles += 9;
 		context->cpu->prefix = 0;
-		return cpu_read_byte(context->cpu, context->cpu->registers.IY + read_d(context));
+		context->cpu->registers.WZ = context->cpu->registers.IY + read_d(context);
+		return cpu_read_byte(context->cpu, context->cpu->registers.WZ);
 	} else {
 		return cpu_read_byte(context->cpu, context->cpu->registers.HL);
 	}
@@ -345,11 +347,13 @@ uint8_t indHLorIw(struct ExecutionContext *context, uint8_t value) {
 	if (context->cpu->prefix >> 8 == 0xDD) {
 		context->cycles += 9;
 		context->cpu->prefix = 0;
-		cpu_write_byte(context->cpu, context->cpu->registers.IX + read_d(context), value);
+		context->cpu->registers.WZ = context->cpu->registers.IX + read_d(context);
+		cpu_write_byte(context->cpu, context->cpu->registers.WZ, value);
 	} else if (context->cpu->prefix >> 8 == 0xFD) {
 		context->cycles += 9;
 		context->cpu->prefix = 0;
-		cpu_write_byte(context->cpu, context->cpu->registers.IY + read_d(context), value);
+		context->cpu->registers.WZ = context->cpu->registers.IY + read_d(context);
+		cpu_write_byte(context->cpu, context->cpu->registers.WZ, value);
 	} else {
 		cpu_write_byte(context->cpu, context->cpu->registers.HL, value);
 	}
@@ -357,7 +361,6 @@ uint8_t indHLorIw(struct ExecutionContext *context, uint8_t value) {
 }
 
 uint8_t read_r(int i, struct ExecutionContext *context) {
-	int8_t d;
 	switch (i) {
 	case 0: return context->cpu->registers.B;
 	case 1: return context->cpu->registers.C;
@@ -369,12 +372,12 @@ uint8_t read_r(int i, struct ExecutionContext *context) {
 		context->cycles += 3;
 		if (context->cpu->prefix >> 8 == 0xDD) {
 			context->cycles += 8;
-			d = context->d(context);
-			return cpu_read_byte(context->cpu, context->cpu->registers.IX + d);
+			context->cpu->registers.WZ = context->cpu->registers.IX + context->d(context);
+			return cpu_read_byte(context->cpu, context->cpu->registers.WZ);
 		} else if (context->cpu->prefix >> 8 == 0xFD) {
 			context->cycles += 8;
-			d = context->d(context);
-			return cpu_read_byte(context->cpu, context->cpu->registers.IY + d);
+			context->cpu->registers.WZ = context->cpu->registers.IY + context->d(context);
+			return cpu_read_byte(context->cpu, context->cpu->registers.WZ);
 		} else {
 			return cpu_read_byte(context->cpu, context->cpu->registers.HL);
 		}
@@ -384,7 +387,6 @@ uint8_t read_r(int i, struct ExecutionContext *context) {
 }
 
 uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
-	int8_t d;
 	switch (i) {
 	case 0: return context->cpu->registers.B = value;
 	case 1: return context->cpu->registers.C = value;
@@ -396,12 +398,12 @@ uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
 		context->cycles += 3;
 		if (context->cpu->prefix >> 8 == 0xDD) {
 			context->cycles += 4;
-			d = context->d(context);
-			cpu_write_byte(context->cpu, context->cpu->registers.IX + d, value);
+			context->cpu->registers.WZ = context->cpu->registers.IX + context->d(context);
+			cpu_write_byte(context->cpu, context->cpu->registers.WZ, value);
 		} else if (context->cpu->prefix >> 8 == 0xFD) {
 			context->cycles += 4;
-			d = context->d(context);
-			cpu_write_byte(context->cpu, context->cpu->registers.IY + d, value);
+			context->cpu->registers.WZ = context->cpu->registers.IY + context->d(context);
+			cpu_write_byte(context->cpu, context->cpu->registers.WZ, value);
 		} else {
 			cpu_write_byte(context->cpu, context->cpu->registers.HL, value);
 		}
