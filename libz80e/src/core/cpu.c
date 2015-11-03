@@ -1170,13 +1170,13 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 							r->B--;
 							if (r->B != 0) {
 								context.cycles += 5;
-								r->PC += d;
+								r->WZ = r->PC += d;
 							}
 							break;
 						case 3: // JR d
 							context.cycles += 12;
 							d = context.d(&context);
-							r->PC += d;
+							r->WZ = r->PC += d;
 							break;
 						case 4:
 						case 5:
@@ -1186,7 +1186,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 							d = context.d(&context);
 							if (read_cc(context.y - 4, &context)) {
 								context.cycles += 5;
-								r->PC += d;
+								r->WZ = r->PC += d;
 							}
 							break;
 					}
