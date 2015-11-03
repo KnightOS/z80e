@@ -60,6 +60,7 @@ typedef struct {
 		};
 	};
 	uint8_t I, R;
+	uint8_t WZ;
 } z80registers_t;
 
 typedef enum {
