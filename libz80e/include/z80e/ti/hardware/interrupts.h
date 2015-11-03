@@ -18,6 +18,7 @@ struct ti_interrupts {
 		int on_key : 1;
 		int first_timer : 1;
 		int second_timer : 1;
+		int on_key_pressed : 1;
 		int link_activity : 1;
 		int first_crystal : 1;
 		int second_crystal : 1;
@@ -28,6 +29,7 @@ struct ti_interrupts {
 		int on_key : 1;
 		int first_timer : 1;
 		int second_timer : 1;
+		int low_power_mode : 1;
 		int link_activity : 1;
 		int first_crystal : 1;
 		int second_crystal : 1;
@@ -39,6 +41,8 @@ enum {
 	INTERRUPT_ON_KEY = (1 << 0),
 	INTERRUPT_FIRST_TIMER = (1 << 1),
 	INTERRUPT_SECOND_TIMER = (1 << 2),
+	INTERRUPT_ON_KEY_PRESSED = (1 << 3),
+	INTERRUPT_LOW_POWER_MODE = (1 << 3),
 	INTERRUPT_LINK_ACTIVITY = (1 << 4),
 	INTERRUPT_FIRST_CRYSTAL = (1 << 5),
 	INTERRUPT_SECOND_CRYSTAL = (1 << 6),
@@ -50,6 +54,9 @@ z80iodevice_t init_interrupts(asic_t *, ti_interrupts_t **result);
 void ti_interrupts_interrupt(ti_interrupts_t *, int);
 void ti_interrupts_set_interrupt_enabled(ti_interrupts_t *, int, int);
 void ti_interrupts_acknowledge_interrupt(ti_interrupts_t *, int);
+
+void depress_on_key(ti_interrupts_t *);
+void release_on_key(ti_interrupts_t *);
 
 uint8_t read_interrupt_mask(void *); // port 03
 void write_interrupt_mask(void *, uint8_t); // port 03

@@ -331,11 +331,13 @@ uint8_t indHLorIr(struct ExecutionContext *context) {
 	if (context->cpu->prefix >> 8 == 0xDD) {
 		context->cycles += 9;
 		context->cpu->prefix = 0;
-		return cpu_read_byte(context->cpu, context->cpu->registers.IX + read_d(context));
+		context->cpu->registers.WZ = context->cpu->registers.IX + read_d(context);
+		return cpu_read_byte(context->cpu, context->cpu->registers.WZ);
 	} else if (context->cpu->prefix >> 8 == 0xFD) {
 		context->cycles += 9;
 		context->cpu->prefix = 0;
-		return cpu_read_byte(context->cpu, context->cpu->registers.IY + read_d(context));
+		context->cpu->registers.WZ = context->cpu->registers.IY + read_d(context);
+		return cpu_read_byte(context->cpu, context->cpu->registers.WZ);
 	} else {
 		return cpu_read_byte(context->cpu, context->cpu->registers.HL);
 	}
@@ -345,11 +347,13 @@ uint8_t indHLorIw(struct ExecutionContext *context, uint8_t value) {
 	if (context->cpu->prefix >> 8 == 0xDD) {
 		context->cycles += 9;
 		context->cpu->prefix = 0;
-		cpu_write_byte(context->cpu, context->cpu->registers.IX + read_d(context), value);
+		context->cpu->registers.WZ = context->cpu->registers.IX + read_d(context);
+		cpu_write_byte(context->cpu, context->cpu->registers.WZ, value);
 	} else if (context->cpu->prefix >> 8 == 0xFD) {
 		context->cycles += 9;
 		context->cpu->prefix = 0;
-		cpu_write_byte(context->cpu, context->cpu->registers.IY + read_d(context), value);
+		context->cpu->registers.WZ = context->cpu->registers.IY + read_d(context);
+		cpu_write_byte(context->cpu, context->cpu->registers.WZ, value);
 	} else {
 		cpu_write_byte(context->cpu, context->cpu->registers.HL, value);
 	}
@@ -357,7 +361,6 @@ uint8_t indHLorIw(struct ExecutionContext *context, uint8_t value) {
 }
 
 uint8_t read_r(int i, struct ExecutionContext *context) {
-	int8_t d;
 	switch (i) {
 	case 0: return context->cpu->registers.B;
 	case 1: return context->cpu->registers.C;
@@ -369,12 +372,12 @@ uint8_t read_r(int i, struct ExecutionContext *context) {
 		context->cycles += 3;
 		if (context->cpu->prefix >> 8 == 0xDD) {
 			context->cycles += 8;
-			d = context->d(context);
-			return cpu_read_byte(context->cpu, context->cpu->registers.IX + d);
+			context->cpu->registers.WZ = context->cpu->registers.IX + context->d(context);
+			return cpu_read_byte(context->cpu, context->cpu->registers.WZ);
 		} else if (context->cpu->prefix >> 8 == 0xFD) {
 			context->cycles += 8;
-			d = context->d(context);
-			return cpu_read_byte(context->cpu, context->cpu->registers.IY + d);
+			context->cpu->registers.WZ = context->cpu->registers.IY + context->d(context);
+			return cpu_read_byte(context->cpu, context->cpu->registers.WZ);
 		} else {
 			return cpu_read_byte(context->cpu, context->cpu->registers.HL);
 		}
@@ -384,7 +387,6 @@ uint8_t read_r(int i, struct ExecutionContext *context) {
 }
 
 uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
-	int8_t d;
 	switch (i) {
 	case 0: return context->cpu->registers.B = value;
 	case 1: return context->cpu->registers.C = value;
@@ -396,12 +398,12 @@ uint8_t write_r(int i, uint8_t value, struct ExecutionContext *context) {
 		context->cycles += 3;
 		if (context->cpu->prefix >> 8 == 0xDD) {
 			context->cycles += 4;
-			d = context->d(context);
-			cpu_write_byte(context->cpu, context->cpu->registers.IX + d, value);
+			context->cpu->registers.WZ = context->cpu->registers.IX + context->d(context);
+			cpu_write_byte(context->cpu, context->cpu->registers.WZ, value);
 		} else if (context->cpu->prefix >> 8 == 0xFD) {
 			context->cycles += 4;
-			d = context->d(context);
-			cpu_write_byte(context->cpu, context->cpu->registers.IY + d, value);
+			context->cpu->registers.WZ = context->cpu->registers.IY + context->d(context);
+			cpu_write_byte(context->cpu, context->cpu->registers.WZ, value);
 		} else {
 			cpu_write_byte(context->cpu, context->cpu->registers.HL, value);
 		}
@@ -645,24 +647,28 @@ void execute_rot(int y, int z, int switch_opcode_data, struct ExecutionContext *
 void execute_bli(int y, int z, struct ExecutionContext *context) {
 	z80registers_t *r = &context->cpu->registers;
 	z80iodevice_t ioDevice;
-	uint8_t new;
+	uint8_t old, new, hc;
 	switch (y) {
 	case 4:
 		switch (z) {
 		case 0: // LDI
 			context->cycles += 12;
-			cpu_write_byte(context->cpu, r->DE++, cpu_read_byte(context->cpu, r->HL++));
-			r->flags.PV = !--r->BC;
-			r->flags.N = r->flags.H = 0;
+			old = cpu_read_byte(context->cpu, r->HL++);
+			cpu_write_byte(context->cpu, r->DE++, old);
+			new = r->A + old;
+			r->F = (r->F & (FLAG_S | FLAG_Z | FLAG_C))
+				| __flag_pv(--r->BC) | _flag_subtract(0)
+				| _flag_undef_8_block(new);
 			break;
 		case 1: // CPI
 			context->cycles += 12;
-			new = cpu_read_byte(context->cpu, r->HL++);
-			uint8_t aminushl = r->A - new;
-			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(!--r->BC) | _flag_subtract(1)
-				| __flag_c(r->flags.C);
+			old = cpu_read_byte(context->cpu, r->HL++);
+			new = r->A - old;
+			hc = _flag_halfcarry_8_sub(r->A, old, 0) > 0;
+			r->F = _flag_sign_8(new) | _flag_zero(new)
+				| __flag_h(hc) | __flag_pv(--r->BC)
+				| _flag_subtract(1) | __flag_c(r->flags.C)
+				| _flag_undef_8_block(new - hc);
 			break;
 		case 2: // INI
 			context->cycles += 12;
@@ -690,18 +696,22 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		switch (z) {
 		case 0: // LDD
 			context->cycles += 12;
-			cpu_write_byte(context->cpu, r->DE--, cpu_read_byte(context->cpu, r->HL--));
-			r->flags.PV = !--r->BC;
-			r->flags.N = r->flags.H = 0;
+			old = cpu_read_byte(context->cpu, r->HL--);
+			cpu_write_byte(context->cpu, r->DE--, old);
+			new = r->A + old;
+			r->F = (r->F & (FLAG_S | FLAG_Z | FLAG_C))
+				| __flag_pv(--r->BC) | _flag_subtract(0)
+				| _flag_undef_8_block(new);
 			break;
 		case 1: // CPD
 			context->cycles += 12;
-			new = cpu_read_byte(context->cpu, r->HL--);
-			uint8_t aminushl = r->A - new;
-			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(!--r->BC) | _flag_subtract(1)
-				| __flag_c(r->flags.C);
+			old = cpu_read_byte(context->cpu, r->HL--);
+			new = r->A - old;
+			hc = _flag_halfcarry_8_sub(r->A, old, 0) > 0;
+			r->F = _flag_sign_8(new) | _flag_zero(new)
+				| __flag_h(hc) | __flag_pv(--r->BC)
+				| _flag_subtract(1) | __flag_c(r->flags.C)
+				| _flag_undef_8_block(new - hc);
 			break;
 		case 2: // IND
 			context->cycles += 12;
@@ -729,9 +739,12 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		switch (z) {
 		case 0: // LDIR
 			context->cycles += 12;
-			cpu_write_byte(context->cpu, r->DE++, cpu_read_byte(context->cpu, r->HL++));
-			r->BC--;
-			r->flags.N = r->flags.H = r->flags.PV = 0;
+			old = cpu_read_byte(context->cpu, r->HL++);
+			cpu_write_byte(context->cpu, r->DE++, old);
+			new = r->A + old;
+			r->F = (r->F & (FLAG_S | FLAG_Z | FLAG_C))
+				| __flag_pv(--r->BC) | _flag_subtract(0)
+				| _flag_undef_8_block(new);
 			if (r->BC) {
 				context->cycles += 5;
 				r->PC -= 2;
@@ -739,13 +752,13 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 1: // CPIR
 			context->cycles += 12;
-			new = cpu_read_byte(context->cpu, r->HL++);
-			uint8_t aminushl = r->A - new;
-			r->BC--;
-			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(0) | _flag_subtract(1)
-				| __flag_c(r->flags.C);
+			old = cpu_read_byte(context->cpu, r->HL++);
+			new = r->A - old;
+			hc = _flag_halfcarry_8_sub(r->A, old, 0) > 0;
+			r->F = _flag_sign_8(new) | _flag_zero(new)
+				| __flag_h(hc) | __flag_pv(--r->BC)
+				| _flag_subtract(1) | __flag_c(r->flags.C)
+				| _flag_undef_8_block(new - hc);
 			if (r->BC && !r->flags.Z) {
 				context->cycles += 5;
 				r->PC -= 2;
@@ -785,9 +798,12 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 		switch (z) {
 		case 0: // LDDR
 			context->cycles += 12;
-			cpu_write_byte(context->cpu, r->DE--, cpu_read_byte(context->cpu, r->HL--));
-			r->BC--;
-			r->flags.N = r->flags.H = r->flags.PV = 0;
+			old = cpu_read_byte(context->cpu, r->HL--);
+			cpu_write_byte(context->cpu, r->DE--, old);
+			new = r->A + old;
+			r->F = (r->F & (FLAG_S | FLAG_Z | FLAG_C))
+				| __flag_pv(--r->BC) | _flag_subtract(0)
+				| _flag_undef_8_block(new);
 			if (r->BC) {
 				context->cycles += 5;
 				r->PC -= 2;
@@ -795,13 +811,13 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 1: // CPDR
 			context->cycles += 12;
-			new = cpu_read_byte(context->cpu, r->HL--);
-			uint8_t aminushl = r->A - new;
-			r->BC--;
-			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(0) | _flag_subtract(1)
-				| __flag_c(r->flags.C);
+			old = cpu_read_byte(context->cpu, r->HL--);
+			new = r->A - old;
+			hc = _flag_halfcarry_8_sub(r->A, old, 0) > 0;
+			r->F = _flag_sign_8(new) | _flag_zero(new)
+				| __flag_h(hc) | __flag_pv(--r->BC)
+				| _flag_subtract(1) | __flag_c(r->flags.C)
+				| _flag_undef_8_block(new - hc);
 			if (r->BC && !r->flags.Z) {
 				context->cycles += 5;
 				r->PC -= 2;
@@ -933,9 +949,10 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 			case 1: // BIT y, r[z]
 				context.cycles += 4;
 				old = read_r(context.z, &context);
-				old &= 1 << context.y;
-				r->F = _flag_sign_8(old) | _flag_zero(old)
-					| _flag_parity(old) | __flag_c(r->flags.C)
+				new = old & (1 << context.y);
+				r->F = _flag_sign_8(new) | _flag_zero(new)
+					| (context.z == 6 ? _flag_undef_16(r->WZ) : _flag_undef_8(old))
+					| _flag_parity(new) | __flag_c(r->flags.C)
 					| FLAG_H;
 				break;
 			case 2: // RES y, r[z]
@@ -1012,7 +1029,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						context.cycles += 11;
 						old16 = r->HL;
 						op16 = read_rp(context.p, &context);
-						r->HL -= op16 + r->flags.C;
+						r->WZ = r->HL -= op16 + r->flags.C;
 						r->F = _flag_sign_16(r->HL) | _flag_zero(r->HL)
 							| _flag_undef_16(r->HL) | _flag_overflow_16_sub(old16, op16, r->HL)
 							| _flag_subtract(1) | _flag_carry_16(old16 - op16 - r->flags.C)
@@ -1021,7 +1038,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						context.cycles += 11;
 						old16 = r->HL;
 						op16 = read_rp(context.p, &context);
-						r->HL += op16 + r->flags.C;
+						r->WZ = r->HL += op16 + r->flags.C;
 						r->F = _flag_sign_16(r->HL) | _flag_zero(r->HL)
 							| _flag_undef_16(r->HL) | _flag_overflow_16_add(old16, op16, r->HL)
 							| _flag_subtract(0) | _flag_carry_16(old16 + op16 + r->flags.C)
@@ -1031,10 +1048,12 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 				case 3:
 					if (context.q == 0) { // LD (nn), rp[p]
 						context.cycles += 16;
-						cpu_write_word(cpu, context.nn(&context), read_rp(context.p, &context));
+						r->WZ = context.nn(&context);
+						cpu_write_word(cpu, r->WZ, read_rp(context.p, &context));
 					} else { // LD rp[p], (nn)
 						context.cycles += 16;
-						write_rp(context.p, cpu_read_word(cpu, context.nn(&context)), &context);
+						r->WZ = context.nn(&context);
+						write_rp(context.p, cpu_read_word(cpu, r->WZ), &context);
 					}
 					break;
 				case 4: // NEG
@@ -1122,7 +1141,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 				}
 				break;
 			case 2:
-				if (context.y >= 4) { // bli[y,z]
+				if (context.y >= 4 && context.z < 4) { // bli[y,z]
 					execute_bli(context.y, context.z, &context);
 				} else { // NONI (invalid instruction)
 					context.cycles += 4;
@@ -1153,13 +1172,13 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 							r->B--;
 							if (r->B != 0) {
 								context.cycles += 5;
-								r->PC += d;
+								r->WZ = r->PC += d;
 							}
 							break;
 						case 3: // JR d
 							context.cycles += 12;
 							d = context.d(&context);
-							r->PC += d;
+							r->WZ = r->PC += d;
 							break;
 						case 4:
 						case 5:
@@ -1169,7 +1188,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 							d = context.d(&context);
 							if (read_cc(context.y - 4, &context)) {
 								context.cycles += 5;
-								r->PC += d;
+								r->WZ = r->PC += d;
 							}
 							break;
 					}
@@ -1184,7 +1203,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						context.cycles += 11;
 						old16 = HLorIr(&context);
 						op16 = read_rp(context.p, &context);
-						new16 = HLorIw(&context, old16 + op16);
+						r->WZ = new16 = HLorIw(&context, old16 + op16);
 						r->F = __flag_s(r->flags.S) | _flag_zero(!r->flags.Z)
 							| _flag_undef_16(new16) | __flag_pv(r->flags.PV)
 							| _flag_subtract(0) | _flag_carry_16(old16 + op16)
@@ -1206,11 +1225,13 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 							break;
 						case 2: // LD (nn), HL
 							context.cycles += 16;
-							cpu_write_word(cpu, context.nn(&context), HLorIr(&context));
+							r->WZ = context.nn(&context);
+							cpu_write_word(cpu, r->WZ, HLorIr(&context));
 							break;
 						case 3: // LD (nn), A
 							context.cycles += 13;
-							cpu_write_byte(cpu, context.nn(&context), r->A);
+							r->WZ = context.nn(&context);
+							cpu_write_byte(cpu, r->WZ, r->A);
 							break;
 						}
 						break;
@@ -1226,12 +1247,13 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 							break;
 						case 2: // LD HL, (nn)
 							context.cycles += 16;
-							HLorIw(&context, cpu_read_word(cpu, context.nn(&context)));
+							r->WZ = context.nn(&context);
+							HLorIw(&context, cpu_read_word(cpu, r->WZ));
 							break;
 						case 3: // LD A, (nn)
 							context.cycles += 13;
-							old16 = context.nn(&context);
-							r->A = cpu_read_byte(cpu, old16);
+							r->WZ = context.nn(&context);
+							r->A = cpu_read_byte(cpu, r->WZ);
 							break;
 						}
 						break;
@@ -1448,9 +1470,9 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						break;
 					case 4: // EX (SP), HL
 						context.cycles += 19;
-						old16 = cpu_read_word(cpu, r->SP);
+						r->WZ = cpu_read_word(cpu, r->SP);
 						cpu_write_word(cpu, r->SP, HLorIr(&context));
-						HLorIw(&context, old16);
+						HLorIw(&context, r->WZ);
 						break;
 					case 5: // EX DE, HL
 						context.cycles += 4;

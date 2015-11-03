@@ -60,6 +60,7 @@ typedef struct {
 		};
 	};
 	uint8_t I, R;
+	uint16_t WZ;
 } z80registers_t;
 
 typedef enum {
@@ -106,6 +107,7 @@ int parity(uint8_t x);
 #define _flag_parity(a) __flag_pv(!parity(a))
 
 #define _flag_undef_8(a) ({ uint8_t _res = (a); __flag_5(_res & 0x20) | __flag_3(_res & 0x8);})
+#define _flag_undef_8_block(a) ({ uint8_t _res = (a); __flag_5(_res & 0x2) | __flag_3(_res & 0x8);})
 #define _flag_undef_16(a) ({ uint16_t _res = (a); __flag_5(_res & 0x2000) | __flag_3(_res & 0x800);})
 
 #define _flag_overflow_8_add(op1, op2, result) __flag_pv((op1 & 0x80) == (op2 & 0x80) && (op1 & 0x80) != (result & 0x80))

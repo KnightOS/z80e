@@ -143,12 +143,22 @@ void ti_interrupts_acknowledge_interrupt(ti_interrupts_t *interrupts, int flag) 
 	ti_interrupts_check_state(interrupts);
 }
 
+void depress_on_key(ti_interrupts_t *interrupts) {
+	interrupts->interrupted.on_key_pressed = 0;
+	ti_interrupts_interrupt(interrupts, INTERRUPT_ON_KEY);
+}
+
+void release_on_key(ti_interrupts_t *interrupts) {
+	interrupts->interrupted.on_key_pressed = 1;
+}
+
 uint8_t read_interrupt_mask(void *device) {
 	ti_interrupts_t *interrupts = device;
 	return
 		(interrupts->enabled.on_key ? INTERRUPT_ON_KEY : 0) |
 		(interrupts->enabled.first_timer ? INTERRUPT_FIRST_TIMER : 0) |
 		(interrupts->enabled.second_timer ? INTERRUPT_SECOND_TIMER : 0) |
+		(interrupts->enabled.low_power_mode ? INTERRUPT_LOW_POWER_MODE : 0) |
 		(interrupts->enabled.link_activity ? INTERRUPT_LINK_ACTIVITY : 0) |
 		(interrupts->enabled.first_crystal ? INTERRUPT_FIRST_CRYSTAL : 0) |
 		(interrupts->enabled.second_crystal ? INTERRUPT_SECOND_CRYSTAL: 0) |
@@ -162,6 +172,7 @@ void write_interrupt_mask(void *device, uint8_t value) {
 	interrupts->interrupted.first_timer &= (interrupts->enabled.first_timer = !!(value & INTERRUPT_FIRST_TIMER));
 	interrupts->interrupted.second_timer &= (interrupts->enabled.second_timer = !!(value & INTERRUPT_SECOND_TIMER));
 	// TODO: low-power mode
+	interrupts->enabled.low_power_mode = !!(value & INTERRUPT_LOW_POWER_MODE);
 	interrupts->interrupted.link_activity &= (interrupts->enabled.link_activity = !!(value & INTERRUPT_LINK_ACTIVITY));
 	interrupts->interrupted.first_crystal &= (interrupts->enabled.first_crystal = !!(value & INTERRUPT_FIRST_CRYSTAL));
 	interrupts->interrupted.second_crystal &= (interrupts->enabled.second_crystal = !!(value & INTERRUPT_SECOND_CRYSTAL));
@@ -176,6 +187,7 @@ uint8_t read_interrupting_device(void *device) {
 		(interrupts->interrupted.on_key ? INTERRUPT_ON_KEY : 0) |
 		(interrupts->interrupted.first_timer ? INTERRUPT_FIRST_TIMER : 0) |
 		(interrupts->interrupted.second_timer ? INTERRUPT_SECOND_TIMER : 0) |
+		(interrupts->interrupted.on_key_pressed ? INTERRUPT_ON_KEY_PRESSED : 0) |
 		(interrupts->interrupted.link_activity ? INTERRUPT_LINK_ACTIVITY : 0) |
 		(interrupts->interrupted.first_crystal ? INTERRUPT_FIRST_CRYSTAL : 0) |
 		(interrupts->interrupted.second_crystal ? INTERRUPT_SECOND_CRYSTAL: 0) |
@@ -253,6 +265,7 @@ z80iodevice_t init_interrupts(asic_t *asic, ti_interrupts_t **result) {
 	(*result)->asic = asic;
 	(*result)->first_timer_id = -1;
 	(*result)->second_timer_id = -1;
+	release_on_key(*result);
 	z80iodevice_t device = { *result, read_interrupt_mask, write_interrupt_mask };
 	return device;
 }

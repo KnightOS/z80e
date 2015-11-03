@@ -364,7 +364,11 @@ void sdl_events_hook(asic_t *device, void * unused) {
 					case SDLK_F11: /* F11 = Debugger */
 						break;
 					case SDLK_F12: /* F12 = On */
-						ti_interrupts_interrupt(device->interrupts, INTERRUPT_ON_KEY);
+						if (event.type == SDL_KEYDOWN) {
+							depress_on_key(device->interrupts);
+						} else {
+							release_on_key(device->interrupts);
+						}
 						break;
 					case SDLK_SPACE: /* Space = 0 */
 						key_tap(device, 0x40, event.type == SDL_KEYDOWN);
