@@ -660,12 +660,13 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 1: // CPI
 			context->cycles += 12;
-			new = cpu_read_byte(context->cpu, r->HL++);
-			uint8_t aminushl = r->A - new;
-			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(!--r->BC) | _flag_subtract(1)
-				| __flag_c(r->flags.C);
+			old = cpu_read_byte(context->cpu, r->HL++);
+			new = r->A - old;
+			hc = _flag_halfcarry_8_sub(r->A, old, 0) > 0;
+			r->F = _flag_sign_8(new) | _flag_zero(new)
+				| __flag_h(hc) | __flag_pv(--r->BC)
+				| _flag_subtract(1) | __flag_c(r->flags.C)
+				| _flag_undef_8_block(new - hc);
 			break;
 		case 2: // INI
 			context->cycles += 12;
@@ -702,12 +703,13 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 1: // CPD
 			context->cycles += 12;
-			new = cpu_read_byte(context->cpu, r->HL--);
-			uint8_t aminushl = r->A - new;
-			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(!--r->BC) | _flag_subtract(1)
-				| __flag_c(r->flags.C);
+			old = cpu_read_byte(context->cpu, r->HL--);
+			new = r->A - old;
+			hc = _flag_halfcarry_8_sub(r->A, old, 0) > 0;
+			r->F = _flag_sign_8(new) | _flag_zero(new)
+				| __flag_h(hc) | __flag_pv(--r->BC)
+				| _flag_subtract(1) | __flag_c(r->flags.C)
+				| _flag_undef_8_block(new - hc);
 			break;
 		case 2: // IND
 			context->cycles += 12;
@@ -748,13 +750,13 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 1: // CPIR
 			context->cycles += 12;
-			new = cpu_read_byte(context->cpu, r->HL++);
-			uint8_t aminushl = r->A - new;
-			r->BC--;
-			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(0) | _flag_subtract(1)
-				| __flag_c(r->flags.C);
+			old = cpu_read_byte(context->cpu, r->HL++);
+			new = r->A - old;
+			hc = _flag_halfcarry_8_sub(r->A, old, 0) > 0;
+			r->F = _flag_sign_8(new) | _flag_zero(new)
+				| __flag_h(hc) | __flag_pv(--r->BC)
+				| _flag_subtract(1) | __flag_c(r->flags.C)
+				| _flag_undef_8_block(new - hc);
 			if (r->BC && !r->flags.Z) {
 				context->cycles += 5;
 				r->PC -= 2;
@@ -807,13 +809,13 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 1: // CPDR
 			context->cycles += 12;
-			new = cpu_read_byte(context->cpu, r->HL--);
-			uint8_t aminushl = r->A - new;
-			r->BC--;
-			r->F = _flag_sign_8(aminushl) | _flag_zero(aminushl)
-				| _flag_halfcarry_8_sub(r->A, new, 0)
-				| __flag_pv(0) | _flag_subtract(1)
-				| __flag_c(r->flags.C);
+			old = cpu_read_byte(context->cpu, r->HL--);
+			new = r->A - old;
+			hc = _flag_halfcarry_8_sub(r->A, old, 0) > 0;
+			r->F = _flag_sign_8(new) | _flag_zero(new)
+				| __flag_h(hc) | __flag_pv(--r->BC)
+				| _flag_subtract(1) | __flag_c(r->flags.C)
+				| _flag_undef_8_block(new - hc);
 			if (r->BC && !r->flags.Z) {
 				context->cycles += 5;
 				r->PC -= 2;
