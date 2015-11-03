@@ -1465,7 +1465,7 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						break;
 					case 4: // EX (SP), HL
 						context.cycles += 19;
-						old16 = cpu_read_word(cpu, r->SP);
+						r->WZ = old16 = cpu_read_word(cpu, r->SP);
 						cpu_write_word(cpu, r->SP, HLorIr(&context));
 						HLorIw(&context, old16);
 						break;
