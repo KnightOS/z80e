@@ -18,6 +18,7 @@ struct ti_bw_lcd {
 	int Y; // which is left-right
 	int Z; // which is which y is rendered at top
 	uint8_t contrast; // 0-63
+	uint8_t read_reg; // on the hardware, reads are buffered in a register
 	uint8_t *ram; // [X * 64 + Y]
 
 	hook_info_t *hook;

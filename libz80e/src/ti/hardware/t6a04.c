@@ -95,7 +95,7 @@ void bw_lcd_status_write(void *device, uint8_t val) {
 		!!(val & (1 << 1)),
 		!!(val & (1 << 0))
 	);
-	if (val & 0xC0) { // 0b11XXXXXX
+	if ((val & 0xC0) == 0xC0) { // 0b11XXXXXX
 		lcd->contrast = val & 0x3F;
 		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tSet contrast to 0x%02X", lcd->contrast);
 	} else if (val & 0x80) { // 0b10XXXXXX
@@ -149,7 +149,12 @@ void bw_lcd_advance_pointer(ti_bw_lcd_t *lcd) {
 			}
 		} else {
 			lcd->Y++;
-			lcd->Y = lcd->Y % maxX;
+			// wrap at maxX
+			if (lcd->Y == maxX) {
+				lcd->Y = 0;
+			}
+			// unless already out of range, then wrap at 32
+			lcd->Y = lcd->Y % 32;
 		}
 	} else { // X
 		if (!lcd->up) {
@@ -170,12 +175,13 @@ uint8_t bw_lcd_data_read(void *device) {
 	int cY = lcd->Y * (lcd->word_length ? 8 : 6);
 	int cX = lcd->X;
 
+	uint8_t retval = lcd->read_reg;
 	int max = lcd->word_length ? 8 : 6;
 	int i = 0;
-	uint8_t retval = 0;
+	lcd->read_reg = 0;
 	for (i = 0; i < max; i++) {
-		retval |= bw_lcd_read_screen(lcd, cY, cX);
-		retval <<= 1;
+		lcd->read_reg <<= 1;
+		lcd->read_reg |= bw_lcd_read_screen(lcd, cY, cX);
 		cY++;
 	}
 
