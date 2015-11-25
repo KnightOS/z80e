@@ -24,20 +24,20 @@ int debugger_list_commands(debugger_state_t *state, int argc, char **argv) {
 
 int command_set(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 2) {
-		state->print(state, "%s `val` - set a setting\n", argv[0]);
+		state->print(state, "%s Set a setting. Available settings: \n 1. echo \n 2. echo_reg \n 3. auto_on \n 4. knightos \n 5. nointonstep \n", argv[0]);
 		return 0;
 	}
 
 	if (strcmp(argv[1], "echo") == 0) {
-		state->debugger->flags.echo = 1;
+		state->debugger->flags.echo = !state->debugger->flags.echo;
 	} else if (strcmp(argv[1], "echo_reg") == 0) {
-		state->debugger->flags.echo_reg = 1;
+		state->debugger->flags.echo_reg = !state->debugger->flags.echo_reg;
 	} else if (strcmp(argv[1], "auto_on") == 0) {
-		state->debugger->flags.auto_on = 1;
+		state->debugger->flags.auto_on = !state->debugger->flags.auto_on;
 	} else if (strcmp(argv[1], "knightos") == 0) {
-		state->debugger->flags.knightos = 1;
+		state->debugger->flags.knightos = !state->debugger->flags.knightos;
 	} else if (strcmp(argv[1], "nointonstep") == 0) {
-		state->debugger->flags.nointonstep = 1;
+		state->debugger->flags.nointonstep = !state->debugger->flags.nointonstep;
 	} else {
 		state->print(state, "Unknown variable '%s'!\n", argv[1]);
 		return 1;
@@ -135,6 +135,7 @@ int debugger_source_rc(debugger_state_t *state, const char *rc_name) {
 
 debugger_command_t default_commands[] = {
 	{ "list_commands", debugger_list_commands, 0 },
+	{ "?", debugger_list_commands, 0 },
 	{ "source", command_source, 0 },
 	{ "in", command_in, 0 },
 	{ "out", command_out, 0 },
@@ -161,6 +162,7 @@ debugger_command_t default_commands[] = {
 	{ "press_key", command_press_key, 0 },
 	{ "release_key", command_release_key, 0 },
 	{ "tap_key", command_tap_key, 0 },
+	{ "ld", command_load_register, 0 },
 };
 
 int default_command_count = sizeof(default_commands) / sizeof(debugger_command_t);
