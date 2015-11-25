@@ -5,7 +5,7 @@
 
 int command_load_register(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 3) {
-		state->print(state, "%s - Depress the specified key code, in hex or by name.\n", argv[0]);
+		state->print(state, "%s - Load a register with a specified value.\n", argv[0]);
 		return 0;
 	}
 #define REGISTER(num, len, print) \
