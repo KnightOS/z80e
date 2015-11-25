@@ -135,6 +135,7 @@ int debugger_source_rc(debugger_state_t *state, const char *rc_name) {
 
 debugger_command_t default_commands[] = {
 	{ "list_commands", debugger_list_commands, 0 },
+	{ "?", debugger_list_commands, 0 },
 	{ "source", command_source, 0 },
 	{ "in", command_in, 0 },
 	{ "out", command_out, 0 },
