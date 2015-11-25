@@ -5,16 +5,17 @@
 
 int command_load_register(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 3) {
-		state->print(state, "%s - Load a register with a specified value.\n", argv[0]);
+		state->print(state, "%s - Load a register with a specified value. Supports hex (i.e. 0x0000) and base-10 (i.e. 12)\n", argv[0]);
 		return 0;
 	}
+
 #define REGISTER(num, len, print) \
 	if (strncasecmp(argv[1], print, len) == 0) {\
 	char *result;\
 	if(isxdigit(argv[2])) {\
 		state->asic->cpu->registers. num = argv[2];\
 	} else {\
-	state->asic->cpu->registers. num = strtol(argv[2], &result, 16); \
+		state->asic->cpu->registers. num = strtol(argv[2], &result, 16); \
 	}\
 }
 		REGISTER(IXH, 3, "IXH");
