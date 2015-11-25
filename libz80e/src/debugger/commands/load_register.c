@@ -13,7 +13,7 @@ int command_load_register(debugger_state_t *state, int argc, char **argv) {
 	if (strncasecmp(argv[1], print, len) == 0) {\
 	char *result;\
 	if(isxdigit(argv[2])) {\
-		state->asic->cpu->registers. num = argv[2];\
+		state->asic->cpu->registers. num = atoi(argv[2]);\
 	} else {\
 		state->asic->cpu->registers. num = strtol(argv[2], &result, 16); \
 	}\
