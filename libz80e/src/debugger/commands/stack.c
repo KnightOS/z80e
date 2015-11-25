@@ -3,7 +3,7 @@
 #include "ti/memory.h"
 
 int command_stack(struct debugger_state *state, int argc, char **argv) {
-	if (argc > 2) {
+	if (argc > 1) {
 		state->print(state, "%s [count] - print first `count` (or 10) items on the stack\n", argv[0]);
 		return 0;
 	}
