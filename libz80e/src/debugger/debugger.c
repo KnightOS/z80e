@@ -29,15 +29,15 @@ int command_set(debugger_state_t *state, int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "echo") == 0) {
-		(state->debugger->flags.echo != 0) ? (state->debugger->flags.echo = 0) : (state->debugger->flags.echo = 1);
+		state->debugger->flags.echo = !state->debugger->flags.echo;
 	} else if (strcmp(argv[1], "echo_reg") == 0) {
-		(state->debugger->flags.echo_reg != 0) ? (state->debugger->flags.echo_reg = 0) : (state->debugger->flags.echo_reg = 1);
+		state->debugger->flags.echo_reg = !state->debugger->flags.echo_reg;
 	} else if (strcmp(argv[1], "auto_on") == 0) {
-		(state->debugger->flags.auto_on != 0) ? (state->debugger->flags.auto_on = 0) : (state->debugger->flags.auto_on = 1);
+		state->debugger->flags.auto_on = !state->debugger->flags.auto_on;
 	} else if (strcmp(argv[1], "knightos") == 0) {
-		(state->debugger->flags.knightos != 0) ? (state->debugger->flags.knightos = 0) : (state->debugger->flags.knightos = 1);
+		state->debugger->flags.knightos = !state->debugger->flags.knightos;
 	} else if (strcmp(argv[1], "nointonstep") == 0) {
-		(state->debugger->flags.nointonstep != 0) ? (state->debugger->flags.nointonstep = 0) : (state->debugger->flags.nointonstep = 1);
+		state->debugger->flags.nointonstep = !state->debugger->flags.nointonstep;
 	} else {
 		state->print(state, "Unknown variable '%s'!\n", argv[1]);
 		return 1;
