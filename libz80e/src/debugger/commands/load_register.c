@@ -1,6 +1,6 @@
 #include "debugger/commands.h"
 #include "debugger/debugger.h"
-
+#include <ctype.h>
 #include <string.h>
 
 int command_load_register(debugger_state_t *state, int argc, char **argv) {
@@ -10,7 +10,12 @@ int command_load_register(debugger_state_t *state, int argc, char **argv) {
 	}
 #define REGISTER(num, len, print) \
 	if (strncasecmp(argv[1], print, len) == 0) {\
-	state->asic->cpu->registers. num = argv[2]; \
+	char *result;\
+	if(isxdigit(argv[2])) {\
+		state->asic->cpu->registers. num = argv[2];\
+	} else {\
+	state->asic->cpu->registers. num = strtol(argv[2], &result, 16); \
+	}\
 }
 		REGISTER(IXH, 3, "IXH");
 		REGISTER(IXL, 3, "IXL");
