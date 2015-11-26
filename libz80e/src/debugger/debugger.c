@@ -24,7 +24,7 @@ int debugger_list_commands(debugger_state_t *state, int argc, char **argv) {
 
 int command_toggle(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 2) {
-		state->print(state, "%s Set a setting. Available settings: \n 1. echo \n 2. echo_reg \n 3. auto_on \n 4. knightos \n 5. nointonstep \n", argv[0]);
+		state->print(state, "Toggle a setting. Available settings: \n 1. echo \n 2. echo_reg \n 3. auto_on \n 4. knightos \n 5. nointonstep \n");
 		return 0;
 	}
 
