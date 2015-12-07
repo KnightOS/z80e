@@ -173,7 +173,8 @@ void ti_write_byte(void *memory, uint16_t address, uint8_t value) {
 			w->address = address;
 			w->value = value;
 			int partial_match = 0;
-			for (struct flash_pattern *pattern = patterns; pattern->length; pattern++) {
+			struct flash_pattern *pattern;
+			for (pattern = patterns; pattern->length; pattern++) {
 				int i;
 				for (i = 0; i < mmu->flash_write_index && i < pattern->length &&
 						 (mmu->flash_writes[i].address & pattern->pattern[i].address_mask) == pattern->pattern[i].address &&
