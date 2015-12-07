@@ -56,6 +56,42 @@ void ti_mmu_free(ti_mmu_t *mmu) {
 	free(mmu);
 }
 
+void chip_reset(ti_mmu_t *mmu, uint32_t address, uint8_t value) {
+	mmu->flash_write_index = 0;
+}
+
+void chip_write(ti_mmu_t *mmu, uint32_t address, uint8_t value) {
+	mmu->flash[address] &= value;
+}
+
+void chip_erase_sector(ti_mmu_t *mmu, uint32_t address, uint8_t value) {
+	uint32_t length = 0x10000;
+	if ((address >> 16) + 1 == mmu->settings.flash_pages >> 2) {
+		switch ((address >> 13) & 7) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+			length = 0x8000;
+			break;
+		case 4:
+		case 5:
+			length = 0x2000;
+			break;
+		case 6:
+		case 7:
+			length = 0x4000;
+			break;
+		}
+	}
+	memset(&mmu->flash[address & ~(length - 1)], 0xFF, length);
+}
+
+void chip_erase(ti_mmu_t *mmu, uint32_t address, uint8_t value) {
+	memset(mmu->flash, 0xFF, mmu->settings.flash_pages * 0x4000);
+	log_message(mmu->log, L_WARN, "mmu", "Erased entire Flash chip - you probably didn't want to do that.");
+}
+
 uint8_t ti_read_byte(void *memory, uint16_t address) {
 	ti_mmu_t *mmu = memory;
 	ti_mmu_bank_state_t bank = mmu->banks[address / 0x4000];
@@ -64,6 +100,7 @@ uint8_t ti_read_byte(void *memory, uint16_t address) {
 	mapped_address += bank.page * 0x4000;
 	uint8_t byte = 0;
 	if (bank.flash) {
+		chip_reset(mmu, mapped_address, 0);
 		byte = mmu->flash[mapped_address];
 	} else {
 		byte = mmu->ram[mapped_address];
@@ -73,35 +110,49 @@ uint8_t ti_read_byte(void *memory, uint16_t address) {
 }
 
 struct flash_pattern {
+	int length;
 	const flash_write_t pattern[6];
 	void (*handler)(ti_mmu_t *memory, uint32_t address, uint8_t value);
 };
 
-void chip_erase(ti_mmu_t *mmu, uint32_t address, uint8_t value) {
-	memset(mmu->flash, 0xFF, mmu->settings.flash_pages * 0x4000);
-	log_message(mmu->log, L_WARN, "mmu", "Erased entire Flash chip - you probably didn't want to do that.");
-}
-
 struct flash_pattern patterns[] = {
 	{
+		.length = 4,
 		.pattern = {
-			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA },
-			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55 },
-			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xA0 },
+			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA, .value_mask = 0xFF },
+			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55, .value_mask = 0xFF },
+			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xA0, .value_mask = 0xFF },
+			{ .address = 0x000, .address_mask = 0x000, .value = 0x00, .value_mask = 0x00 },
 		},
-		.handler = NULL // Program byte TODO
+		.handler = chip_write
 	},
 	{
+		.length = 6,
 		.pattern = {
-			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA },
-			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55 },
-			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0x80 },
-			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA },
-			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55 },
-			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0x10 },
+			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA, .value_mask = 0xFF },
+			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55, .value_mask = 0xFF },
+			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0x80, .value_mask = 0xFF },
+			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA, .value_mask = 0xFF },
+			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55, .value_mask = 0xFF },
+			{ .address = 0x000, .address_mask = 0x000, .value = 0x00, .value_mask = 0x00 },
+		},
+		.handler = chip_erase_sector
+	},
+	{
+		.length = 6,
+		.pattern = {
+			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA, .value_mask = 0xFF },
+			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55, .value_mask = 0xFF },
+			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0x80, .value_mask = 0xFF },
+			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA, .value_mask = 0xFF },
+			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55, .value_mask = 0xFF },
+			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0x10, .value_mask = 0xFF },
 		},
 		.handler = chip_erase
 	},
+	{
+		.length = 0
+	}
 	// TODO: More patterns
 };
 
@@ -121,7 +172,25 @@ void ti_write_byte(void *memory, uint16_t address, uint8_t value) {
 			flash_write_t *w = &mmu->flash_writes[mmu->flash_write_index++];
 			w->address = address;
 			w->value = value;
-			// Check for Flash command patterns TODO
+			int partial_match = 0;
+			struct flash_pattern *pattern;
+			for (pattern = patterns; pattern->length; pattern++) {
+				int i;
+				for (i = 0; i < mmu->flash_write_index && i < pattern->length &&
+						 (mmu->flash_writes[i].address & pattern->pattern[i].address_mask) == pattern->pattern[i].address &&
+						 (mmu->flash_writes[i].value & pattern->pattern[i].value_mask) == pattern->pattern[i].value; i++) {
+				}
+				if (i == pattern->length) {
+					pattern->handler(mmu, mapped_address, value);
+					partial_match = 0;
+					break;
+				} else if (i == mmu->flash_write_index) {
+					partial_match = 1;
+				}
+			}
+			if (!partial_match) {
+				chip_reset(mmu, mapped_address, value);
+			}
 		}
 	}
 }

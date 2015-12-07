@@ -24,6 +24,7 @@ typedef struct {
 	uint32_t address;
 	uint32_t address_mask;
 	uint8_t value;
+	uint8_t value_mask;
 } flash_write_t;
 
 struct ti_mmu {
