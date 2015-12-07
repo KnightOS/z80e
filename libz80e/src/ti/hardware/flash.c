@@ -13,7 +13,7 @@ uint8_t read_control_port(void *device) {
 void write_control_port(void *device, uint8_t data) {
 	flash_state_t *state = device;
 	// TODO: check permissions
-	state->asic->mmu->flash_unlocked = !!data;
+	state->asic->mmu->flash_unlocked = data & 1;
 }
 
 uint8_t read_size_port(void *device) {
