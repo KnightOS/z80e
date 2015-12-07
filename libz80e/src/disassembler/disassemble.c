@@ -605,10 +605,12 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 						write(memory, "EXX");
 						break;
 					case 2: // JP HL
-						write(memory, "JP HL");
+						write(memory, "JP ");
+						parse_HLorIr(&context);
 						break;
 					case 3: // LD SP, HL
-						write(memory, "LD SP, HL");
+						write(memory, "LD SP, ");
+						parse_HLorIr(&context);
 						break;
 					}
 					break;
