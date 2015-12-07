@@ -122,6 +122,7 @@ struct flash_pattern patterns[] = {
 			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA, .value_mask = 0xFF },
 			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55, .value_mask = 0xFF },
 			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xA0, .value_mask = 0xFF },
+			{ .address = 0x000, .address_mask = 0x000, .value = 0x00, .value_mask = 0x00 },
 		},
 		.handler = chip_write
 	},
@@ -133,6 +134,7 @@ struct flash_pattern patterns[] = {
 			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0x80, .value_mask = 0xFF },
 			{ .address = 0xAAA, .address_mask = 0xFFF, .value = 0xAA, .value_mask = 0xFF },
 			{ .address = 0x555, .address_mask = 0xFFF, .value = 0x55, .value_mask = 0xFF },
+			{ .address = 0x000, .address_mask = 0x000, .value = 0x00, .value_mask = 0x00 },
 		},
 		.handler = chip_erase_sector
 	},
