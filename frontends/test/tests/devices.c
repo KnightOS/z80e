@@ -153,3 +153,21 @@ int test_status() {
 	asic_free(asic);
 	return 0;
 }
+
+int test_link_port() {
+	asic_t *asic = asic_init(TI83p, NULL);
+	z80iodevice_t link = asic->cpu->devices[0x00];
+	link_state_t *state = link.device;
+	uint8_t value = link.read_in(state);
+	if (value != 0) {
+		asic_free(asic);
+		return 1;
+	}
+	link.write_out(state, 0x01);
+	value = link.read_in(state);
+	if (value != 0x11) {
+		asic_free(asic);
+		return 2;
+	}
+	return 0;
+}

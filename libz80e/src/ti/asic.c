@@ -12,6 +12,7 @@
 #include "ti/hardware/keyboard.h"
 #include "ti/hardware/status.h"
 #include "ti/hardware/flash.h"
+#include "ti/hardware/link.h"
 
 typedef struct {
 	asic_t *asic;
@@ -42,7 +43,6 @@ void plug_devices(asic_t *asic) {
 		asic->cpu->devices[i] = device;
 	}
 
-	/* Link port unimplemented */
 	asic->cpu->devices[0x01] = init_keyboard();
 	asic->cpu->devices[0x02] = init_status(asic);
 	asic->cpu->devices[0x03] = init_interrupts(asic, &asic->interrupts);
@@ -52,6 +52,7 @@ void plug_devices(asic_t *asic) {
 		asic->cpu->devices[0x20] = init_speed(asic);
 	}
 
+	init_link_ports(asic);
 	init_mapping_ports(asic);
 	init_flash_ports(asic);
 }

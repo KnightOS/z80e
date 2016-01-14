@@ -6,6 +6,7 @@
 #include <z80e/ti/hardware/keyboard.h>
 #include <z80e/ti/hardware/memorymapping.h>
 #include <z80e/ti/hardware/status.h>
+#include <z80e/ti/hardware/link.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -137,6 +138,7 @@ const test_t tests[] = {
 	{ test_status, "port 0x02 (status)" },
 	{ test_memorymapping_83p, "port 0x04, 0x05, 0x06, 0x07 (mapping, TI-83+)" },
 	{ test_memorymapping_others, "port 0x04, 0x05, 0x06, 0x07 (mapping, Others)" },
+	{ test_link_port, "port 0x00 (link port)" },
 	{ NULL, "Debugger tests" },
 	{ test_debugger_init, "debugger_init()" },
 	{ test_debugger_find_command, "find_best_command()" },
