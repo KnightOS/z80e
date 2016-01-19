@@ -23,9 +23,23 @@ typedef struct {
 			uint8_t disabled	: 1;
 		};
 	} interrupts;
+	void (*send)(uint8_t val, void *data);
+	struct {
+		uint8_t buffer[0x100];
+		int recv_index;
+		int read_index;
+	} la;
 } link_state_t;
 
 void init_link_ports(asic_t *asic);
 void free_link_ports(asic_t *asic);
+/**
+ * Receives a byte via link assist.
+ */
+void link_recv_byte(asic_t *asic, uint8_t val);
+/**
+ * Sets the handler for when the emulated calculator attempts to send a byte.
+ */
+void link_send_byte(asic_t *asic, void (*handler)(uint8_t val, void *data));
 
 #endif
