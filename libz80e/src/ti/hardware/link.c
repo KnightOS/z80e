@@ -41,6 +41,29 @@ void write_link_port(void *device, uint8_t val) {
 	state->us.ring = ring;
 }
 
+uint8_t read_link_assist_enable_port(void *device) {
+	link_state_t *state = device;
+	switch (state->asic->device) {
+	case TI73:
+	case TI83p:
+		return 0;
+	default:
+		return state->interrupts.mask;
+	}
+}
+
+void write_link_assist_enable_port(void *device, uint8_t val) {
+	link_state_t *state = device;
+	switch (state->asic->device) {
+	case TI73:
+	case TI83p:
+		break;
+	default:
+		state->interrupts.mask = val;
+		break;
+	}
+}
+
 void init_link_ports(asic_t *asic) {
 	link_state_t *state = malloc(sizeof(link_state_t));
 
@@ -48,9 +71,11 @@ void init_link_ports(asic_t *asic) {
 	state->asic = asic;
 
 	z80iodevice_t link_port = { state, read_link_port, write_link_port };
+	z80iodevice_t link_assist_enable = { state, read_link_assist_enable_port, write_link_assist_enable_port };
 	// TODO: link assist ports
 
 	asic->cpu->devices[0x00] = link_port;
+	asic->cpu->devices[0x08] = link_assist_enable;
 }
 
 void free_link_ports(asic_t *asic) {
