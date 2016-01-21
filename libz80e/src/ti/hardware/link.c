@@ -71,14 +71,36 @@ uint8_t read_link_assist_buffer_port(void *device) {
 	case TI83p:
 		return 0;
 	default:
-		if (state->la.read_index == state->la.recv_index) {
+		if (!state->assist.status.rx_ready) {
 			return 0;
 		}
-		return state->la.buffer[state->la.recv_index++];
+		if (state->assist.status.int_tx_ready) {
+			state->asic->cpu->interrupt = 0;
+		}
+		state->assist.status.rx_ready = false;
+		state->assist.status.int_rx_ready = false;
+		uint8_t val = state->assist.rx_buffer;
+		state->assist.rx_buffer = 0;
+		return val;
 	}
 }
 
 void write_link_assist_buffer_port(void *device, uint8_t val) {
+	// Not emualted by z80e
+}
+
+uint8_t read_link_assist_status_port(void *device) {
+	link_state_t *state = device;
+	switch (state->asic->device) {
+	case TI73:
+	case TI83p:
+		return 0;
+	default:
+		return state->assist.status.u8;
+	}
+}
+
+void write_link_assist_status_port(void *device, uint8_t val) {
 	// Not emualted by z80e
 }
 
@@ -90,10 +112,12 @@ void init_link_ports(asic_t *asic) {
 
 	z80iodevice_t link_port = { state, read_link_port, write_link_port };
 	z80iodevice_t link_assist_enable = { state, read_link_assist_enable_port, write_link_assist_enable_port };
+	z80iodevice_t link_assist_status = { state, read_link_assist_status_port, write_link_assist_status_port };
 	z80iodevice_t link_assist_buffer_read = { state, read_link_assist_buffer_port, write_link_assist_buffer_port };
 
 	asic->cpu->devices[0x00] = link_port;
 	asic->cpu->devices[0x08] = link_assist_enable;
+	asic->cpu->devices[0x09] = link_assist_status;
 	asic->cpu->devices[0x0A] = link_assist_buffer_read;
 }
 
@@ -101,26 +125,29 @@ void free_link_ports(asic_t *asic) {
 	free(asic->cpu->devices[0x00].device);
 }
 
-/**
- * Receives a byte via link assist.
- */
-void link_recv_byte(asic_t *asic, uint8_t val) {
-	// TODO: better buffering here
+bool link_recv_byte(asic_t *asic, uint8_t val) {
 	link_state_t *state = asic->cpu->devices[0x00].device;
-	state->la.buffer[state->la.read_index++] = val;
-	if (state->la.read_index == 0xFF) {
-		state->la.read_index = 0;
+	if (state->assist.status.rx_ready) {
+		return false;
 	}
-	if (!state->interrupts.disabled) {
-		// TODO
-		// asic->cpu->interrupt = 1;
+	state->assist.status.rx_ready = state->assist.status.int_rx_ready = true;
+	state->assist.rx_buffer = val;
+
+	if (!state->interrupts.disabled && !state->interrupts.rx) {
+		asic->cpu->interrupt = 1;
 	}
+	return true;
 }
 
-/**
- * Sets the handler for when the emulated calculator attempts to send a byte.
- */
-void link_send_byte(asic_t *asic, void (*handler)(uint8_t val, void *data)) {
+int link_read_tx_buffer(asic_t *asic) {
 	link_state_t *state = asic->cpu->devices[0x00].device;
-	state->send = handler;
+	if (state->assist.status.tx_active) {
+		state->assist.status.tx_active = false;
+		state->assist.status.tx_ready = state->assist.status.int_tx_ready = true;
+		if (!state->interrupts.disabled && !state->interrupts.tx) {
+			asic->cpu->interrupt = 1;
+		}
+		return state->assist.tx_buffer;
+	}
+	return EOF;
 }
