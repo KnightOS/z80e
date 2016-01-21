@@ -29,9 +29,11 @@ uint8_t read_status(void *_status) {
 		value |= 0x04;
 	}
 
-	// Note: Bits 3-6 unimplemented on the TI-83+ and TI-73 (link assist)
 	if (status->asic->device != TI73 && status->asic->device != TI83p) {
 		value |= 0x80;
+	}
+	if (status->asic->device != TI73 && status->asic->device != TI83p) {
+		value |= 0x40; // link assist available
 	}
 	if (status->asic->device == TI84p || status->asic->device == TI84pSE || status->asic->device == TI84pCSE) {
 		value |= 0x20;
