@@ -64,7 +64,7 @@ void write_link_assist_enable_port(void *device, uint8_t val) {
 	}
 }
 
-uint8_t read_link_assist_buffer_port(void *device) {
+uint8_t read_link_assist_rx_port(void *device) {
 	link_state_t *state = device;
 	switch (state->asic->device) {
 	case TI73:
@@ -85,7 +85,7 @@ uint8_t read_link_assist_buffer_port(void *device) {
 	}
 }
 
-void write_link_assist_buffer_port(void *device, uint8_t val) {
+void write_link_assist_rx_port(void *device, uint8_t val) {
 	// Not emualted by z80e
 }
 
@@ -104,6 +104,21 @@ void write_link_assist_status_port(void *device, uint8_t val) {
 	// Not emualted by z80e
 }
 
+uint8_t read_link_assist_tx_port(void *device) {
+	return 0; // no-op
+}
+
+void write_link_assist_tx_port(void *device, uint8_t val) {
+	link_state_t *state = device;
+	if (!state->assist.status.tx_ready) {
+		// TODO: What actually happens? Probably this behavior tbh
+		return;
+	}
+	state->assist.status.tx_ready = state->assist.status.int_tx_ready = false;
+	state->assist.status.tx_active = true;
+	state->assist.tx_buffer = val;
+}
+
 void init_link_ports(asic_t *asic) {
 	link_state_t *state = malloc(sizeof(link_state_t));
 
@@ -113,12 +128,14 @@ void init_link_ports(asic_t *asic) {
 	z80iodevice_t link_port = { state, read_link_port, write_link_port };
 	z80iodevice_t link_assist_enable = { state, read_link_assist_enable_port, write_link_assist_enable_port };
 	z80iodevice_t link_assist_status = { state, read_link_assist_status_port, write_link_assist_status_port };
-	z80iodevice_t link_assist_buffer_read = { state, read_link_assist_buffer_port, write_link_assist_buffer_port };
+	z80iodevice_t link_assist_rx_read = { state, read_link_assist_rx_port, write_link_assist_rx_port };
+	z80iodevice_t link_assist_tx_read = { state, read_link_assist_tx_port, write_link_assist_tx_port };
 
 	asic->cpu->devices[0x00] = link_port;
 	asic->cpu->devices[0x08] = link_assist_enable;
 	asic->cpu->devices[0x09] = link_assist_status;
-	asic->cpu->devices[0x0A] = link_assist_buffer_read;
+	asic->cpu->devices[0x0A] = link_assist_rx_read;
+	asic->cpu->devices[0x0D] = link_assist_tx_read;
 }
 
 void free_link_ports(asic_t *asic) {
