@@ -171,3 +171,39 @@ int test_link_port() {
 	}
 	return 0;
 }
+
+int test_link_assist_rx() {
+	asic_t *asic = asic_init(TI83p, NULL);
+	z80iodevice_t link_assist_rx_read = asic->cpu->devices[0x0A];
+	z80iodevice_t link_assist_status = asic->cpu->devices[0x09];
+	link_state_t *state = link_assist_rx_read.device;
+
+	if (!link_recv_byte(asic, 0xBE)) {
+		asic_free(asic);
+		return 1;
+	}
+	if (link_recv_byte(asic, 0xEF)) {
+		asic_free(asic);
+		return 2;
+	}
+
+	uint8_t status = link_assist_status.read_in(state);
+	if (status != state->assist.status.u8 ||
+			!state->assist.status.rx_ready ||
+			!state->assist.status.int_rx_ready) {
+		return 3;
+	}
+
+	uint8_t val = link_assist_rx_read.read_in(state);
+	if (val != 0xBE) {
+		return 4;
+	}
+
+	status = link_assist_status.read_in(state);
+	if (status != state->assist.status.u8 ||
+			state->assist.status.rx_ready ||
+			state->assist.status.int_rx_ready) {
+		return 5;
+	}
+	return 0;
+}
