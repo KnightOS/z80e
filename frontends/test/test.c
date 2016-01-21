@@ -139,6 +139,8 @@ const test_t tests[] = {
 	{ test_memorymapping_83p, "port 0x04, 0x05, 0x06, 0x07 (mapping, TI-83+)" },
 	{ test_memorymapping_others, "port 0x04, 0x05, 0x06, 0x07 (mapping, Others)" },
 	{ test_link_port, "port 0x00 (link port)" },
+	{ test_link_assist_rx, "port 0x0A (link assist rx)" },
+	{ test_link_assist_tx, "port 0x0D (link assist tx)" },
 	{ NULL, "Debugger tests" },
 	{ test_debugger_init, "debugger_init()" },
 	{ test_debugger_find_command, "find_best_command()" },
