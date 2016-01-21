@@ -60,6 +60,9 @@ void write_link_assist_enable_port(void *device, uint8_t val) {
 		break;
 	default:
 		state->interrupts.mask = val;
+		if (state->interrupts.tx && state->assist.status.int_tx_ready) {
+			state->asic->cpu->interrupt = 1;
+		}
 		break;
 	}
 }
@@ -124,6 +127,7 @@ void init_link_ports(asic_t *asic) {
 
 	memset(state, 0, sizeof(link_state_t));
 	state->asic = asic;
+	state->assist.status.tx_ready = state->assist.status.int_tx_ready = true;
 
 	z80iodevice_t link_port = { state, read_link_port, write_link_port };
 	z80iodevice_t link_assist_enable = { state, read_link_assist_enable_port, write_link_assist_enable_port };
