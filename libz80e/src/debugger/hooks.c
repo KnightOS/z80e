@@ -37,6 +37,19 @@ typedef struct {
 
 typedef struct {
 	void *data;
+	hook_port_callback callback;
+	uint8_t range_start;
+	uint8_t range_end;
+	int flags;
+} port_hook_callback_t;
+
+typedef struct {
+	int capacity;
+	port_hook_callback_t *callbacks;
+} hook_port_array_t;
+
+typedef struct {
+	void *data;
 	hook_execution_callback callback;
 	int flags;
 } execution_hook_callback_t;
@@ -67,6 +80,9 @@ struct hook_info {
 	hook_register_array_t *on_register_read;
 	hook_register_array_t *on_register_write;
 
+	hook_port_array_t *on_port_in;
+	hook_port_array_t *on_port_out;
+
 	hook_execution_array_t *on_before_execution;
 	hook_execution_array_t *on_after_execution;
 
@@ -96,6 +112,14 @@ hook_info_t *create_hook_set(asic_t *asic) {
 	info->on_register_write = malloc(sizeof(hook_register_array_t));
 	info->on_register_write->capacity = 10;
 	info->on_register_write->callbacks = calloc(10, sizeof(register_hook_callback_t));
+
+	info->on_port_in = malloc(sizeof(hook_port_array_t));
+	info->on_port_in->capacity = 10;
+	info->on_port_in->callbacks = calloc(10, sizeof(port_hook_callback_t));
+
+	info->on_port_out = malloc(sizeof(hook_port_array_t));
+	info->on_port_out->capacity = 10;
+	info->on_port_out->callbacks = calloc(10, sizeof(port_hook_callback_t));
 
 	info->on_before_execution = malloc(sizeof(hook_execution_array_t));
 	info->on_before_execution->capacity = 10;
@@ -245,6 +269,74 @@ void hook_remove_register_write(hook_info_t *info, int index) {
 
 int hook_add_register_write(hook_info_t *info, registers flags, void *data, hook_register_callback callback) {
 	return hook_add_to_register_array(info->on_register_write, flags, data, callback);
+}
+
+uint8_t hook_on_port_in(hook_info_t *info, uint8_t port, uint8_t value) {
+	int i = 0;
+	for (i = 0; i < info->on_port_in->capacity; i++) {
+		port_hook_callback_t *cb = &info->on_port_in->callbacks[i];
+		if (cb->flags & IN_USE && port >= cb->range_start && port <= cb->range_end) {
+			value = cb->callback(cb->data, port, value);
+		}
+	}
+	return value;
+}
+
+uint8_t hook_on_port_out(hook_info_t *info, uint8_t port, uint8_t value) {
+	int i = 0;
+	for (i = 0; i < info->on_port_out->capacity; i++) {
+		port_hook_callback_t *cb = &info->on_port_out->callbacks[i];
+		if (cb->flags & IN_USE && port >= cb->range_start && port <= cb->range_end) {
+			value = cb->callback(cb->data, port, value);
+		}
+	}
+	return value;
+}
+
+int hook_add_to_port_array(hook_port_array_t *hook, uint8_t range_start, uint8_t range_end, void *data, hook_port_callback callback) {
+	int x = 0;
+
+	for (; x < hook->capacity; x++) {
+		if (!(hook->callbacks[x].flags & IN_USE)) {
+			break;
+		}
+
+		if (x == hook->capacity - 1) {
+			hook->capacity += 10;
+			void *n = realloc(hook->callbacks, sizeof(port_hook_callback_t) * hook->capacity);
+			if (n == NULL) {
+				return -1;
+			}
+
+			hook->callbacks = n;
+			memset(n + sizeof(port_hook_callback_t) * (hook->capacity - 10), 0, sizeof(port_hook_callback_t) * 10);
+		}
+	}
+	port_hook_callback_t *cb = &hook->callbacks[x];
+
+	cb->data = data;
+	cb->range_start = range_start;
+	cb->range_end = range_end;
+	cb->callback = callback;
+	cb->flags = IN_USE;
+
+	return x;
+}
+
+void hook_remove_port_in(hook_info_t *info, int index) {
+	info->on_port_in->callbacks[index].flags &= ~IN_USE;
+}
+
+int hook_add_port_in(hook_info_t *info, uint8_t range_start, uint8_t range_end, void *data, hook_port_callback callback) {
+	return hook_add_to_port_array(info->on_port_in, range_start, range_end, data, callback);
+}
+
+void hook_remove_port_out(hook_info_t *info, int index) {
+	info->on_port_out->callbacks[index].flags &= ~IN_USE;
+}
+
+int hook_add_port_out(hook_info_t *info, uint8_t range_start, uint8_t range_end, void *data, hook_port_callback callback) {
+	return hook_add_to_port_array(info->on_port_out, range_start, range_end, data, callback);
 }
 
 void hook_on_before_execution(hook_info_t *info, uint16_t address) {

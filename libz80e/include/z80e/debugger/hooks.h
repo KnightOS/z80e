@@ -35,6 +35,18 @@ int hook_add_register_read(hook_info_t *, registers flags, void *data, hook_regi
 void hook_remove_register_write(hook_info_t *, int);
 int hook_add_register_write(hook_info_t *, registers flags, void *data, hook_register_callback);
 
+// Port hooks
+
+uint8_t hook_on_port_in(hook_info_t *, uint8_t port, uint8_t value);
+uint8_t hook_on_port_out(hook_info_t *, uint8_t port, uint8_t value);
+
+typedef uint8_t (*hook_port_callback)(void *data, uint8_t port, uint8_t value);
+
+void hook_remove_port_in(hook_info_t *, int);
+int hook_add_port_in(hook_info_t *, uint8_t port_range_start, uint8_t port_range_end, void *data, hook_port_callback);
+void hook_remove_port_out(hook_info_t *, int);
+int hook_add_port_out(hook_info_t *, uint8_t port_range_start, uint8_t port_range_end, void *data, hook_port_callback);
+
 // Execution hooks
 
 void hook_on_before_execution(hook_info_t *, uint16_t address);

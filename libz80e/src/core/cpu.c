@@ -240,16 +240,19 @@ void cpu_write_word(z80cpu_t *cpu, uint16_t address, uint16_t value) {
 
 uint8_t cpu_port_in(z80cpu_t *cpu, uint8_t port) {
 	z80iodevice_t device = cpu->devices[port];
+	uint8_t val = 0;
 	if (device.read_in != NULL) {
-		return device.read_in(device.device);
+		val = device.read_in(device.device);
+		val = hook_on_port_in(cpu->hook, port, val);
 	}
-	return 0;
+	return val;
 }
 
-void cpu_port_out(z80cpu_t *cpu, uint8_t port, uint8_t value) {
+void cpu_port_out(z80cpu_t *cpu, uint8_t port, uint8_t val) {
 	z80iodevice_t device = cpu->devices[port];
 	if (device.write_out != NULL) {
-		device.write_out(device.device, value);
+		val = hook_on_port_out(cpu->hook, port, val);
+		device.write_out(device.device, val);
 	}
 }
 
