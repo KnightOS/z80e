@@ -60,9 +60,8 @@ void write_link_assist_enable_port(void *device, uint8_t val) {
 		break;
 	default:
 		state->interrupts.mask = val;
-		if (state->interrupts.tx && state->assist.status.int_tx_ready) {
-			state->asic->cpu->interrupt = 1;
-		}
+		state->asic->cpu->interrupt = (state->interrupts.tx && state->assist.status.int_tx_ready)
+			|| (state->interrupts.rx && state->assist.status.int_rx_ready);
 		break;
 	}
 }
