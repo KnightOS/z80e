@@ -12,6 +12,7 @@ enum {
 	REGISTER,
 	MEMORY,
 	EXECUTION,
+	PORT
 };
 
 enum {
@@ -71,6 +72,12 @@ uint8_t command_on_memory_hook(void *state, uint16_t location, uint8_t value) {
 	return value;
 }
 
+uint8_t command_on_port_hook(void *state, uint8_t port, uint8_t value) {
+	on_state_t *data = state;
+	debugger_exec(data->deb_sta, data->exec_string);
+	return value;
+}
+
 int command_on(struct debugger_state *state, int argc, char **argv) {
 	if (argc < 5) {
 		printf("%s `type` `read|write` `value` `command`\n"
@@ -124,6 +131,14 @@ int command_on(struct debugger_state *state, int argc, char **argv) {
 		}
 		if (thing & WRITE) {
 			hook_add_memory_write(state->asic->hook, sta->look_for, sta->look_for, sta, command_on_memory_hook);
+		}
+	} else if (strncasecmp(argv[1], "port", 4) == 0) {
+		sta->look_for = parse_expression(state, argv[3]);
+		if (thing & READ) {
+			hook_add_port_in(state->asic->hook, sta->look_for, sta->look_for, sta, command_on_port_hook);
+		}
+		if (thing & WRITE) {
+			hook_add_port_out(state->asic->hook, sta->look_for, sta->look_for, sta, command_on_port_hook);
 		}
 	} else {
 		free(sta);
