@@ -130,6 +130,7 @@ uint8_t cpu_read_register_byte(z80cpu_t *cpu, registers reg_to_read) {
 
 	return return_value;
 }
+
 uint16_t cpu_write_register_word(z80cpu_t *cpu, registers reg_to_read, uint16_t value) {
 	uint16_t return_value = value;
 	return_value = hook_on_register_write(cpu->hook, reg_to_read, value);
@@ -235,6 +236,21 @@ uint16_t cpu_read_word(z80cpu_t *cpu, uint16_t address) {
 void cpu_write_word(z80cpu_t *cpu, uint16_t address, uint16_t value) {
 	cpu->write_byte(cpu->memory, address, value & 0xFF);
 	cpu->write_byte(cpu->memory, address + 1, value >> 8);
+}
+
+uint8_t cpu_port_in(z80cpu_t *cpu, uint8_t port) {
+	z80iodevice_t device = cpu->devices[port];
+	if (device.read_in != NULL) {
+		return device.read_in(device.device);
+	}
+	return 0;
+}
+
+void cpu_port_out(z80cpu_t *cpu, uint8_t port, uint8_t value) {
+	z80iodevice_t device = cpu->devices[port];
+	if (device.write_out != NULL) {
+		device.write_out(device.device, value);
+	}
 }
 
 void push(z80cpu_t *cpu, uint16_t value) {
@@ -646,7 +662,6 @@ void execute_rot(int y, int z, int switch_opcode_data, struct ExecutionContext *
 
 void execute_bli(int y, int z, struct ExecutionContext *context) {
 	z80registers_t *r = &context->cpu->registers;
-	z80iodevice_t ioDevice;
 	uint8_t old, new, hc;
 	switch (y) {
 	case 4:
@@ -672,20 +687,14 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 2: // INI
 			context->cycles += 12;
-			ioDevice = context->cpu->devices[r->C];
-			if (ioDevice.read_in != NULL) {
-				cpu_write_byte(context->cpu, r->HL, ioDevice.read_in(ioDevice.device));
-			}
+			cpu_write_byte(context->cpu, r->HL, cpu_port_in(context->cpu, r->C));
 			r->HL++;
 			r->flags.Z = !--r->B;
 			r->flags.N = 1;
 			break;
 		case 3: // OUTI
 			context->cycles += 12;
-			ioDevice = context->cpu->devices[r->C];
-			if (ioDevice.write_out != NULL) {
-				ioDevice.write_out(ioDevice.device, cpu_read_byte(context->cpu, r->HL));
-			}
+			cpu_port_out(context->cpu, r->C, cpu_read_byte(context->cpu, r->HL));
 			r->HL++;
 			r->flags.Z = !--r->B;
 			r->flags.N = 1;
@@ -715,20 +724,14 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 2: // IND
 			context->cycles += 12;
-			ioDevice = context->cpu->devices[r->C];
-			if (ioDevice.read_in != NULL) {
-				cpu_write_byte(context->cpu, r->HL, ioDevice.read_in(ioDevice.device));
-			}
+			cpu_write_byte(context->cpu, r->HL, cpu_port_in(context->cpu, r->C));
 			r->HL--;
 			r->flags.Z = !--r->B;
 			r->flags.N = 1;
 			break;
 		case 3: // OUTD
 			context->cycles += 12;
-			ioDevice = context->cpu->devices[r->C];
-			if (ioDevice.write_out != NULL) {
-				ioDevice.write_out(ioDevice.device, cpu_read_byte(context->cpu, r->HL));
-			}
+			cpu_port_out(context->cpu, r->C, cpu_read_byte(context->cpu, r->HL));
 			r->HL--;
 			r->flags.Z = !--r->B;
 			r->flags.N = 1;
@@ -766,10 +769,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 2: // INIR
 			context->cycles += 12;
-			ioDevice = context->cpu->devices[r->C];
-			if (ioDevice.read_in != NULL) {
-				cpu_write_byte(context->cpu, r->HL, ioDevice.read_in(ioDevice.device));
-			}
+			cpu_write_byte(context->cpu, r->HL, cpu_port_in(context->cpu, r->C));
 			r->HL++;
 			r->flags.Z = !--r->B;
 			r->flags.N = 1;
@@ -780,10 +780,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 3: // OTIR
 			context->cycles += 12;
-			ioDevice = context->cpu->devices[r->C];
-			if (ioDevice.write_out != NULL) {
-				ioDevice.write_out(ioDevice.device, cpu_read_byte(context->cpu, r->HL));
-			}
+			cpu_port_out(context->cpu, r->C, cpu_read_byte(context->cpu, r->HL));
 			r->HL++;
 			r->flags.Z = !--r->B;
 			r->flags.N = 1;
@@ -825,10 +822,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 2: // INDR
 			context->cycles += 12;
-			ioDevice = context->cpu->devices[r->C];
-			if (ioDevice.read_in != NULL) {
-				cpu_write_byte(context->cpu, r->HL, ioDevice.read_in(ioDevice.device));
-			}
+			cpu_write_byte(context->cpu, r->HL, cpu_port_in(context->cpu, r->C));
 			r->HL--;
 			r->flags.Z = !--r->B;
 			r->flags.N = 1;
@@ -839,10 +833,7 @@ void execute_bli(int y, int z, struct ExecutionContext *context) {
 			break;
 		case 3: // OTDR
 			context->cycles += 12;
-			ioDevice = context->cpu->devices[r->C];
-			if (ioDevice.write_out != NULL) {
-				ioDevice.write_out(ioDevice.device, cpu_read_byte(context->cpu, r->HL));
-			}
+			cpu_port_out(context->cpu, r->C, cpu_read_byte(context->cpu, r->HL));
 			r->HL--;
 			r->flags.Z = !--r->B;
 			r->flags.N = 1;
@@ -928,7 +919,6 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 		int reset_prefix = 1;
 
 		z80registers_t *r = &cpu->registers;
-		z80iodevice_t ioDevice;
 
 		uint8_t old_r = r->R;
 		r->R++;
@@ -985,24 +975,18 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 				case 0:
 					if (context.y == 6) { // IN (C)
 						context.cycles += 8;
-						ioDevice = cpu->devices[cpu->registers.C];
-						if (ioDevice.read_in != NULL) {
-							new = ioDevice.read_in(ioDevice.device);
-							r->F = _flag_sign_8(new) | _flag_undef_8(new)
-								| __flag_c(r->flags.C) | _flag_zero(new)
-								| _flag_parity(new);
-						}
+						new = cpu_port_in(cpu, r->C);
+						r->F = _flag_sign_8(new) | _flag_undef_8(new)
+							| __flag_c(r->flags.C) | _flag_zero(new)
+							| _flag_parity(new);
 					} else { // IN r[y], (C)
 						context.cycles += 8;
-						ioDevice = cpu->devices[r->C];
-						if (ioDevice.read_in != NULL) {
-							new = ioDevice.read_in(ioDevice.device);
-							old = read_r(context.y, &context);
-							write_r(context.y, new, &context);
-							r->F = _flag_sign_8(new) | _flag_undef_8(new)
-								| __flag_c(r->flags.C) | _flag_zero(new)
-								| _flag_parity(new);
-						}
+						new = cpu_port_in(cpu, r->C);
+						old = read_r(context.y, &context);
+						write_r(context.y, new, &context);
+						r->F = _flag_sign_8(new) | _flag_undef_8(new)
+							| __flag_c(r->flags.C) | _flag_zero(new)
+							| _flag_parity(new);
 					}
 					break;
 				case 1:
@@ -1012,16 +996,10 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						// correctly, but I have verified through my own research that the
 						// correct value to output is 0xFF.
 						context.cycles += 8;
-						ioDevice = cpu->devices[r->C];
-						if (ioDevice.write_out != NULL) {
-							ioDevice.write_out(ioDevice.device, 0xFF);
-						}
+						cpu_port_out(cpu, r->C, 0xFF);
 					} else { // OUT (C), r[y]
 						context.cycles += 8;
-						ioDevice = cpu->devices[r->C];
-						if (ioDevice.write_out != NULL) {
-							ioDevice.write_out(ioDevice.device, read_r(context.y, &context));
-						}
+						cpu_port_out(cpu, r->C, read_r(context.y, &context));
 					}
 					break;
 				case 2:
@@ -1456,17 +1434,11 @@ int cpu_execute(z80cpu_t *cpu, int cycles) {
 						break;
 					case 2: // OUT (n), A
 						context.cycles += 11;
-						ioDevice = cpu->devices[context.n(&context)];
-						if (ioDevice.write_out != NULL) {
-							ioDevice.write_out(ioDevice.device, r->A);
-						}
+						cpu_port_out(cpu, context.n(&context), r->A);
 						break;
 					case 3: // IN A, (n)
 						context.cycles += 11;
-						ioDevice = cpu->devices[context.n(&context)];
-						if (ioDevice.read_in != NULL) {
-							r->A = ioDevice.read_in(ioDevice.device);
-						}
+						r->A = cpu_port_in(cpu, context.n(&context));
 						break;
 					case 4: // EX (SP), HL
 						context.cycles += 19;
