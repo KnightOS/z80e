@@ -5,6 +5,8 @@ option(enable-tui "Enables the TUI frontend" YES)
 option(enable-zex "Enables the zex test suite" NO)
 option(enable-test "Enables the unit test frontend" NO)
 
+set(CMAKE_C_FLAGS "-g")
+
 if(NOT WIN32 OR CYGWIN)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 endif()
@@ -30,5 +32,3 @@ if(NOT DEFINED EMSCRIPTEN)
     add_subdirectory(frontends/zex frontends/zex)
   endif()
 endif()
-
-set(CMAKE_BUILD_TYPE Release)
