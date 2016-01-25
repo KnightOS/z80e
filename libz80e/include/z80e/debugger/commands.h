@@ -20,6 +20,7 @@ int command_in(debugger_state_t *state, int argc, char **argv);
 int command_out(debugger_state_t *state, int argc, char **argv);
 int command_break(debugger_state_t *state, int argc, char **argv);
 int command_step_over(debugger_state_t *state, int argc, char **argv);
+int command_link(debugger_state_t *state, int argc, char **argv);
 int command_dump_lcd(debugger_state_t *state, int argc, char **argv);
 int command_turn_on(debugger_state_t *state, int argc, char **argv);
 int command_press_key(debugger_state_t *state, int argc, char **argv);

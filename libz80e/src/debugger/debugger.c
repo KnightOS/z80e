@@ -158,6 +158,7 @@ debugger_command_t default_commands[] = {
 	{ "set", command_set, 0 },
 	{ "unset", command_unset, 0 },
 	{ "lcd", command_dump_lcd, 0 },
+	{ "link", command_link, 0 },
 	{ "turn_on", command_turn_on, 0 },
 	{ "press_key", command_press_key, 0 },
 	{ "release_key", command_release_key, 0 },
