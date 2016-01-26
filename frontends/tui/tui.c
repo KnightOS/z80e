@@ -1,5 +1,6 @@
 #include "tui.h"
 #include <z80e/debugger/debugger.h>
+#include <z80e/debugger/commands.h>
 #include <z80e/disassembler/disassemble.h>
 #include <z80e/log/log.h>
 
@@ -36,6 +37,7 @@ debugger_state_t *tui_new_state(struct debugger_state *state, const char *title)
 	stat->create_new_state = tui_new_state;
 	stat->close_window = tui_close_window;
 	stat->log = state->log;
+	init_link(stat);
 	return stat;
 }
 
