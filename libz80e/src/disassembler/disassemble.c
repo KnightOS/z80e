@@ -4,7 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <ctype.h>
 #include "disassembler/disassemble.h"
+#include "objects.h"
 #include "list.h"
 #include "readline.h"
 #include "stringop.h"
@@ -16,6 +18,7 @@ struct pcall {
 
 struct {
 	list_t *pcalls;
+	list_t *objects;
 } globals;
 
 void parse_kernel_inc(FILE *file) {
@@ -42,6 +45,18 @@ void disassembler_init() {
 	if (kernel_inc) {
 		globals.pcalls = create_list();
 		parse_kernel_inc(kernel_inc);
+	}
+	globals.objects = create_list();
+}
+
+void disassembler_load_object(const char *path) {
+	FILE *file = fopen(path, "r");
+	if (file) {
+		object_t *object = freadobj(file, path);
+		list_add(globals.objects, object);
+		printf("Loaded object from %s\n", path);
+	} else {
+		printf("Unable to open file for reading: %s\n", path);
 	}
 }
 
@@ -340,7 +355,68 @@ void parse_bli(int y, int z, struct context *context) {
 	}
 }
 
+bool try_from_sourcemap(struct disassemble_memory *memory, source_map_t **map, source_map_entry_t **entry) {
+#define KNIGHTOS_CURRENT_THREAD 0x8200
+#define KNIGHTOS_ACTIVE_THREADS 0x8201
+#define KNIGHTOS_THREAD_TABLE 	0x8000
+#define KNIGHTOS_THREAD_LEN 	8
+	int i;
+
+	uint16_t current = memory->current;
+	uint16_t offset = 0;
+	if (current > 0x8000) {
+		// Userspace - parse thread table
+		uint8_t threads = memory->read_byte(memory, KNIGHTOS_ACTIVE_THREADS);
+		for (i = 0; i < threads; ++i) {
+			uint16_t offs = KNIGHTOS_THREAD_TABLE + i * KNIGHTOS_THREAD_LEN;
+
+			uint8_t first = memory->read_byte(memory, offs + 1);
+			uint8_t second = memory->read_byte(memory, offs + 2);
+			uint16_t addr = first | second << 8;
+
+			first = memory->read_byte(memory, addr - 2);
+			second = memory->read_byte(memory, addr - 1);
+			uint16_t len = first | second << 8;
+
+			if (current >= addr && current < addr + len) {
+				offset = addr;
+				break;
+			}
+		}
+	}
+
+	for (i = 0; i < globals.objects->length; ++i) {
+		object_t *obj = globals.objects->items[i];
+		int j;
+		for (j = 0; j < obj->areas->length; ++j) {
+			area_t *area = obj->areas->items[j];
+			int k;
+			for (k = 0; k < area->source_map->length; ++k) {
+				*map = area->source_map->items[k];
+				int l;
+				for (l = 0; l < (*map)->entries->length; ++l) {
+					*entry = (*map)->entries->items[l];
+					if ((*entry)->address + offset == current) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
 uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer write_p, bool knightos) {
+	source_map_t *map;
+	source_map_entry_t *entry;
+	if (knightos && try_from_sourcemap(memory, &map, &entry)) {
+		char *code = entry->source_code;
+		while (*code && isspace(*code)) code++;
+		write_p(memory, "%s:%d: %s", map->file_name, entry->line_number, code);
+		memory->current += entry->length;
+		return entry->length;
+	}
+
 	uint16_t start_mem = memory->current;
 	struct context context;
 	context.prefix = 0;

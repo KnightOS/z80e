@@ -224,6 +224,8 @@ int main(int argc, char **argv) {
 	context = create_context();
 	signal(SIGINT, sigint_handler);
 
+	disassembler_init();
+
 	int i;
 	for (i = 1; i < argc; i++) {
 		char *a = argv[i];

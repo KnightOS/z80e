@@ -17,4 +17,6 @@ uint16_t parse_instruction(struct disassemble_memory *, write_pointer, bool);
 
 void disassembler_init();
 
+void disassembler_load_object(const char *path);
+
 #endif

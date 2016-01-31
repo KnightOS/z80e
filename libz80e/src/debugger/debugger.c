@@ -182,8 +182,6 @@ debugger_t *init_debugger(asic_t *asic) {
 
 	debugger->asic = asic;
 
-	disassembler_init();
-
 	return debugger;
 }
 

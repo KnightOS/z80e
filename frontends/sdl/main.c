@@ -206,6 +206,10 @@ void handleFlag(appContext_t *context, char flag, int *i, char **argv) {
 			next = argv[++*i];
 			context->scale = atoi(next);
 			break;
+		case 'o':
+			next = argv[++*i];
+			disassembler_load_object(next);
+			break;
 		default:
 			printf("Incorrect usage. See z80e --help.\n");
 			exit(1);
@@ -586,6 +590,8 @@ void sdl_events_hook(asic_t *device, void * unused) {
 int main(int argc, char **argv) {
 	context = create_context();
 	signal(SIGINT, sigint_handler);
+
+	disassembler_init();
 
 	int i;
 	for (i = 1; i < argc; i++) {
