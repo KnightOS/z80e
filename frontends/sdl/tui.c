@@ -37,7 +37,7 @@ debugger_state_t *tui_new_state(struct debugger_state *state, const char *title)
 	stat->create_new_state = tui_new_state;
 	stat->close_window = tui_close_window;
 	stat->log = state->log;
-	link_init(stat);
+	init_link(stat);
 	return stat;
 }
 
@@ -84,7 +84,7 @@ void tui_tick(tui_state_t *state) {
 
 		disasm_custom.string_pointer = current_pointer;
 		disasm.current = asic->cpu->registers.PC;
-		parse_instruction(&disasm, tui_disassemble_write);
+		parse_instruction(&disasm, tui_disassemble_write, state->debugger->flags.knightos);
 		current_pointer = disasm_custom.string_pointer;
 
 		sprintf(current_pointer, "] %s> ", asic->cpu->halted ? "HALT " : "");

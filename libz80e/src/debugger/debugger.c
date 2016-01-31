@@ -1,5 +1,6 @@
 #include "debugger/commands.h"
 #include "debugger/debugger.h"
+#include "disassembler/disassemble.h"
 #include "log/log.h"
 
 #include <limits.h>
@@ -180,6 +181,8 @@ debugger_t *init_debugger(asic_t *asic) {
 	}
 
 	debugger->asic = asic;
+
+	disassembler_init();
 
 	return debugger;
 }

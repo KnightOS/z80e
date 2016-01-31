@@ -84,7 +84,7 @@ void tui_tick(tui_state_t *state) {
 
 		disasm_custom.string_pointer = current_pointer;
 		disasm.current = asic->cpu->registers.PC;
-		parse_instruction(&disasm, tui_disassemble_write);
+		parse_instruction(&disasm, tui_disassemble_write, state->debugger->flags.knightos);
 		current_pointer = disasm_custom.string_pointer;
 
 		sprintf(current_pointer, "] %s> ", asic->cpu->halted ? "HALT " : "");

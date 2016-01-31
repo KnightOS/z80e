@@ -3,6 +3,7 @@ project (z80e_objects)
 
 FILE(GLOB Hardware src/ti/hardware/*.c)
 FILE(GLOB Commands src/debugger/commands/*.c)
+FILE(GLOB Util src/util/*.c)
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/z80e)
 
@@ -23,4 +24,5 @@ add_library(z80e_objects OBJECT
 	src/runloop/runloop.c
 	${Hardware}
 	${Commands}
+    ${Util}
 )

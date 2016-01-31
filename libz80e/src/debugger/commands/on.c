@@ -227,7 +227,7 @@ int command_step_over(struct debugger_state *state, int argc, char **argv) {
 	if (state->debugger->flags.echo) {
 		state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
 	}
-	uint16_t size = parse_instruction(&mem, step_over_disasm_write);
+	uint16_t size = parse_instruction(&mem, step_over_disasm_write, state->debugger->flags.knightos);
 	if (state->debugger->flags.echo) {
 		state->print(state, "\n");
 	}

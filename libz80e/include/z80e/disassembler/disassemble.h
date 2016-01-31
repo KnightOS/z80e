@@ -2,6 +2,7 @@
 #define DISASSEMBLE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 struct disassemble_memory {
 	uint8_t (*read_byte)(struct disassemble_memory *, uint16_t);
@@ -12,6 +13,8 @@ struct disassemble_memory {
 
 typedef int (*write_pointer)(struct disassemble_memory *, const char *, ...);
 
-uint16_t parse_instruction(struct disassemble_memory *, write_pointer);
+uint16_t parse_instruction(struct disassemble_memory *, write_pointer, bool);
+
+void disassembler_init();
 
 #endif

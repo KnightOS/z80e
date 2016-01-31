@@ -57,7 +57,7 @@ int command_disassemble(struct debugger_state *state, int argc, char **argv) {
 
 	for (i = 0; i < count; i++) {
 		state->print(state, "0x%04X: ", str.mem.current);
-		parse_instruction(&(str.mem), disassemble_print);
+		parse_instruction(&(str.mem), disassemble_print, state->debugger->flags.knightos);
 		state->print(state, "\n");
 	}
 

@@ -62,7 +62,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 				if (!state->asic->cpu->halted) {
 					state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
 					dstate.memory.current = state->asic->cpu->registers.PC;
-					parse_instruction(&(dstate.memory), run_command_write);
+					parse_instruction(&(dstate.memory), run_command_write, state->debugger->flags.knightos);
 					state->print(state, "\n");
 				}
 			} else {
@@ -115,7 +115,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 			if (!state->asic->cpu->halted) {
 				state->print(state, "0x%04X: ", state->asic->cpu->registers.PC);
 				dstate.memory.current = state->asic->cpu->registers.PC;
-				parse_instruction(&(dstate.memory), run_command_write);
+				parse_instruction(&(dstate.memory), run_command_write, state->debugger->flags.knightos);
 				state->print(state, "\n");
 			}
 		} else {

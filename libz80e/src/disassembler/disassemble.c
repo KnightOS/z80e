@@ -1,6 +1,69 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 #include "disassembler/disassemble.h"
+#include "util/list.h"
+#include "util/readline.h"
+#include "util/stringop.h"
+
+struct pcall {
+	char *name;
+	uint16_t addr;
+};
+
+struct {
+	list_t *pcalls;
+} globals;
+
+void parse_kernel_inc(FILE *file) {
+	int _;
+	while (!feof(file)) {
+		char *line = read_line(file);
+		line = strip_whitespace(line, &_);
+		if (strncmp(".equ ", line, 5) == 0) {
+			struct pcall *item = calloc(1, sizeof(struct pcall));
+			int len = strlen(line) - strlen(".equ ") - strlen(" 0x0000");
+			item->name = malloc(len + 1);
+			strncpy(item->name, line + strlen(".equ "), len);
+			item->name[len] = '\0';
+			item->addr = (uint16_t)strtol(line + strlen(".equ  0x") + strlen(item->name), NULL, 16);
+			list_add(globals.pcalls, item);
+		}
+		free(line);
+	}
+	fclose(file);
+}
+
+void disassembler_init() {
+	FILE *kernel_inc = fopen(".knightos/include/kernel.inc", "r");
+	if (kernel_inc) {
+		globals.pcalls = create_list();
+		parse_kernel_inc(kernel_inc);
+	}
+}
+
+const char *pcall_name(uint16_t addr) {
+	if (addr < 0x4000 && addr > 0x4000 - (256 * 3)) { // Optimized page 0 pcall
+		addr = (0x4000 - addr) / 3 - 1;
+		addr <<= 8;
+	}
+
+	if (!globals.pcalls) {
+		return NULL;
+	} else {
+		int i;
+		for (i = 0; i < globals.pcalls->length; ++i) {
+			struct pcall *item = globals.pcalls->items[i];
+			if (item->addr == addr) {
+				return item->name;
+			}
+		}
+		return NULL;
+	}
+}
 
 struct context {
 	uint16_t prefix;
@@ -34,11 +97,11 @@ void parse_d_relative(struct context *context) {
 	context->write(context->memory, "0x%02X", (int8_t)context->memory->read_byte(context->memory, context->memory->current++) + address);
 }
 
-void parse_nn(struct context *context) {
+uint16_t parse_nn(struct context *context) {
 	uint8_t first = context->memory->read_byte(context->memory, context->memory->current++);
 	uint8_t second = context->memory->read_byte(context->memory, context->memory->current++);
 	uint16_t total = first | second << 8;
-	context->write(context->memory, "0x%04x", total);
+	return total;
 }
 
 void parse_HorIHw(struct context *context) {
@@ -105,17 +168,18 @@ void parse_rw_r(struct context *context, int write, int read) {
 	parse_r(context, read);
 }
 
-void parse_cc(int i, struct context *context) {
+const char *parse_cc(int i, struct context *context) {
 	switch (i) {
-	case 0: context->write(context->memory, "NZ"); break;
-	case 1: context->write(context->memory, "Z"); break;
-	case 2: context->write(context->memory, "NC"); break;
-	case 3: context->write(context->memory, "C"); break;
-	case 4: context->write(context->memory, "PO"); break;
-	case 5: context->write(context->memory, "PE"); break;
-	case 6: context->write(context->memory, "P"); break;
-	case 7: context->write(context->memory, "M"); break;
+	case 0: return "NZ";
+	case 1: return "Z";
+	case 2: return "NC";
+	case 3: return "C";
+	case 4: return "PO";
+	case 5: return "PE";
+	case 6: return "P";
+	case 7: return "M";
 	}
+	return NULL;
 }
 
 void parse_rp(int i, struct context *context) {
@@ -276,7 +340,7 @@ void parse_bli(int y, int z, struct context *context) {
 	}
 }
 
-uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer write_p) {
+uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer write_p, bool knightos) {
 	uint16_t start_mem = memory->current;
 	struct context context;
 	context.prefix = 0;
@@ -355,16 +419,12 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 					break;
 				case 3:
 					if (context.q == 0) { // LD (nn), rp[p]
-						write(memory, "LD (");
-						parse_nn(&context);
-						write(memory, "), ");
+						write(memory, "LD (0x%04X), ", parse_nn(&context));
 						parse_rp(context.p, &context);
 					} else { // LD rp[p], (nn)
 						write(memory, "LD ");
 						parse_rp(context.p, &context);
-						write(memory, ", (");
-						parse_nn(&context);
-						write(memory, ")");
+						write(memory, ", (0x%04X)", parse_nn(&context));
 					}
 					break;
 				case 4: // NEG
@@ -446,9 +506,7 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 				case 5:
 				case 6:
 				case 7: // JR cc[y-4], d
-					write(memory, "JR ");
-					parse_cc(context.y - 4, &context);
-					write(memory, ", ");
+					write(memory, "JR %s, ", parse_cc(context.y - 4, &context));
 					parse_d_relative(&context);
 					break;
 				}
@@ -458,8 +516,7 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 				case 0: // LD rp[p], nn
 					write(memory, "LD ");
 					parse_rp(context.p, &context);
-					write(memory, ", ");
-					parse_nn(&context);
+					write(memory, ", 0x%04X", parse_nn(&context));
 					break;
 				case 1: // ADD HL, rp[p]
 					write(memory, "ADD ");
@@ -480,15 +537,11 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 						write(memory, "LD (DE), A");
 						break;
 					case 2: // LD (nn), HL
-						write(memory, "LD (");
-						parse_nn(&context);
-						write(memory, "), ");
+						write(memory, "LD (0x%04X), ", parse_nn(&context));
 						parse_HLorIr(&context);
 						break;
 					case 3: // LD (nn), A
-						write(memory, "LD (");
-						parse_nn(&context);
-						write(memory, "), A");
+						write(memory, "LD (0x%04X), A", parse_nn(&context));
 						break;
 					}
 					break;
@@ -503,14 +556,10 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 					case 2: // LD HL, (nn)
 						write(memory, "LD ");
 						parse_HLorIr(&context);
-						write(memory, ", (");
-						parse_nn(&context);
-						write(memory, ")");
+						write(memory, ", (0x%04X)", parse_nn(&context));
 						break;
 					case 3: // LD A, (nn)
-						write(memory, "LD A, (");
-						parse_nn(&context);
-						write(memory, ")");
+						write(memory, "LD A, (0x%04X)", parse_nn(&context));
 						break;
 					}
 					break;
@@ -587,8 +636,7 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 		case 3:
 			switch (context.z) {
 			case 0: // RET cc[y]
-				write(memory, "RET ");
-				parse_cc(context.y, &context);
+				write(memory, "RET %s", parse_cc(context.y, &context));
 				break;
 			case 1:
 				switch (context.q) {
@@ -617,16 +665,13 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 				}
 				break;
 			case 2: // JP cc[y], nn
-				write(memory, "JP ");
-				parse_cc(context.y, &context);
-				write(memory, ", ");
-				parse_nn(&context);
+				write(memory, "JP %s", parse_cc(context.y, &context));
+				write(memory, ", 0x%04X", parse_nn(&context));
 				break;
 			case 3:
 				switch (context.y) {
 				case 0: // JP nn
-					write(memory, "JP ");
-					parse_nn(&context);
+					write(memory, "JP 0x%04X", parse_nn(&context));
 					break;
 				case 1: // 0xCB prefixed opcodes
 					// Handled before!
@@ -657,11 +702,22 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 				}
 				break;
 			case 4: // CALL cc[y], nn
-				write(memory, "CALL ");
-				parse_cc(context.y, &context);
-				write(memory, ", ");
-				parse_nn(&context);
+			{
+				const char *cc = parse_cc(context.y, &context);
+				uint16_t nn = parse_nn(&context);
+				// Check if this is an optimized page 0 pcall
+				if (nn < 0x4000 && nn > 0x4000 - (256 * 3)) {
+					const char *pcall = pcall_name(nn);
+					if (pcall) {
+						write(memory, "PCALL %s, %s", cc, pcall);
+					} else {
+						write(memory, "CALL %s, 0x%04X", cc, nn);
+					}
+				} else {
+					write(memory, "CALL %s, 0x%04X", cc, nn);
+				}
 				break;
+			}
 			case 5:
 				switch (context.q) {
 				case 0: // PUSH r2p[p]
@@ -671,9 +727,20 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 				case 1:
 					switch (context.p) {
 					case 0: // CALL nn
-						write(memory, "CALL ");
-						parse_nn(&context);
+					{
+						uint16_t nn = parse_nn(&context);
+						if (nn < 0x4000 && nn > 0x4000 - (256 * 3)) {
+							const char *pcall = pcall_name(nn);
+							if (pcall) {
+								write(memory, "PCALL %s", pcall);
+							} else {
+								write(memory, "CALL 0x%04X", nn);
+							}
+						} else {
+							write(memory, "CALL 0x%04X", nn);
+						}
 						break;
+					}
 					case 1: // 0xDD prefixed opcodes
 						// Handled before
 						break;
@@ -692,7 +759,24 @@ uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer writ
 				parse_n(&context);
 				break;
 			case 7: // RST y*8
-				write(memory, "RST 0x%X", context.y * 8);
+				if (knightos) {
+					if (context.y * 8 == 0x20) {
+						uint16_t nn = parse_nn(&context);
+						const char *pcall = pcall_name(nn);
+						if (pcall) {
+							write(memory, "PCALL %s", pcall);
+						} else {
+							write(memory, "PCALL 0x%04X", nn);
+						}
+					} else if (context.y * 8 == 0x08) {
+						write(memory, "K");
+						parse_instruction(memory, write_p, knightos);
+					} else {
+						write(memory, "RST 0x%X", context.y * 8);
+					}
+				} else {
+					write(memory, "RST 0x%X", context.y * 8);
+				}
 				break;
 			}
 			break;
