@@ -5,9 +5,9 @@
 #include <string.h>
 #include <strings.h>
 #include "disassembler/disassemble.h"
-#include "util/list.h"
-#include "util/readline.h"
-#include "util/stringop.h"
+#include "list.h"
+#include "readline.h"
+#include "stringop.h"
 
 struct pcall {
 	char *name;

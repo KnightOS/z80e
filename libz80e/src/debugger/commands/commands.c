@@ -107,7 +107,7 @@ uint16_t run_operator(char operator, uint16_t arg2, uint16_t arg1) {
 	}
 }
 
-uint16_t parse_expression(debugger_state_t *state, const char *string) {
+uint16_t parse_expression_z80e(debugger_state_t *state, const char *string) {
 	uint16_t value_stack[20];
 	int value_stack_pos = 0;
 

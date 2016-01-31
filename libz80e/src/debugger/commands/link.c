@@ -60,7 +60,7 @@ int handle_send(struct debugger_state *state, int argc, char **argv) {
 	}
 	*(dpointer - 1) = 0;
 
-	uint8_t expr = parse_expression(state, data);
+	uint8_t expr = parse_expression_z80e(state, data);
 
 	free(data);
 

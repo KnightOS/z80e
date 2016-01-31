@@ -125,7 +125,7 @@ int command_on(struct debugger_state *state, int argc, char **argv) {
 			hook_add_register_write(state->asic->hook, sta->look_for, sta, command_on_register_hook);
 		}
 	} else if (strncasecmp(argv[1], "memory", 6) == 0) {
-		sta->look_for = parse_expression(state, argv[3]);
+		sta->look_for = parse_expression_z80e(state, argv[3]);
 		if (thing & READ) {
 			hook_add_memory_read(state->asic->hook, sta->look_for, sta->look_for, sta, command_on_memory_hook);
 		}
@@ -133,7 +133,7 @@ int command_on(struct debugger_state *state, int argc, char **argv) {
 			hook_add_memory_write(state->asic->hook, sta->look_for, sta->look_for, sta, command_on_memory_hook);
 		}
 	} else if (strncasecmp(argv[1], "port", 4) == 0) {
-		sta->look_for = parse_expression(state, argv[3]);
+		sta->look_for = parse_expression_z80e(state, argv[3]);
 		if (thing & READ) {
 			hook_add_port_in(state->asic->hook, sta->look_for, sta->look_for, sta, command_on_port_hook);
 		}
@@ -179,11 +179,11 @@ int command_break(struct debugger_state *state, int argc, char **argv) {
 		return 0;
 	}
 
-	uint16_t address = parse_expression(state, argv[1]);
+	uint16_t address = parse_expression_z80e(state, argv[1]);
 
 	int count = -1;
 	if (argc == 3) {
-		count = parse_expression(state, argv[2]);
+		count = parse_expression_z80e(state, argv[2]);
 	}
 
 	struct break_data *data = malloc(sizeof(struct break_data));

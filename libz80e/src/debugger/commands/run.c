@@ -44,7 +44,7 @@ int command_run(debugger_state_t *state, int argc, char **argv) {
 				" If no number is specified, the emulator will run until interrupted (^C).\n");
 		return 0;
 	} else if(argc == 2) {
-		instructions = parse_expression(state, argv[1]);
+		instructions = parse_expression_z80e(state, argv[1]);
 		state->debugger->state = DEBUGGER_LONG_OPERATION;
 		for (; instructions > 0; instructions--) {
 			hook_on_before_execution(state->asic->hook, state->asic->cpu->registers.PC);

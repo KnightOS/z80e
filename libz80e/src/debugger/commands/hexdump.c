@@ -16,12 +16,12 @@ int command_hexdump(struct debugger_state *state, int argc, char **argv) {
 
 	uint16_t start = state->asic->cpu->registers.PC;
 	if (argc > 1) {
-		start  = parse_expression(state, argv[1]);
+		start  = parse_expression_z80e(state, argv[1]);
 	}
 
 	uint16_t length = 64;
 	if (argc > 2) {
-		length = parse_expression(state, argv[2]);
+		length = parse_expression_z80e(state, argv[2]);
 	}
 
 	uint16_t i, total = 0;
@@ -71,12 +71,12 @@ int command_backwards_hexdump(struct debugger_state *state, int argc, char **arg
 
 	uint16_t start = state->asic->cpu->registers.PC;
 	if (argc > 1) {
-		start  = parse_expression(state, argv[1]);
+		start  = parse_expression_z80e(state, argv[1]);
 	}
 
 	uint16_t length = 64;
 	if (argc > 2) {
-		length = parse_expression(state, argv[2]);
+		length = parse_expression_z80e(state, argv[2]);
 	}
 
 	uint16_t i, total = 0;

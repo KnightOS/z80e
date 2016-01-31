@@ -1,0 +1,3 @@
+[submodule "scas"]
+	path = scas
+	url = git://github.com/KnightOS/scas.git

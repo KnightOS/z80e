@@ -25,7 +25,7 @@ int command_print_expression(struct debugger_state *state, int argc, char **argv
 	}
 	*(dpointer - 1) = 0;
 
-	uint16_t expr = parse_expression(state, data);
+	uint16_t expr = parse_expression_z80e(state, data);
 
 	state->print(state, "%s = 0x%04X (%u)\n", data, expr, expr);
 

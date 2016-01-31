@@ -20,7 +20,7 @@ int command_release_key(debugger_state_t *state, int argc, char **argv) {
 		}
 	}
 	if (!found) {
-		key = parse_expression(state, argv[1]);
+		key = parse_expression_z80e(state, argv[1]);
 	}
 
 	release_key(state->asic->cpu->devices[0x01].device, key);

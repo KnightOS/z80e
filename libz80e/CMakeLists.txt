@@ -3,9 +3,10 @@ project (z80e_objects)
 
 FILE(GLOB Hardware src/ti/hardware/*.c)
 FILE(GLOB Commands src/debugger/commands/*.c)
-FILE(GLOB Util src/util/*.c)
+FILE(GLOB scas_common ../scas/common/*.c)
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/z80e)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../scas/common/)
 
 if(DEFINED EMSCRIPTEN)
 add_compile_options(-Wno-warn-absolute-paths)
@@ -24,5 +25,5 @@ add_library(z80e_objects OBJECT
 	src/runloop/runloop.c
 	${Hardware}
 	${Commands}
-    ${Util}
+    ${scas_common}
 )

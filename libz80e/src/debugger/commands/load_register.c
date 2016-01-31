@@ -11,7 +11,7 @@ int command_load_register(debugger_state_t *state, int argc, char **argv) {
 
 #define REGISTER(num, len, print) \
 	if (strncasecmp(argv[1], print, len) == 0) {\
-		state->asic->cpu->registers. num = parse_expression(state, argv[2]); \
+		state->asic->cpu->registers. num = parse_expression_z80e(state, argv[2]); \
 	}\
 
 		REGISTER(IXH, 3, "IXH");

@@ -18,7 +18,7 @@ typedef struct {
 	int logging_level;
 } log_t;
 
-log_t *init_log(log_func, void *, int);
+log_t *init_log_z80e(log_func, void *, int);
 void log_message(log_t *, loglevel_t, const char *, const char *, ...);
 void free_log(log_t *);
 
