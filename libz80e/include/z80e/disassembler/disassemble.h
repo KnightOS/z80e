@@ -19,4 +19,6 @@ void disassembler_init();
 
 void disassembler_load_object(const char *path);
 
+int get_symbol(struct disassemble_memory *memory, const char *name, uint16_t *val);
+
 #endif

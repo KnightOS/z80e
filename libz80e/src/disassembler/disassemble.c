@@ -80,6 +80,100 @@ const char *pcall_name(uint16_t addr) {
 	}
 }
 
+#define KNIGHTOS_CURRENT_THREAD 0x8200
+#define KNIGHTOS_ACTIVE_THREADS 0x8201
+#define KNIGHTOS_THREAD_TABLE 	0x8000
+#define KNIGHTOS_THREAD_LEN 	8
+
+int get_symbol(struct disassemble_memory *memory, const char *name, uint16_t *val) {
+	int i;
+	uint16_t current = memory->current;
+	uint16_t offset = 0;
+	if (current > 0x8000) {
+		// Userspace - parse thread table
+		uint8_t threads = memory->read_byte(memory, KNIGHTOS_ACTIVE_THREADS);
+		for (i = 0; i < threads; ++i) {
+			uint16_t offs = KNIGHTOS_THREAD_TABLE + i * KNIGHTOS_THREAD_LEN;
+
+			uint8_t first = memory->read_byte(memory, offs + 1);
+			uint8_t second = memory->read_byte(memory, offs + 2);
+			uint16_t addr = first | second << 8;
+
+			first = memory->read_byte(memory, addr - 2);
+			second = memory->read_byte(memory, addr - 1);
+			uint16_t len = first | second << 8;
+
+			if (current >= addr && current < addr + len) {
+				offset = addr;
+				break;
+			}
+		}
+	}
+
+	for (i = 0; i < globals.objects->length; ++i) {
+		object_t *obj = globals.objects->items[i];
+		int j;
+		for (j = 0; j < obj->areas->length; ++j) {
+			area_t *area = obj->areas->items[j];
+			int k;
+			for (k = 0; k < area->symbols->length; ++k) {
+				symbol_t *sym = area->symbols->items[k];
+				if (strncasecmp(sym->name, name, strlen(sym->name)) == 0) {
+					*val = sym->value + offset;
+					return strlen(sym->name);
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+bool try_from_sourcemap(struct disassemble_memory *memory, source_map_t **map, source_map_entry_t **entry) {
+	int i;
+	uint16_t current = memory->current;
+	uint16_t offset = 0;
+	if (current > 0x8000) {
+		// Userspace - parse thread table
+		uint8_t threads = memory->read_byte(memory, KNIGHTOS_ACTIVE_THREADS);
+		for (i = 0; i < threads; ++i) {
+			uint16_t offs = KNIGHTOS_THREAD_TABLE + i * KNIGHTOS_THREAD_LEN;
+
+			uint8_t first = memory->read_byte(memory, offs + 1);
+			uint8_t second = memory->read_byte(memory, offs + 2);
+			uint16_t addr = first | second << 8;
+
+			first = memory->read_byte(memory, addr - 2);
+			second = memory->read_byte(memory, addr - 1);
+			uint16_t len = first | second << 8;
+
+			if (current >= addr && current < addr + len) {
+				offset = addr;
+				break;
+			}
+		}
+	}
+
+	for (i = 0; i < globals.objects->length; ++i) {
+		object_t *obj = globals.objects->items[i];
+		int j;
+		for (j = 0; j < obj->areas->length; ++j) {
+			area_t *area = obj->areas->items[j];
+			int k;
+			for (k = 0; k < area->source_map->length; ++k) {
+				*map = area->source_map->items[k];
+				int l;
+				for (l = 0; l < (*map)->entries->length; ++l) {
+					*entry = (*map)->entries->items[l];
+					if ((*entry)->address + offset == current) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
 struct context {
 	uint16_t prefix;
 	struct disassemble_memory *memory;
@@ -353,57 +447,6 @@ void parse_bli(int y, int z, struct context *context) {
 		}
 		break;
 	}
-}
-
-bool try_from_sourcemap(struct disassemble_memory *memory, source_map_t **map, source_map_entry_t **entry) {
-#define KNIGHTOS_CURRENT_THREAD 0x8200
-#define KNIGHTOS_ACTIVE_THREADS 0x8201
-#define KNIGHTOS_THREAD_TABLE 	0x8000
-#define KNIGHTOS_THREAD_LEN 	8
-	int i;
-
-	uint16_t current = memory->current;
-	uint16_t offset = 0;
-	if (current > 0x8000) {
-		// Userspace - parse thread table
-		uint8_t threads = memory->read_byte(memory, KNIGHTOS_ACTIVE_THREADS);
-		for (i = 0; i < threads; ++i) {
-			uint16_t offs = KNIGHTOS_THREAD_TABLE + i * KNIGHTOS_THREAD_LEN;
-
-			uint8_t first = memory->read_byte(memory, offs + 1);
-			uint8_t second = memory->read_byte(memory, offs + 2);
-			uint16_t addr = first | second << 8;
-
-			first = memory->read_byte(memory, addr - 2);
-			second = memory->read_byte(memory, addr - 1);
-			uint16_t len = first | second << 8;
-
-			if (current >= addr && current < addr + len) {
-				offset = addr;
-				break;
-			}
-		}
-	}
-
-	for (i = 0; i < globals.objects->length; ++i) {
-		object_t *obj = globals.objects->items[i];
-		int j;
-		for (j = 0; j < obj->areas->length; ++j) {
-			area_t *area = obj->areas->items[j];
-			int k;
-			for (k = 0; k < area->source_map->length; ++k) {
-				*map = area->source_map->items[k];
-				int l;
-				for (l = 0; l < (*map)->entries->length; ++l) {
-					*entry = (*map)->entries->items[l];
-					if ((*entry)->address + offset == current) {
-						return true;
-					}
-				}
-			}
-		}
-	}
-	return false;
 }
 
 uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer write_p, bool knightos) {

@@ -2,15 +2,35 @@
 #include "core/cpu.h"
 #include "debugger/commands.h"
 #include "debugger/debugger.h"
+#include "disassembler/disassemble.h"
 
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
-uint16_t parse_operand(debugger_state_t *state, const char *start, const char **end) {
+struct mmu_disassemble_memory {
+	struct disassemble_memory mem;
+	z80cpu_t *cpu;
+	struct debugger_state *state;
+};
+
+uint8_t parse_expression_dasm_read(struct disassemble_memory *s, uint16_t pointer) {
+	struct mmu_disassemble_memory *m = (struct mmu_disassemble_memory *)s;
+	return m->cpu->read_byte(m->cpu->memory, pointer);
+}
+
+uint16_t parse_operand(debugger_state_t *state, const char *start, const char **end,
+		struct mmu_disassemble_memory *mmudasm) {
 	if (*start >= '0' && *start <= '9') {
 		return strtol(start, (char **)end, 0);
 	} else {
+		uint16_t val;
+		int len = get_symbol(&mmudasm->mem, start - 1, &val);
+		if (len) {
+			*end += len;
+			return val;
+		}
+
 #define REGISTER(num, len, print) \
 if (strncasecmp(start, print, len) == 0) {\
 	*end += len; \
@@ -114,6 +134,10 @@ uint16_t parse_expression_z80e(debugger_state_t *state, const char *string) {
 	char operator_stack[20];
 	int operator_stack_pos = 0;
 
+	z80cpu_t *cpu = state->asic->cpu;
+	uint16_t start = state->asic->cpu->registers.PC;
+	struct mmu_disassemble_memory mmudasm = { { parse_expression_dasm_read, start }, cpu, state };
+
 	while (isspace(*string)) {
 		string++;
 	}
@@ -185,7 +209,7 @@ uint16_t parse_expression_z80e(debugger_state_t *state, const char *string) {
 			}
 			string++;
 		} else {
-			value_stack[value_stack_pos++] = parse_operand(state, string, &string);
+			value_stack[value_stack_pos++] = parse_operand(state, string, &string, &mmudasm);
 			if (string == 0) {
 				return 0;
 			}
