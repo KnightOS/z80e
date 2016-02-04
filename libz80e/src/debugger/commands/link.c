@@ -11,6 +11,7 @@
 
 FILE *link_output = NULL;
 FILE *link_input = NULL;
+int hook;
 
 void send_byte_from_input(struct debugger_state *state) {
 	if (!link_input) {
@@ -19,6 +20,7 @@ void send_byte_from_input(struct debugger_state *state) {
 	int c = getc(link_input);
 	if (c == EOF) {
 		fclose(link_input);
+		hook_remove_port_in(state->asic->hook, hook);
 		return;
 	}
 	link_recv_byte(state->asic, (uint8_t)c);
@@ -35,15 +37,17 @@ int handle_send(struct debugger_state *state, int argc, char **argv) {
 	if (wordexp(path, &p, 0) == 0) {
 		free(path);
 		path = strdup(p.we_wordv[0]);
-		state->print(state, "Sending file: %s\n", path);
 	}
 
 	link_input = fopen(path, "r");
-	free(path);
 	if (link_input) {
+		state->print(state, "Sending file: %s\n", path);
+		hook = hook_add_port_in(state->asic->hook, 0x0A, 0x0A, state, on_link_rx_buffer_read);
 		send_byte_from_input(state);
+		free(path);
 		return 0;
 	}
+	free(path);
 
 	int strl = 0;
 	int i;
@@ -97,5 +101,4 @@ int command_link(struct debugger_state *state, int argc, char **argv) {
 }
 
 void init_link(struct debugger_state *state) {
-	hook_add_port_in(state->asic->hook, 0x0A, 0x0A, state, on_link_rx_buffer_read);
 }

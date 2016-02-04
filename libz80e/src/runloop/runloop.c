@@ -14,6 +14,7 @@
 static double orwl_timebase = 0.0;
 static uint64_t orwl_timestart = 0;
 #endif
+#include "ti/hardware/link.h"
 
 long long get_time_nsec() {
 #ifdef EMSCRIPTEN
@@ -123,6 +124,10 @@ void runloop_tick_cycles(runloop_state_t *state, int cycles) {
 	int tick_i = 0;
 	while (cycles > 0) {
 		int ran = cycles_until_next_tick - cpu_execute(state->asic->cpu, cycles_until_next_tick);
+		int c = link_read_tx_buffer(state->asic);
+		if (c != EOF) {
+			printf("Asked to send %02X (%c)\n", c, (char)c);
+		}
 
 		total_cycles += ran;
 		cycles -= ran;
