@@ -4,6 +4,11 @@ before_install:
     - echo "yes" | sudo add-apt-repository ppa:kalakris/cmake
     - sudo apt-get update -qq
     - sudo apt-get install -qq cmake libsdl1.2-dev libsdl1.2debian
+    - git clone git://github.com/KnightOS/scas.git
+    - cd scas
+    - cmake -DCMAKE_INSTALL_PREFIX=/usr .
+    - make
+    - sudo make install
 
 script:
     - cmake -Denable-test=YES .
