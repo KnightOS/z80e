@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 2.8)
 project (z80e_objects)
 
+list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/../CMake)
+message(STATUS ${CMAKE_MODULE_PATH})
+find_package(Scas REQUIRED)
 FILE(GLOB Hardware src/ti/hardware/*.c)
 FILE(GLOB Commands src/debugger/commands/*.c)
 FILE(GLOB scas_common ../scas/common/*.c)
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/z80e)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../scas/common/)
+include_directories(${SCAS_INCLUDES})
 
 if(DEFINED EMSCRIPTEN)
 add_compile_options(-Wno-warn-absolute-paths)
