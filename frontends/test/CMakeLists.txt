@@ -13,3 +13,5 @@ add_executable(tests
 if(NOT EMSCRIPTEN AND NOT HAIKU AND NOT APPLE)
 	target_link_libraries(tests rt)
 endif()
+
+TARGET_LINK_LIBRARIES(tests ${SCAS_LIBRARIES})
