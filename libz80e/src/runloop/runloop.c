@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <limits.h>
+#include <ctype.h>
 /* Why the heck does "get the current time" have to be so god-dammed platform specific */
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
@@ -126,7 +127,11 @@ void runloop_tick_cycles(runloop_state_t *state, int cycles) {
 		int ran = cycles_until_next_tick - cpu_execute(state->asic->cpu, cycles_until_next_tick);
 		int c = link_read_tx_buffer(state->asic);
 		if (c != EOF) {
-			printf("Asked to send %02X (%c)\n", c, (char)c);
+			char _c = ' ';
+			if (isprint((char)c)) {
+				_c = (char)c;
+			}
+			printf("Asked to send %02X (%c)\n", c, _c);
 		}
 
 		total_cycles += ran;
