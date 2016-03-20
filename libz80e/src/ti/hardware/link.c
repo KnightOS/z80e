@@ -98,7 +98,7 @@ uint8_t read_link_assist_status_port(void *device) {
 	case TI83p:
 		return 0;
 	default:
-		return state->assist.status.u8;
+		return state->assist.status.u8 & (state->interrupts.mask | ~7);
 	}
 }
 
