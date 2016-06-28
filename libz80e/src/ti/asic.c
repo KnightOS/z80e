@@ -13,6 +13,7 @@
 #include "ti/hardware/status.h"
 #include "ti/hardware/flash.h"
 #include "ti/hardware/link.h"
+#include "ti/hardware/timers.h"
 
 typedef struct {
 	asic_t *asic;
@@ -50,6 +51,7 @@ void plug_devices(asic_t *asic) {
 
 	if (asic->device != TI73 && asic->device != TI83p) {
 		asic->cpu->devices[0x20] = init_speed(asic);
+		init_crystal_timers(asic);
 	}
 
 	init_link_ports(asic);
