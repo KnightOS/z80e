@@ -165,6 +165,7 @@ debugger_command_t default_commands[] = {
 	{ "release_key", command_release_key, 0 },
 	{ "tap_key", command_tap_key, 0 },
 	{ "ld", command_load_register, 0 },
+	{ "timer", command_timer, 0 },
 };
 
 int default_command_count = sizeof(default_commands) / sizeof(debugger_command_t);

@@ -27,6 +27,7 @@ int command_press_key(debugger_state_t *state, int argc, char **argv);
 int command_release_key(debugger_state_t *state, int argc, char **argv);
 int command_load_register(debugger_state_t *state, int argc, char **argv);
 int command_tap_key(debugger_state_t *state, int argc, char **argv);
+int command_timer(debugger_state_t *state, int argc, char **argv);
 uint16_t parse_expression_z80e(debugger_state_t *, const char *);
 
 void init_link(struct debugger_state *state);
