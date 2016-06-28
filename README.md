@@ -9,7 +9,7 @@ A list of keybindings can be found in [KEYBINDINGS.md](KEYBINDINGS.md)
 
 Most TI emulators have some of a shared set of problems, which z80e hopes to avoid. z80e is...
 
-**Portable**. It runs on any sane POSIX system, plus Windows and in web browsers. It'll probably even run on a z80 calculator if you're clever enough.
+**Portable**. z80e has been described as "portable as fuck". The actual emulation code uses maybe a half dozen external functions and it's been known to run on Linux, BSD, OSX, Windows, TI-Nspires, TI-Nspires running Linux, Rockbox, and two hobby operating systems for i686. It also was forked to form the basis of [CEmu](https://github.com/CE-Programming/CEmu).
 
 **Flexible**. You can run z80e with a simple terminal interface, a curses debugger, a gtk application (planned), in a web browser (in-progress), etc
 
