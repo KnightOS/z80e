@@ -32,7 +32,6 @@ void write_timer_freq_port(void *device, uint8_t val) {
 
 void write_timer_loop_port(void *device, uint8_t val) {
 	struct crystal_timer *timer = device;
-	timer->asic->cpu->interrupt = 0;
 	timer->loop = val;
 }
 
