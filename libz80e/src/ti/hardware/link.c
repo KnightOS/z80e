@@ -62,6 +62,9 @@ void write_link_assist_enable_port(void *device, uint8_t val) {
 		state->interrupts.mask = val;
 		state->asic->cpu->interrupt = (state->interrupts.tx && state->assist.status.int_tx_ready)
 			|| (state->interrupts.rx && state->assist.status.int_rx_ready);
+		printf("Just wrote %02X to LA enable port\n");
+		printf("rx int: %d tx int: %d\n",
+				state->interrupts.rx, state->interrupts.tx);
 		break;
 	}
 }
@@ -145,15 +148,22 @@ void free_link_ports(asic_t *asic) {
 	free(asic->cpu->devices[0x00].device);
 }
 
-bool link_recv_byte(asic_t *asic, uint8_t val) {
+bool link_recv_ready(asic_t *asic) {
 	link_state_t *state = asic->cpu->devices[0x00].device;
-	if (state->assist.status.rx_ready) {
+	return !state->assist.status.rx_ready;
+}
+
+bool link_recv_byte(asic_t *asic, uint8_t val) {
+	printf("Receiving %02X via link port\n", val);
+	link_state_t *state = asic->cpu->devices[0x00].device;
+	if (!link_recv_ready(asic)) {
 		return false;
 	}
 	state->assist.status.rx_ready = state->assist.status.int_rx_ready = true;
 	state->assist.rx_buffer = val;
 
-	if (!state->interrupts.disabled && !state->interrupts.rx) {
+	if (!state->interrupts.disabled && state->interrupts.rx) {
+		printf("Raising interrupt\n");
 		asic->cpu->interrupt = 1;
 	}
 	return true;
@@ -164,7 +174,7 @@ int link_read_tx_buffer(asic_t *asic) {
 	if (state->assist.status.tx_active) {
 		state->assist.status.tx_active = false;
 		state->assist.status.tx_ready = state->assist.status.int_tx_ready = true;
-		if (!state->interrupts.disabled && !state->interrupts.tx) {
+		if (!state->interrupts.disabled && state->interrupts.tx) {
 			asic->cpu->interrupt = 1;
 		}
 		return state->assist.tx_buffer;

@@ -2,6 +2,7 @@
 #define ASIC_H
 
 #include <stdint.h>
+#include <poll.h>
 
 typedef struct asic asic_t;
 
@@ -24,6 +25,7 @@ typedef enum {
 typedef void (*timer_tick)(asic_t *, void *);
 typedef struct z80_hardware_timers z80_hardware_timers_t;
 typedef struct z80_hardware_timer z80_hardware_timer_t;
+typedef struct z80_link_socket z80_link_socket_t;
 
 enum {
 	TIMER_IN_USE = (1 << 0),
@@ -44,6 +46,12 @@ struct z80_hardware_timers {
 	z80_hardware_timer_t *timers;
 };
 
+struct z80_link_socket {
+	int accept;
+	struct pollfd listenfd;
+	struct pollfd clients[10];
+};
+
 struct asic {
 	int stopped;
 	ti_device_type device;
@@ -56,6 +64,7 @@ struct asic {
 	ti_mmu_t* mmu;
 	ti_interrupts_t *interrupts;
 	z80_hardware_timers_t *timers;
+	z80_link_socket_t *link;
 	hook_info_t *hook;
 	log_t *log;
 	debugger_t *debugger;

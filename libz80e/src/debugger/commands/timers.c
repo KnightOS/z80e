@@ -15,7 +15,8 @@ int command_timer(struct debugger_state *state, int argc, char **argv) {
 	}
 
 	if (strcasecmp(argv[1], "int") == 0) {
-		state->asic->cpu->interrupt = 1;
+		state->asic->interrupts->interrupted.first_crystal = 1;
+		state->asic->cpu->interrupt = !state->asic->cpu->interrupt;
 	} else {
 		uint8_t port = parse_expression_z80e(state, argv[2]);
 		uint8_t val = parse_expression_z80e(state, argv[3]);

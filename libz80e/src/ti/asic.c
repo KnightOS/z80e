@@ -96,7 +96,7 @@ void free_devices(asic_t *asic) {
 }
 
 asic_t *asic_init(ti_device_type type, log_t *log) {
-	asic_t* device = malloc(sizeof(asic_t));
+	asic_t* device = calloc(1, sizeof(asic_t));
 	device->log = log;
 	device->cpu = cpu_init(log);
 	device->mmu = ti_mmu_init(type, log);
@@ -107,14 +107,16 @@ asic_t *asic_init(ti_device_type type, log_t *log) {
 	device->device = type;
 	device->clock_rate = 6000000;
 
-	device->timers = calloc(sizeof(z80_hardware_timers_t), 1);
+	device->timers = calloc(1, sizeof(z80_hardware_timers_t));
 	device->timers->max_timers = 20;
-	device->timers->timers = calloc(sizeof(z80_hardware_timer_t), 20);
+	device->timers->timers = calloc(20, sizeof(z80_hardware_timer_t));
 
 	device->stopped = 0;
 	device->debugger = 0;
 	device->runloop = runloop_init(device);
 	device->hook = create_hook_set(device);
+
+	device->link = calloc(1, sizeof(z80_link_socket_t));
 
 	plug_devices(device);
 	asic_mirror_ports(device);

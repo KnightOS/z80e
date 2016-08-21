@@ -55,4 +55,6 @@ bool link_recv_byte(asic_t *asic, uint8_t val);
  */
 int link_read_tx_buffer(asic_t *asic);
 
+bool link_recv_ready(asic_t *asic);
+
 #endif

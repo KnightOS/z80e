@@ -4,6 +4,14 @@
 #include <time.h>
 #include <limits.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <sys/un.h>
+#include <poll.h>
+#include <errno.h>
 /* Why the heck does "get the current time" have to be so god-dammed platform specific */
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
@@ -82,6 +90,60 @@ int runloop_compare(const void *first, const void *second) {
 	return a->after_cycle - b->after_cycle;
 }
 
+void link_socket_update(asic_t *asic, int c) {
+	if (c != EOF) {
+		char _c = ' ';
+		if (isprint((char)c)) {
+			_c = (char)c;
+		}
+		// TODO: Log the TX better
+		printf("Asked to send %02X (%c)\n", c, _c);
+	}
+
+	if (!asic->link->listenfd.fd) {
+		return;
+	}
+
+	struct sockaddr_in clientaddr;
+	int size = sizeof(clientaddr);
+	poll(&asic->link->listenfd, 1, 0);
+	int fd = -1;
+	if (asic->link->accept++ == 4096) { // stupid hack
+		fd = accept(asic->link->listenfd.fd, (struct sockaddr *)&clientaddr, &size);
+		asic->link->accept = 0;
+	}
+
+	int i;
+	for (i = 0; i < sizeof(asic->link->clients) / sizeof(int); ++i) {
+		struct pollfd client = asic->link->clients[i];
+		if (asic->link->clients[i].fd == 0) {
+			if (fd != -1) {
+				asic->link->clients[i].fd = fd;
+				asic->link->clients[i].events = POLLIN;
+				printf("Client accepted with fd %d\n", fd);
+				fd = -1;
+			} else {
+				continue;
+			}
+		}
+		if (asic->link->clients[i].fd != 0) {
+			uint8_t val;
+			poll(&asic->link->clients[i], 1, 0);
+			if (asic->link->clients[i].revents & POLLIN) {
+				if (link_recv_ready(asic)) {
+					if (read(asic->link->clients[i].fd, &val, 1)) {
+						link_recv_byte(asic, val);
+					}
+				}
+			}
+			if (c != EOF) {
+				val = c;
+				write(asic->link->clients[i].fd, &c, 1);
+			}
+		}
+	}
+}
+
 void runloop_tick_cycles(runloop_state_t *state, int cycles) {
 	int total_cycles = 0;
 	int cycles_until_next_tick = cycles;
@@ -126,13 +188,7 @@ void runloop_tick_cycles(runloop_state_t *state, int cycles) {
 	while (cycles > 0) {
 		int ran = cycles_until_next_tick - cpu_execute(state->asic->cpu, cycles_until_next_tick);
 		int c = link_read_tx_buffer(state->asic);
-		if (c != EOF) {
-			char _c = ' ';
-			if (isprint((char)c)) {
-				_c = (char)c;
-			}
-			printf("Asked to send %02X (%c)\n", c, _c);
-		}
+		link_socket_update(state->asic, c);
 
 		total_cycles += ran;
 		cycles -= ran;
