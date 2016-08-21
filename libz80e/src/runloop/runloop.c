@@ -119,7 +119,7 @@ void link_socket_update(asic_t *asic, int c) {
 		if (asic->link->clients[i].fd == 0) {
 			if (fd != -1) {
 				asic->link->clients[i].fd = fd;
-				asic->link->clients[i].events = POLLIN;
+				asic->link->clients[i].events = POLLIN | POLLHUP;
 				printf("Client accepted with fd %d\n", fd);
 				fd = -1;
 			} else {
@@ -129,6 +129,11 @@ void link_socket_update(asic_t *asic, int c) {
 		if (asic->link->clients[i].fd != 0) {
 			uint8_t val;
 			poll(&asic->link->clients[i], 1, 0);
+			if (asic->link->clients[i].revents & POLLHUP) {
+				close(asic->link->clients[i].fd);
+				asic->link->clients[i].fd = 0;
+				continue;
+			}
 			if (asic->link->clients[i].revents & POLLIN) {
 				if (link_recv_ready(asic)) {
 					if (read(asic->link->clients[i].fd, &val, 1)) {
