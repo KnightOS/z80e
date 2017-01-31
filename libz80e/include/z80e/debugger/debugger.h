@@ -41,7 +41,7 @@ typedef enum {
 	DEBUGGER_ENABLED,
 	DEBUGGER_LONG_OPERATION,
 	DEBUGGER_LONG_OPERATION_INTERRUPTABLE
-} debugger_state;
+} debugger_operation_state;
 
 struct debugger {
 	struct {
@@ -54,7 +54,7 @@ struct debugger {
 
 	debugger_list_t commands;
 	asic_t *asic;
-	debugger_state state;
+	debugger_operation_state state;
 };
 
 int debugger_source_rc(debugger_state_t *, const char *rc_name);
