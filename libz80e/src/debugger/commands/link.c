@@ -3,9 +3,11 @@
 #include "ti/hardware/link.h"
 #include "debugger/hooks.h"
 
+#ifndef NOLINK
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <wordexp.h>
+#endif
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -42,11 +44,13 @@ uint8_t on_link_rx_buffer_read(void *state, uint8_t port, uint8_t value) {
 
 int handle_send(struct debugger_state *state, int argc, char **argv) {
 	char *path = strdup(argv[2]);
+#ifndef NOLINK
 	wordexp_t p;
 	if (wordexp(path, &p, 0) == 0) {
 		free(path);
 		path = strdup(p.we_wordv[0]);
 	}
+#endif
 
 	link_input = fopen(path, "r");
 	if (link_input) {
@@ -90,6 +94,9 @@ int handle_recv(struct debugger_state *state, int argc, char **argv) {
 }
 
 int handle_socket(struct debugger_state *state, int argc, char **argv) {
+#ifdef NOLINK
+	state->print(state, "Sockets are not supported\n");
+#else
 	state->asic->link->listenfd.fd =
 		socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
 	fcntl(state->asic->link->listenfd.fd, F_SETFL, O_NONBLOCK);
@@ -123,7 +130,7 @@ int handle_socket(struct debugger_state *state, int argc, char **argv) {
 	}
 
 	state->print(state, "Bound to socket at %s\n", argv[2]);
-
+#endif
 	return 0;
 }
 

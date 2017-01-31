@@ -2,7 +2,6 @@
 #include "debugger/debugger.h"
 #include "ti/hardware/timers.h"
 
-#include <wordexp.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>

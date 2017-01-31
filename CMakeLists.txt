@@ -11,6 +11,11 @@ if(NOT WIN32 OR CYGWIN)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 endif()
 
+if (MINGW OR MSYS)
+  add_definitions(-DNOLINK)
+  Message(STATUS "Building in MinGW or MSYS environment, disabling link socket")
+endif()
+
 if(APPLE)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPPLE")
 endif()
