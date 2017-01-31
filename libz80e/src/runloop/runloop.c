@@ -6,11 +6,13 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/types.h>
+#ifndef NOLINK
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/un.h>
 #include <poll.h>
+#endif
 #include <errno.h>
 /* Why the heck does "get the current time" have to be so god-dammed platform specific */
 #ifdef EMSCRIPTEN
@@ -100,6 +102,7 @@ void link_socket_update(asic_t *asic, int c) {
 		printf("Asked to send %02X (%c)\n", c, _c);
 	}
 
+#ifndef NOLINK
 	if (!asic->link->listenfd.fd) {
 		return;
 	}
@@ -147,6 +150,7 @@ void link_socket_update(asic_t *asic, int c) {
 			}
 		}
 	}
+#endif
 }
 
 void runloop_tick_cycles(runloop_state_t *state, int cycles) {

@@ -2,7 +2,9 @@
 #define ASIC_H
 
 #include <stdint.h>
+#ifndef NOLINK
 #include <poll.h>
+#endif
 
 typedef struct asic asic_t;
 
@@ -47,9 +49,11 @@ struct z80_hardware_timers {
 };
 
 struct z80_link_socket {
+#ifndef NOLINK
 	int accept;
 	struct pollfd listenfd;
 	struct pollfd clients[10];
+#endif
 };
 
 struct asic {
