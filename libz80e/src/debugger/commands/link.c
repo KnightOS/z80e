@@ -98,8 +98,9 @@ int handle_socket(struct debugger_state *state, int argc, char **argv) {
 	state->print(state, "Sockets are not supported\n");
 #else
 	state->asic->link->listenfd.fd =
-		socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
+		socket(AF_UNIX, SOCK_STREAM, 0);
 	fcntl(state->asic->link->listenfd.fd, F_SETFL, O_NONBLOCK);
+	fcntl(state->asic->link->listenfd.fd, F_SETFD, FD_CLOEXEC);
 	state->asic->link->listenfd.events = POLLIN;
 	if (state->asic->link->listenfd.fd == -1) {
 		state->print(state, "Unable to create socket\n");
