@@ -23,9 +23,9 @@ int debugger_list_commands(debugger_state_t *state, int argc, char **argv) {
 	return 0;
 }
 
-int command_set(debugger_state_t *state, int argc, char **argv) {
+int command_toggle(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 2) {
-		state->print(state, "%s Set a setting. Available settings: \n 1. echo \n 2. echo_reg \n 3. auto_on \n 4. knightos \n 5. nointonstep \n", argv[0]);
+		state->print(state, "Toggle a setting. Available settings: \n 1. echo \n 2. echo_reg \n 3. auto_on \n 4. knightos \n 5. nointonstep \n");
 		return 0;
 	}
 
@@ -47,29 +47,6 @@ int command_set(debugger_state_t *state, int argc, char **argv) {
 	return 0;
 }
 
-int command_unset(debugger_state_t *state, int argc, char **argv) {
-	if (argc != 2) {
-		state->print(state, "%s `val` - unset a setting\n", argv[0]);
-		return 0;
-	}
-
-	if (strcmp(argv[1], "echo") == 0) {
-		state->debugger->flags.echo = 0;
-	} else if (strcmp(argv[1], "echo_reg") == 0) {
-		state->debugger->flags.echo_reg = 0;
-	} else if (strcmp(argv[1], "auto_on") == 0) {
-		state->debugger->flags.auto_on = 0;
-	} else if (strcmp(argv[1], "knightos") == 0) {
-		state->debugger->flags.knightos = 0;
-	} else if (strcmp(argv[1], "nointonstep") == 0) {
-		state->debugger->flags.nointonstep = 0;
-	} else {
-		state->print(state, "Unknown variable '%s'!\n", argv[1]);
-		return 1;
-	}
-
-	return 0;
-}
 
 int command_source(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 2) {
@@ -156,8 +133,7 @@ debugger_command_t default_commands[] = {
 	{ "step_over", command_step_over, 0 },
 	{ "so", command_step_over, 1 },
 	{ "on", command_on, 0 },
-	{ "set", command_set, 0 },
-	{ "unset", command_unset, 0 },
+	{ "toggle", command_toggle, 0 },
 	{ "lcd", command_dump_lcd, 0 },
 	{ "link", command_link, 0 },
 	{ "turn_on", command_turn_on, 0 },

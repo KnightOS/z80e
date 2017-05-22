@@ -5,7 +5,7 @@
 
 int command_load_register(debugger_state_t *state, int argc, char **argv) {
 	if (argc != 3) {
-		state->print(state, "%s - Load a register with a specified value. Supports hex (i.e. 0x0000) and base-10 (i.e. 12)\n", argv[0]);
+		state->print(state, "%s - Load a register with a specified value. \n", argv[0]);
 		return 0;
 	}
 
