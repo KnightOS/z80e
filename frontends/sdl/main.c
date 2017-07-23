@@ -569,6 +569,10 @@ void sdl_events_hook(asic_t *device, void * unused) {
 					case SDLK_DELETE: /* Delete = DEL */
 						key_tap(device, 0x67, event.type == SDL_KEYDOWN);
 						break;
+					case SDLK_PERIOD:
+					case SDLK_SEMICOLON:
+						key_tap(device, 0x30, event.type == SDL_KEYDOWN);
+						break;
 
 					default:
 						break;
