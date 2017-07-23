@@ -79,3 +79,4 @@ Right Arrow|Right|0x02
 Down Arrow|Down|0x00
 Return|Enter|0x10
 Delete|DEL|0x67
+:/.|:|0x30
