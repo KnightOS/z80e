@@ -21,6 +21,8 @@ Most TI emulators have some of a shared set of problems, which z80e hopes to avo
 
 ## Compiling
 
+First make sure you have [scal](https://github.com/KnightOS/scas) installed.
+
 Native (Linux):
 
     $ cmake .
