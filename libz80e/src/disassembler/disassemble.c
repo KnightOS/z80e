@@ -452,7 +452,7 @@ void parse_bli(int y, int z, struct context *context) {
 uint16_t parse_instruction(struct disassemble_memory *memory, write_pointer write_p, bool knightos) {
 	source_map_t *map;
 	source_map_entry_t *entry;
-	if (knightos && try_from_sourcemap(memory, &map, &entry)) {
+	if (try_from_sourcemap(memory, &map, &entry)) {
 		char *code = entry->source_code;
 		while (*code && isspace(*code)) code++;
 		write_p(memory, "%s:%d: %s", map->file_name, entry->line_number, code);
