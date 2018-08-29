@@ -49,7 +49,8 @@ uint8_t bw_lcd_read_screen(ti_bw_lcd_t *lcd, int Y, int X) {
 int bw_lcd_write_screen(ti_bw_lcd_t *lcd, int Y, int X, char val) {
 	val = !!val;
 	int location = X * 120 + Y;
-	int orig = lcd->ram[location >> 3] &= ~(1 << (location % 8));
+	int orig = lcd->ram[location >> 3];
+	lcd->ram[location >> 3] &= ~(1 << (location % 8));
 	lcd->ram[location >> 3] |= (val << (location % 8));
 	
 	return orig != lcd->ram[location >> 3];
