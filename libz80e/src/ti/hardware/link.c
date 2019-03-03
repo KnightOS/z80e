@@ -35,8 +35,8 @@ uint8_t read_link_port(void *device) {
 
 void write_link_port(void *device, uint8_t val) {
 	link_state_t *state = device;
-	uint8_t tip = val & 1;
-	uint8_t ring = val & 2;
+	bool tip = val & 1;
+	bool ring = val & 2;
 	state->us.tip = tip;
 	state->us.ring = ring;
 }
