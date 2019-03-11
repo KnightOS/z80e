@@ -84,6 +84,13 @@ void tui_unicode_to_utf8(char *b, uint32_t c) {
 	else if (c<0x110000) *b++=240+c/262144, *b++=128+c/4096%64, *b++=128+c/64%64, *b++=128+c%64;
 }
 
+static uint8_t _bw_lcd_read_screen(ti_bw_lcd_t *lcd, int Y, int X) {
+	if (!lcd->display_on) {
+		return 0;
+	}
+	return bw_lcd_read_screen(lcd, Y, X);
+}
+
 void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 	int cY;
 	int cX;
@@ -91,14 +98,14 @@ void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 	if (context.braille) {
 		for (cX = 0; cX < 64; cX += 4) {
 			for (cY = 0; cY < 120; cY += 2) {
-				int a = bw_lcd_read_screen(lcd, cY + 0, cX + 0);
-				int b = bw_lcd_read_screen(lcd, cY + 0, cX + 1);
-				int c = bw_lcd_read_screen(lcd, cY + 0, cX + 2);
-				int d = bw_lcd_read_screen(lcd, cY + 1, cX + 0);
-				int e = bw_lcd_read_screen(lcd, cY + 1, cX + 1);
-				int f = bw_lcd_read_screen(lcd, cY + 1, cX + 2);
-				int g = bw_lcd_read_screen(lcd, cY + 0, cX + 3);
-				int h = bw_lcd_read_screen(lcd, cY + 1, cX + 3);
+				int a = _bw_lcd_read_screen(lcd, cY + 0, cX + 0);
+				int b = _bw_lcd_read_screen(lcd, cY + 0, cX + 1);
+				int c = _bw_lcd_read_screen(lcd, cY + 0, cX + 2);
+				int d = _bw_lcd_read_screen(lcd, cY + 1, cX + 0);
+				int e = _bw_lcd_read_screen(lcd, cY + 1, cX + 1);
+				int f = _bw_lcd_read_screen(lcd, cY + 1, cX + 2);
+				int g = _bw_lcd_read_screen(lcd, cY + 0, cX + 3);
+				int h = _bw_lcd_read_screen(lcd, cY + 1, cX + 3);
 				uint32_t byte_value = 0x2800;
 				byte_value += (
 						(a << 0) |
@@ -125,7 +132,7 @@ void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 
 	for (cX = 0; cX < 64; cX += 1) {
 		for (cY = 0; cY < 96; cY += 1) {
-			int on = bw_lcd_read_screen(lcd, cY, cX);
+			int on = _bw_lcd_read_screen(lcd, cY, cX);
 			int i, j;
 			for (i = 0; i < context.scale; ++i) {
 				for (j = 0; j < context.scale; ++j) {
