@@ -124,6 +124,7 @@ void bw_lcd_status_write(void *device, uint8_t val) {
 	} else if (val & 0x02) { // 0b0000001X
 		lcd->display_on = !!(val & 0x01);
 		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tDisplay turned %s", lcd->display_on ? "ON" : "OFF");
+		hook_on_lcd_update(lcd->hook, lcd);
 	} else { // 0b0000000X
 		lcd->word_length = !!(val & 0x01);
 		log_message(lcd->asic->log, L_DEBUG, "lcd", "\tWord Length set to %d", lcd->word_length ? 8 : 6);
