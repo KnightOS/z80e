@@ -135,25 +135,34 @@ int handle_socket(struct debugger_state *state, int argc, char **argv) {
 	return 0;
 }
 
+int handle_status(struct debugger_state *state) {
+	link_state_t *lstate = state->asic->cpu->devices[0x00].device;
+	state->print(state, "Ready: %d\n", !lstate->assist.status.rx_ready);
+	state->print(state, "Tip: %d\n", lstate->us.tip);
+	state->print(state, "Ring: %d\n", lstate->us.ring);
+	return 0;
+}
+
 int command_link(struct debugger_state *state, int argc, char **argv) {
-	if (argc < 3) {
-		state->print(state, "%s [send|recv|socket] [value|behavior|path]\n"
-				"send a value will send a value to the link port. If you pass a file, it will be sent instead.\n"
-				"recv [behavior] defines z80e's behavior when receiving link port data.\n"
-				"Use 'print' to print each value, or a file name to write values to that file.\n", argv[0]);
-		return 0;
+	if (argc >= 2) {
+		if ((strcasecmp(argv[1], "send") == 0) && (argc == 3)) {
+			return handle_send(state, argc, argv);
+		} else if ((strcasecmp(argv[1], "recv") == 0) && (argc == 3)) {
+			return handle_recv(state, argc, argv);
+		} else if ((strcasecmp(argv[1], "socket") == 0) && (argc == 3)) {
+			return handle_socket(state, argc, argv);
+		} else if (strcasecmp(argv[1], "status") == 0) {
+			return handle_status(state);
+		} else {
+			state->print(state, "Invalid operation %s\n", argv[1]);
+		}
 	}
 
-	if (strcasecmp(argv[1], "send") == 0) {
-		return handle_send(state, argc, argv);
-	} else if (strcasecmp(argv[1], "recv") == 0) {
-		return handle_recv(state, argc, argv);
-	} else if (strcasecmp(argv[1], "socket") == 0) {
-		return handle_socket(state, argc, argv);
-	} else {
-		state->print(state, "Invalid operation %s", argv[1]);
-	}
-
+	// Nothing handled the command? help text
+	state->print(state, "%s [send|recv|socket|status] [value|behavior|path]\n"
+			"send a value will send a value to the link port. If you pass a file, it will be sent instead.\n"
+			"recv [behavior] defines z80e's behavior when receiving link port data.\n"
+			"Use 'print' to print each value, or a file name to write values to that file.\n", argv[0]);
 	return 0;
 }
 
