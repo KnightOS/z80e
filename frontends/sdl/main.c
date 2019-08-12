@@ -9,7 +9,7 @@
 #include <z80e/ti/hardware/keyboard.h>
 #include <z80e/ti/hardware/interrupts.h>
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -41,18 +41,13 @@ typedef struct {
 	loglevel_t log_level;
 	int braille;
 	int scale;
-	int offset_l;
-	int offset_t;
-	SDL_Surface *screen;
+	SDL_Window *window;
+	SDL_Renderer *renderer;
 } appContext_t;
 
-#define COLOR_ON    0x00, 0x00, 0x00
-#define COLOR_OFF   0x99, 0xb1, 0x99
-#define COLOR_CLEAR 0xc6, 0xe6, 0xc6
-
-unsigned int pixel_color_on;
-unsigned int pixel_color_off;
-unsigned int pixel_color_clear;
+#define COLOR_ON    0x00, 0x00, 0x00, 0xff
+#define COLOR_OFF   0x99, 0xb1, 0x99, 0xff
+#define COLOR_CLEAR 0xc6, 0xe6, 0xc6, 0xff
 
 appContext_t context;
 
@@ -66,8 +61,6 @@ appContext_t create_context(void) {
 	context.log_level = L_WARN;
 	context.braille = 0;
 	context.scale = 5;
-	context.offset_l = 0;
-	context.offset_t = 0;
 	return context;
 }
 
@@ -126,27 +119,19 @@ void print_lcd(void *data, ti_bw_lcd_t *lcd) {
 
 	/* Update SDL display */
 
-	if (SDL_MUSTLOCK(context.screen)) {
-		SDL_LockSurface(context.screen);
-	}
-
-	for (cX = 0; cX < 64; cX += 1) {
-		for (cY = 0; cY < 96; cY += 1) {
-			int on = _bw_lcd_read_screen(lcd, cY, cX);
-			int i, j;
-			for (i = 0; i < context.scale; ++i) {
-				for (j = 0; j < context.scale; ++j) {
-					uint8_t *p = (uint8_t *)context.screen->pixels + (context.offset_t + cX * context.scale + i) * context.screen->pitch + (context.offset_l + cY * context.scale + j) * context.screen->format->BytesPerPixel;
-					*(uint32_t *)p = on ? pixel_color_on : pixel_color_off;
-				}
+	SDL_SetRenderDrawColor(context.renderer, COLOR_CLEAR);
+        SDL_RenderClear(context.renderer);
+	for (cX = 0; cX < 64; cX++) {
+		for (cY = 0; cY < 96; cY++) {
+			if (_bw_lcd_read_screen(lcd, cY, cX)) {
+				SDL_SetRenderDrawColor(context.renderer, COLOR_ON);
+			} else {
+				SDL_SetRenderDrawColor(context.renderer, COLOR_OFF);
 			}
+			SDL_RenderDrawPoint(context.renderer, cY, cX);
 		}
 	}
-
-	if (SDL_MUSTLOCK(context.screen)) {
-		SDL_UnlockSurface(context.screen);
-	}
-	SDL_UpdateRect(context.screen, context.offset_l, context.offset_t, 96 * context.scale, 64 * context.scale);
+	SDL_RenderPresent(context.renderer);
 
 	/* Push pixels to display */
 
@@ -191,7 +176,7 @@ void print_help(void) {
 			"\t-d <device>: Selects a device to emulate. Available devices:\n"
 			"\t\tTI73, TI83p, TI83pSE, TI84p, TI84pSE, TI84pCSE\n"
 			"\t-c <cycles>: Emulate this number of cycles, then exit. If omitted, the machine will be emulated indefinitely.\n"
-			"\t-s <scale>: Scaleoffset_l, offset_t, 96 * scale, 64 * scale window by <scale> times.\n"
+			"\t-s <scale>: Scale window by <scale> times.\n"
 			"\t--braille: Enables braille display in console.\n"
 			"\t--print-state: Prints the state of the machine on exit.\n"
 			"\t--no-rom-check: Skips the check that ensure the provided ROM file is the correct size.\n"
@@ -287,47 +272,6 @@ void key_tap(asic_t *asic, int scancode, int down) {
 	}
 }
 
-void setup_display(int w, int h) {
-	context.screen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE | SDL_RESIZABLE);
-
-	pixel_color_on    = SDL_MapRGB(context.screen->format, COLOR_ON);
-	pixel_color_off   = SDL_MapRGB(context.screen->format, COLOR_OFF);
-	pixel_color_clear = SDL_MapRGB(context.screen->format, COLOR_CLEAR);
-
-	int best_w_scale = w / 96;
-	int best_h_scale = h / 64;
-
-	int y, x;
-
-	if (best_w_scale < best_h_scale) {
-		context.scale = best_w_scale;
-	} else {
-		context.scale = best_h_scale;
-	}
-
-	context.offset_l = (w - context.scale * 96) / 2;
-	context.offset_t = (h - context.scale * 64) / 2;
-
-	if (SDL_MUSTLOCK(context.screen)) {
-		SDL_LockSurface(context.screen);
-	}
-
-	for (y = 0; y < h; y++) {
-		for (x = 0; x < w; x++) {
-			uint8_t *p = (uint8_t *)context.screen->pixels + y * context.screen->pitch + x * context.screen->format->BytesPerPixel;
-			*(uint32_t *)p = pixel_color_clear;
-		}
-	}
-
-	if (SDL_MUSTLOCK(context.screen)) {
-		SDL_UnlockSurface(context.screen);
-	}
-
-	SDL_UpdateRect(context.screen, 0, 0, w, h);
-
-	lcd_changed = 1;
-}
-
 void sdl_events_hook(asic_t *device, void * unused) {
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
@@ -411,31 +355,31 @@ void sdl_events_hook(asic_t *device, void * unused) {
 					case SDLK_SLASH: /* //? = negative */
 						key_tap(device, 0x20, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_KP1: /* Numpad 1 = Stats */
+					case SDLK_KP_1: /* Numpad 1 = Stats */
 						key_tap(device, 0x37, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_KP2: /* Numpad 2 = Down */
+					case SDLK_KP_2: /* Numpad 2 = Down */
 						key_tap(device, 0x00, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_KP3: /* Numpad 3 = Programs */
+					case SDLK_KP_3: /* Numpad 3 = Programs */
 						key_tap(device, 0x36, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_KP4: /* Numpad 4 = Right */
+					case SDLK_KP_4: /* Numpad 4 = Right */
 						key_tap(device, 0x02, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_KP6: /* Numpad 6 = Left */
+					case SDLK_KP_6: /* Numpad 6 = Left */
 						key_tap(device, 0x01, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_KP7: /* Numpad 7 = Math */
+					case SDLK_KP_7: /* Numpad 7 = Math */
 						key_tap(device, 0x56, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_KP8: /* Numpad 8 = Up */
+					case SDLK_KP_8: /* Numpad 8 = Up */
 						key_tap(device, 0x03, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_KP9: /* Numpad 9 = Apps */
+					case SDLK_KP_9: /* Numpad 9 = Apps */
 						key_tap(device, 0x46, event.type == SDL_KEYDOWN);
 						break;
-					case SDLK_KP0: /* Numpad 0 = Vars */
+					case SDLK_KP_0: /* Numpad 0 = Vars */
 						key_tap(device, 0x26, event.type == SDL_KEYDOWN);
 						break;
 					case SDLK_KP_PLUS: /* Numpad + = + */
@@ -586,8 +530,8 @@ void sdl_events_hook(asic_t *device, void * unused) {
 				}
 
 				break;
-			case SDL_VIDEORESIZE:
-				setup_display(event.resize.w, event.resize.h);
+			case SDL_WINDOWEVENT:
+				lcd_changed = 1;
 				break;
 			case SDL_QUIT:
 				exit(0);
@@ -662,8 +606,10 @@ int main(int argc, char **argv) {
 	}
 
 	SDL_Init(SDL_INIT_EVERYTHING);
-	setup_display(context.scale * 96, context.scale * 64);
-	SDL_WM_SetCaption("z80e", NULL);
+	SDL_CreateWindowAndRenderer(context.scale * 96, context.scale * 64, SDL_WINDOW_RESIZABLE,
+			&context.window, &context.renderer);
+	SDL_SetWindowTitle(context.window, "z80e");
+	SDL_RenderSetLogicalSize(context.renderer, 96, 64);
 
 	hook_add_lcd_update(device->hook, NULL, lcd_changed_hook);
 	asic_add_timer(device, 0, 60, lcd_timer_tick, device->cpu->devices[0x10].device);
