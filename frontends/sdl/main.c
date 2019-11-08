@@ -123,7 +123,8 @@ void print_lcd(void *data, ti_bw_lcd_t *lcd) {
         SDL_RenderClear(context.renderer);
 	for (cX = 0; cX < 64; cX++) {
 		for (cY = 0; cY < 96; cY++) {
-			if (_bw_lcd_read_screen(lcd, cY, cX)) {
+			int cXZ = (cX + lcd->Z) % 64;
+			if (_bw_lcd_read_screen(lcd, cY, cXZ)) {
 				SDL_SetRenderDrawColor(context.renderer, COLOR_ON);
 			} else {
 				SDL_SetRenderDrawColor(context.renderer, COLOR_OFF);
