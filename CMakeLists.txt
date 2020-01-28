@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 2.8.5)
+
 project(z80e C)
+
 option(enable-sdl "Enables the SDL frontend" NO)
 option(enable-tui "Enables the TUI frontend" YES)
 option(enable-zex "Enables the zex test suite" NO)
 option(enable-test "Enables the unit test frontend" NO)
 
-set(CMAKE_C_FLAGS "-g")
+# Long term goal: add -Werror here
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic")  
 
 if(NOT WIN32 OR CYGWIN)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
@@ -22,8 +25,9 @@ endif()
 
 add_subdirectory(libz80e libz80e)
 add_subdirectory(frontends/libz80e frontends/libz80e)
+
 if(enable-test)
-add_subdirectory(frontends/test frontends/test)
+    add_subdirectory(frontends/test frontends/test)
 endif()
 
 if(NOT DEFINED EMSCRIPTEN)
