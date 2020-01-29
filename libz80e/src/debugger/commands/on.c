@@ -216,45 +216,6 @@ int step_over_disasm_write(struct disassemble_memory *mem, const char *thing, ..
 	}
 }
 
-static bool will_branch(uint8_t instruction, z80cpu_t *cpu) {
-	switch (instruction) {
-	case 0xC2:
-	case 0x20:
-	case 0xC0:
-		return cpu->registers.flags.Z == 0;
-	case 0xCA:
-	case 0x28:
-	case 0xC8:
-		return cpu->registers.flags.Z == 1;
-	case 0xD2:
-	case 0x30:
-	case 0xD0:
-		return cpu->registers.flags.C == 0;
-	case 0xDA:
-	case 0x38:
-	case 0xD8:
-		return cpu->registers.flags.C == 1;
-	case 0xE2:
-	case 0xE0:
-		return cpu->registers.flags.PV == 0;
-	case 0xEA:
-	case 0xE8:
-		return cpu->registers.flags.PV == 1;
-	case 0xF2:
-	case 0xF0:
-		return cpu->registers.flags.S == 0;
-	case 0xFA:
-	case 0xF8:
-		return cpu->registers.flags.S == 1;
-	case 0x18:
-	case 0xC3:
-	case 0xC9:
-		return true;
-	default:
-		return false;
-	}
-}
-
 int command_step_over(struct debugger_state *state, int argc, char **argv) {
 	if (argc != 1) {
 		state->print(state, "%s - set a breakpoint for the instruction after the current one\n", argv[0]);
@@ -271,14 +232,10 @@ int command_step_over(struct debugger_state *state, int argc, char **argv) {
 		state->print(state, "\n");
 	}
 	// Note: 0x18, 0xFE is JR $, i.e. an infinite loop, which we step over as a special case
-	// The other jumps specified here are all relative jumps in the form `jr cond, *`
-	// For all of these jumps (where the target is $), if the condition is false, we go to
-	// PC + 2, and if the condition is true, it's an infinite loop, which we want to
-	// step over to PC + 2.
-	const uint8_t relative_jumps[] = { 0x18, 0x28, 0x38, 0x30, 0x20 };
-	size_t i;
-	for (i = 0; i < sizeof(relative_jumps) / sizeof(uint8_t); ++i) {
-		if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == relative_jumps[i] &&
+	const uint8_t jumps[] = { 0x18, 0x28, 0x38, 0x30, 0x20 };
+	int i;
+	for (i = 0; i < sizeof(jumps) / sizeof(uint8_t); ++i) {
+		if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == jumps[i] &&
 			cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC + 1) == 0xFE) {
 			state->asic->cpu->registers.PC += 2;
 			return 0;
@@ -296,50 +253,6 @@ int command_step_over(struct debugger_state *state, int argc, char **argv) {
 	data->count = 1;
 	data->log = 0;
 	data->hook_id = hook_add_before_execution(state->asic->hook, data, (hook_execution_callback) break_callback);
-
-	uint8_t returns[] = { 0xC9, 0xC0, 0xC8, 0xD0, 0xD8, 0xE0, 0xE8, 0xF0, 0xF8 };
-	for (i = 0; i < sizeof(returns) / sizeof(uint8_t); ++i) {
-		if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == returns[i]) {
-			if (will_branch(returns[i], state->asic->cpu)) {
-				data->address = cpu_read_word(state->asic->cpu, state->asic->cpu->registers.SP);
-			}
-			break;
-		}
-	}
-
-	for (i = 0; i < sizeof(relative_jumps) / sizeof(uint8_t); ++i) {
-		if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == relative_jumps[i]) {
-			if (will_branch(relative_jumps[i], state->asic->cpu)) {
-				data->address = state->asic->cpu->registers.PC + 2 +
-						((int8_t)cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC + 1));
-			}
-			break;
-		}
-	}
-
-	uint8_t absolute_jumps[] = { 0xC3, 0xC2, 0xCA, 0xD2, 0xDA, 0xE2, 0xEA, 0xF2, 0xFA };
-	for (i = 0; i < sizeof(absolute_jumps) / sizeof(uint8_t); i++) {
-		if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == absolute_jumps[i]) {
-			if (will_branch(absolute_jumps[i], state->asic->cpu)) {
-				data->address = cpu_read_word(state->asic->cpu, state->asic->cpu->registers.PC + 1);
-			}
-			break;
-		}
-	}
-
-	if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == 0xDD
-			&& cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC + 1) == 0xE9) {
-		data->address = state->asic->cpu->registers.IX;
-	}
-
-	if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == 0xFD
-			&& cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC + 1) == 0xE9) {
-		data->address = state->asic->cpu->registers.IY;
-	}
-
-	if (cpu_read_byte(state->asic->cpu, state->asic->cpu->registers.PC) == 0xE9) {
-		data->address = state->asic->cpu->registers.HL;
-	}
 
 	char *_argv[] = { "run" };
 	int orig_echo = state->debugger->flags.echo;
