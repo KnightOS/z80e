@@ -7,3 +7,4 @@ install_manifest.txt
 *.o
 bin/
 *.rom
+build
