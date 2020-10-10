@@ -7,7 +7,6 @@ option(enable-tui "Enables the TUI frontend" YES)
 option(enable-zex "Enables the zex test suite" NO)
 option(enable-test "Enables the unit test frontend" NO)
 
-# Long term goal: add -Werror here
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic")  
 
 if(NOT WIN32 OR CYGWIN)
