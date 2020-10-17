@@ -62,7 +62,7 @@ void write_link_assist_enable_port(void *device, uint8_t val) {
 		state->interrupts.mask = val;
 		state->asic->cpu->interrupt = (state->interrupts.tx && state->assist.status.int_tx_ready)
 			|| (state->interrupts.rx && state->assist.status.int_rx_ready);
-		printf("Just wrote %02X to LA enable port\n");
+		printf("Just wrote %02X to LA enable port\n", val);
 		printf("rx int: %d tx int: %d\n",
 				state->interrupts.rx, state->interrupts.tx);
 		break;
