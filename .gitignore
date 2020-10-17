@@ -6,4 +6,5 @@ install_manifest.txt
 *.swp
 *.o
 bin/
+build/
 *.rom
