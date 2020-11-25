@@ -21,7 +21,8 @@ Most TI emulators have some of a shared set of problems, which z80e hopes to avo
 
 ## Compiling
 
-First make sure you have [scas](https://github.com/KnightOS/scas) installed.
+First make sure you have [scas](https://github.com/KnightOS/scas) installed with
+libscas built (SCAS_LIBRARY=1 if using cmake).
 
 Native (Linux):
 
