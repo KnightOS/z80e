@@ -6,10 +6,12 @@
 #include <strings.h>
 #include <ctype.h>
 #include "disassembler/disassemble.h"
-#include "objects.h"
 #include "list.h"
-#include "readline.h"
 #include "stringop.h"
+#include "stack.h"
+#include "expression.h"
+#include "objects.h"
+#include "readline.h"
 
 struct pcall {
 	char *name;
