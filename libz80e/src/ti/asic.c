@@ -59,9 +59,7 @@ void plug_devices(asic_t *asic) {
 	init_flash_ports(asic);
 }
 
-void asic_null_write(void *ignored, uint8_t value) {
-
-}
+void asic_null_write(void *ignored, uint8_t value) {}
 
 void asic_mirror_ports(asic_t *asic) {
 	int i;
