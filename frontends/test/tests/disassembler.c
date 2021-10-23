@@ -16,6 +16,7 @@ uint8_t dis_read_byte(struct disassemble_memory *memp, uint16_t pointer) {
 }
 
 int test_disassembler() {
+	disassembler_init();
 	uint8_t tests[] =
 			{0x3a, 0x34, 0x12,  // LD A, (0x1234)
 			 0xdd, 0xcb, 0x12, 0x06, // RLC (IX + 0x12)
