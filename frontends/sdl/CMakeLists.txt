@@ -9,7 +9,7 @@ add_executable(z80e-sdl
 )
 
 target_include_directories(z80e-sdl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../libz80e/include)
-TARGET_LINK_LIBRARIES(z80e-sdl readline SDL2::SDL2 ${SCAS_LIBRARIES})
+TARGET_LINK_LIBRARIES(z80e-sdl readline SDL2 ${SCAS_LIBRARIES})
 
 if(NOT APPLE AND NOT HAIKU)
 	TARGET_LINK_LIBRARIES(z80e-sdl rt)
