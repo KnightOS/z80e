@@ -20,8 +20,6 @@
 #endif
 #ifdef APPLE
 #include <mach/mach_time.h>
-#define ORWL_NANO (+1.0E-9)
-#define ORWL_GIGA UINT64_C(1000000000)
 static double orwl_timebase = 0.0;
 static uint64_t orwl_timestart = 0;
 #endif
@@ -39,11 +37,8 @@ long long get_time_nsec() {
 		orwl_timebase /= tb.denom;
 		orwl_timestart = mach_absolute_time();
 	}
-	struct timespec t;
 	double diff = (mach_absolute_time() - orwl_timestart) * orwl_timebase;
-	t.tv_sec = diff * ORWL_NANO;
-	t.tv_nsec = diff - (t.tv_sec * ORWL_GIGA);
-	return t.tv_nsec;
+	return (long long)diff;
 #else
 	struct timespec sp;
 	clock_gettime(CLOCK_MONOTONIC, &sp);
